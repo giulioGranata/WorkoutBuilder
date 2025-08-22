@@ -1,0 +1,83 @@
+Scaffold a React + TypeScript + TailwindCSS app (Vite) named "Workout Generator 2.0".
+Goal: single-page app, static deploy on Vercel.
+
+Do:
+1) Init Vite (react-ts) + Tailwind.
+2) Dark, mobile-first UI; minimal styling; comments in English.
+3) Package.json scripts:
+   - dev: vite
+   - build: vite build
+   - preview: vite preview
+4) Add vercel.json for SPA fallback:
+{
+  "routes": [{ "src": "/.*", "dest": "/index.html" }]
+}
+5) Add .gitignore (node_modules, dist, .DS_Store).
+6) File tree:
+
+/index.html
+/src
+  /components
+    WorkoutForm.tsx
+    WorkoutOutput.tsx
+  /lib
+    generator.ts
+    types.ts
+  App.tsx
+  main.tsx
+  index.css
+/tailwind.config.ts
+/postcss.config.js
+/tsconfig.json
+/README.md
+/vercel.json
+/package.json
+
+7) Implement types (/src/lib/types.ts):
+export type WorkoutType = "recovery" | "endurance" | "tempo" | "threshold" | "vo2max" | "anaerobic";
+export type Difficulty = "easy" | "standard" | "hard";
+export type Step = { minutes: number; intensityPct: number; description: string; };
+export type Workout = { title: string; steps: Step[]; totalMinutes: number; };
+
+8) Implement generator (/src/lib/generator.ts):
+- export function generateWorkout({ ftp, durationMin, type, difficulty = "standard" }): Workout
+- Title: "Type — Duration’" (capitalize; “VO2max” exact case).
+- Warm-up ≈10% (min 5, max 12) @ ~60% FTP.
+- Cool-down ≈10% (min 5, max 8) @ ~50% FTP.
+- Core by type:
+  recovery: continuous 50–60% FTP
+  endurance: steady 65–75% in 8–12' chunks
+  tempo: repeats 8–12' @ 76–90% with 2–3' easy
+  threshold: repeats 6–10' @ 95–105% with 3–5' easy
+  vo2max: repeats 2–4' @ 110–120% with equal rest
+  anaerobic: 40–60s @ 125–150% + 2' easy, grouped in sets (use 1' for MVP; keep all minutes as integers)
+- Difficulty tweaks: easy (−5% FTP & fewer reps), standard (0), hard (+5% FTP & more reps).
+- If total would overflow, truncate last core block and append "(truncated)" to its description.
+- Return integer minutes and include "% FTP" in each step description. Sum totalMinutes.
+
+9) Implement UI:
+- /src/components/WorkoutForm.tsx:
+  Inputs: FTP (number), Duration (number), Type (select), Difficulty (radio: Easy/Standard/Hard).
+  Button “Generate workout”.
+  Buttons: “Export JSON” (download file) and “Copy text” (clipboard).
+  On submit, call generateWorkout and lift result.
+- /src/components/WorkoutOutput.tsx:
+  Render title.
+  Ordered list of steps: "X’ — Y% FTP — description".
+  "Total: N’".
+- /src/App.tsx:
+  Centered container, dark background, responsive spacing. Mount form + output.
+- /src/index.css:
+  Tailwind base/components/utilities; dark theme defaults.
+
+10) README.md (short):
+- How to run locally: npm i && npm run dev
+- How to build: npm run build
+- Vercel deploy:
+  a) Push to GitHub
+  b) Import on Vercel → Framework preset: Vite
+  c) Build command: npm run build
+  d) Output: dist
+  e) Include vercel.json (SPA fallback)
+
+Deliver complete code ready to run.
