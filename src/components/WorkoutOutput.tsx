@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Workout, Step } from "@/lib/types";
-import { ListOrdered, Download, Copy, Clock, Bike } from "lucide-react";
+import { Step, Workout } from "@/lib/types";
+import { Bike, Clock, Copy, Download, ListOrdered } from "lucide-react";
+import { useState } from "react";
 
 interface WorkoutOutputProps {
   workout: Workout | null;
@@ -14,19 +14,19 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
 
   const handleExportJSON = () => {
     if (!workout) return;
-    
+
     const dataStr = JSON.stringify(workout, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
+
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `${workout.title.replace(/[^a-zA-Z0-9]/g, '_')}.json`;
+    link.download = `${workout.title.replace(/[^a-zA-Z0-9]/g, "_")}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Export successful",
       description: "Workout exported as JSON file",
@@ -35,15 +35,21 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
 
   const handleCopyToClipboard = async () => {
     if (!workout) return;
-    
+
     setIsCopying(true);
-    
-    const workoutText = `${workout.title}\n\n` +
-      workout.steps.map((step, index) => 
-        `${index + 1}. ${step.minutes}' — ${step.intensityPct}% FTP — ${step.description}`
-      ).join('\n') +
+
+    const workoutText =
+      `${workout.title}\n\n` +
+      workout.steps
+        .map(
+          (step, index) =>
+            `${index + 1}. ${step.minutes}' — ${step.intensity} W — ${
+              step.description
+            }`
+        )
+        .join("\n") +
       `\n\nTotal: ${workout.totalMinutes}'`;
-    
+
     try {
       await navigator.clipboard.writeText(workoutText);
       toast({
@@ -98,7 +104,9 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
           <ListOrdered className="text-emerald-500 mr-3 h-5 w-5" />
-          <h2 className="text-xl font-semibold text-white">Generated Workout</h2>
+          <h2 className="text-xl font-semibold text-white">
+            Generated Workout
+          </h2>
         </div>
         {workout && (
           <div className="flex items-center space-x-2">
@@ -131,12 +139,17 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
         <div className="workout-content" data-testid="workout-display">
           {/* Workout Title */}
           <div className="mb-6">
-            <h3 className="text-2xl font-bold text-white mb-2" data-testid="text-workout-title">
+            <h3
+              className="text-2xl font-bold text-white mb-2"
+              data-testid="text-workout-title"
+            >
               {workout.title}
             </h3>
             <div className="flex items-center text-sm text-gray-400">
               <Clock className="mr-2 h-4 w-4" />
-              <span data-testid="text-total-time">Total: {workout.totalMinutes} minutes</span>
+              <span data-testid="text-total-time">
+                Total: {workout.totalMinutes}'
+              </span>
             </div>
           </div>
 
@@ -145,22 +158,39 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             {workout.steps.map((step, index) => (
               <div
                 key={index}
-                className={`workout-step bg-gray-700/50 rounded-lg p-4 border-l-4 ${getStepPhaseColor(step, index)}`}
+                className={`workout-step bg-gray-700/50 rounded-lg p-4 border-l-4 ${getStepPhaseColor(
+                  step,
+                  index
+                )}`}
                 data-testid={`workout-step-${index}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`${getStepPhaseTextColor(step)} text-xs font-medium uppercase tracking-wider`}>
+                  <span
+                    className={`${getStepPhaseTextColor(
+                      step
+                    )} text-xs font-medium uppercase tracking-wider`}
+                  >
                     {getStepPhaseLabel(step)}
                   </span>
-                  <span className="text-xs text-gray-500">Step {index + 1}</span>
+                  <span className="text-xs text-gray-500">
+                    Step {index + 1}
+                  </span>
                 </div>
                 <div className="flex items-start space-x-3">
-                  <div className={`${getStepBadgeColor(step)} text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center`}>
+                  <div
+                    className={`${getStepBadgeColor(
+                      step
+                    )} text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center`}
+                  >
                     {step.minutes}'
                   </div>
                   <div className="flex-1">
-                    <div className="text-white font-medium mb-1">{step.intensityPct}% FTP</div>
-                    <div className="text-gray-300 text-sm">{step.description}</div>
+                    <div className="text-white font-medium mb-1">
+                      {step.intensity} W
+                    </div>
+                    <div className="text-gray-300 text-sm">
+                      {step.description}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -171,28 +201,48 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
           <div className="mt-6 pt-6 border-t border-gray-700">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
               <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-2xl font-bold text-emerald-400" data-testid="text-total-minutes">
+                <div
+                  className="text-2xl font-bold text-emerald-400"
+                  data-testid="text-total-minutes"
+                >
                   {workout.totalMinutes}'
                 </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Total Time</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  Total Time
+                </div>
               </div>
               <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-2xl font-bold text-blue-400" data-testid="text-work-minutes">
+                <div
+                  className="text-2xl font-bold text-blue-400"
+                  data-testid="text-work-minutes"
+                >
                   {workout.workMinutes || 0}'
                 </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Work Time</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  Work Time
+                </div>
               </div>
               <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-2xl font-bold text-yellow-400" data-testid="text-recovery-minutes">
+                <div
+                  className="text-2xl font-bold text-yellow-400"
+                  data-testid="text-recovery-minutes"
+                >
                   {workout.recoveryMinutes || 0}'
                 </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Recovery</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  Recovery
+                </div>
               </div>
               <div className="bg-gray-700/30 rounded-lg p-3">
-                <div className="text-2xl font-bold text-purple-400" data-testid="text-avg-intensity">
-                  {workout.avgIntensity || 0}%
+                <div
+                  className="text-2xl font-bold text-purple-400"
+                  data-testid="text-avg-intensity"
+                >
+                  {workout.avgIntensity || 0}W
                 </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wider">Avg FTP</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider">
+                  Avg Intensity
+                </div>
               </div>
             </div>
           </div>
@@ -222,10 +272,18 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
           </div>
         </div>
       ) : (
-        <div className="empty-state text-center py-12" data-testid="empty-state">
+        <div
+          className="empty-state text-center py-12"
+          data-testid="empty-state"
+        >
           <Bike className="mx-auto text-4xl text-gray-600 mb-4 h-16 w-16" />
-          <h3 className="text-lg font-medium text-gray-400 mb-2">No workout generated yet</h3>
-          <p className="text-gray-500">Configure your settings and click "Generate Workout" to create a personalized training session.</p>
+          <h3 className="text-lg font-medium text-gray-400 mb-2">
+            No workout generated yet
+          </h3>
+          <p className="text-gray-500">
+            Configure your settings and click "Generate Workout" to create a
+            personalized training session.
+          </p>
         </div>
       )}
     </div>

@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
-import { Workout } from "@/lib/types";
+import { Workout, WORKOUT_TYPES } from "@/lib/types";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Dumbbell } from "lucide-react";
+import { useState } from "react";
+import { queryClient } from "./lib/queryClient";
 
 function App() {
   const [workout, setWorkout] = useState<Workout | null>(null);
@@ -27,7 +27,9 @@ function App() {
                   <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
                     <Dumbbell className="text-white h-4 w-4" />
                   </div>
-                  <h1 className="text-2xl font-bold text-white">Workout Generator 2.0</h1>
+                  <h1 className="text-2xl font-bold text-white">
+                    Workout Generator 2.0
+                  </h1>
                 </div>
                 <div className="hidden sm:flex items-center text-sm text-gray-400">
                   <span>Generate personalized cycling workouts</span>
@@ -49,32 +51,58 @@ function App() {
                 <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-3">
                   <span className="text-white text-xs font-bold">i</span>
                 </div>
-                <h3 className="text-lg font-semibold text-white">Workout Types Explained</h3>
+                <h3 className="text-lg font-semibold text-white">
+                  Workout Types Explained
+                </h3>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">Recovery (50-60% FTP)</div>
-                  <div className="text-gray-400">Easy-paced riding to promote active recovery and blood flow</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["recovery"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["recovery"].description}
+                  </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">Endurance (65-75% FTP)</div>
-                  <div className="text-gray-400">Aerobic base building with steady, comfortable efforts</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["endurance"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["endurance"].description}
+                  </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">Tempo (76-90% FTP)</div>
-                  <div className="text-gray-400">Moderately hard efforts that improve efficiency at race pace</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["tempo"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["tempo"].description}
+                  </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">Threshold (95-105% FTP)</div>
-                  <div className="text-gray-400">Sustainable hard efforts that improve lactate threshold power</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["threshold"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["threshold"].description}
+                  </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">VO2max (110-120% FTP)</div>
-                  <div className="text-gray-400">High-intensity intervals that boost maximum oxygen uptake</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["vo2max"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["vo2max"].description}
+                  </div>
                 </div>
                 <div className="bg-gray-700/30 rounded-lg p-4">
-                  <div className="font-medium text-white mb-2">Anaerobic (125-150% FTP)</div>
-                  <div className="text-gray-400">Short, very high-intensity efforts for neuromuscular power</div>
+                  <div className="font-medium text-white mb-2">
+                    {WORKOUT_TYPES["anaerobic"].label}
+                  </div>
+                  <div className="text-gray-400">
+                    {WORKOUT_TYPES["anaerobic"].description}
+                  </div>
                 </div>
               </div>
             </div>
@@ -88,7 +116,9 @@ function App() {
                   © 2024 Workout Generator 2.0. Built for cyclists, by cyclists.
                 </div>
                 <div className="flex items-center space-x-4">
-                  <span className="text-gray-500 text-xs">Powered by science-based training zones</span>
+                  <span className="text-gray-500 text-xs">
+                    Powered by science-based training zones
+                  </span>
                 </div>
               </div>
             </div>
