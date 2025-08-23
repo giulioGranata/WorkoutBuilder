@@ -1,15 +1,12 @@
-import { Difficulty, Step, Workout, WorkoutFormData } from "./types";
+import { Step, Workout, WorkoutFormData } from "./types";
 
 export function generateWorkout({
   ftp,
   durationMin,
   type,
-  difficulty = "standard",
 }: WorkoutFormData): Workout {
   // Apply difficulty modifiers
-  const difficultyModifier =
-    difficulty === "easy" ? -5 : difficulty === "hard" ? 5 : 0;
-  const adjustedFtp = ftp + (ftp * difficultyModifier) / 100;
+  const adjustedFtp = ftp;
 
   // Calculate warm-up and cool-down durations
   const warmupDuration = Math.max(
@@ -41,31 +38,19 @@ export function generateWorkout({
       workSteps = generateRecoverySteps(adjustedFtp, remainingTime);
       break;
     case "endurance":
-      workSteps = generateEnduranceSteps(
-        adjustedFtp,
-        remainingTime,
-        difficulty
-      );
+      workSteps = generateEnduranceSteps(adjustedFtp, remainingTime);
       break;
     case "tempo":
-      workSteps = generateTempoSteps(adjustedFtp, remainingTime, difficulty);
+      workSteps = generateTempoSteps(adjustedFtp, remainingTime);
       break;
     case "threshold":
-      workSteps = generateThresholdSteps(
-        adjustedFtp,
-        remainingTime,
-        difficulty
-      );
+      workSteps = generateThresholdSteps(adjustedFtp, remainingTime);
       break;
     case "vo2max":
-      workSteps = generateVO2MaxSteps(adjustedFtp, remainingTime, difficulty);
+      workSteps = generateVO2MaxSteps(adjustedFtp, remainingTime);
       break;
     case "anaerobic":
-      workSteps = generateAnaerobicSteps(
-        adjustedFtp,
-        remainingTime,
-        difficulty
-      );
+      workSteps = generateAnaerobicSteps(adjustedFtp, remainingTime);
       break;
   }
 
@@ -122,14 +107,9 @@ function generateRecoverySteps(ftp: number, duration: number): Step[] {
   ];
 }
 
-function generateEnduranceSteps(
-  ftp: number,
-  duration: number,
-  difficulty: Difficulty
-): Step[] {
+function generateEnduranceSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
-  const chunkDuration =
-    difficulty === "easy" ? 8 : difficulty === "hard" ? 12 : 10;
+  const chunkDuration = 10;
   const intensity = Math.round(ftp * 0.7);
 
   let remaining = duration;
@@ -147,16 +127,10 @@ function generateEnduranceSteps(
   return steps;
 }
 
-function generateTempoSteps(
-  ftp: number,
-  duration: number,
-  difficulty: Difficulty
-): Step[] {
+function generateTempoSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
-  const workDuration =
-    difficulty === "easy" ? 8 : difficulty === "hard" ? 12 : 10;
-  const restDuration =
-    difficulty === "easy" ? 3 : difficulty === "hard" ? 2 : 3;
+  const workDuration = 10;
+  const restDuration = 3;
   const intensity = Math.round(ftp * 0.83);
   const restIntensity = Math.round(ftp * 0.55);
 
@@ -196,16 +170,10 @@ function generateTempoSteps(
   return steps;
 }
 
-function generateThresholdSteps(
-  ftp: number,
-  duration: number,
-  difficulty: Difficulty
-): Step[] {
+function generateThresholdSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
-  const workDuration =
-    difficulty === "easy" ? 6 : difficulty === "hard" ? 10 : 8;
-  const restDuration =
-    difficulty === "easy" ? 5 : difficulty === "hard" ? 3 : 4;
+  const workDuration = 8;
+  const restDuration = 4;
   const intensity = Math.round(ftp * 1.0);
   const restIntensity = Math.round(ftp * 0.55);
 
@@ -245,14 +213,9 @@ function generateThresholdSteps(
   return steps;
 }
 
-function generateVO2MaxSteps(
-  ftp: number,
-  duration: number,
-  difficulty: Difficulty
-): Step[] {
+function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
-  const workDuration =
-    difficulty === "easy" ? 2 : difficulty === "hard" ? 4 : 3;
+  const workDuration = 3;
   const restDuration = workDuration; // Equal rest
   const intensity = Math.round(ftp * 1.15);
   const restIntensity = Math.round(ftp * 0.55);
@@ -284,11 +247,7 @@ function generateVO2MaxSteps(
   return steps;
 }
 
-function generateAnaerobicSteps(
-  ftp: number,
-  duration: number,
-  difficulty: Difficulty
-): Step[] {
+function generateAnaerobicSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
   const workDuration = 1; // 1 minute for MVP (keeping integers)
   const restDuration = 2;
