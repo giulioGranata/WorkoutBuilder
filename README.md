@@ -5,10 +5,12 @@ Un'applicazione per la generazione di workout personalizzati per ciclisti, costr
 ## 🚀 Avvio Rapido
 
 ### Prerequisiti
-- Node.js 18+ 
+
+- Node.js 18+
 - npm o yarn
 
 ### Installazione
+
 ```bash
 # Clona il repository
 git clone <your-repo-url>
@@ -35,12 +37,15 @@ L'applicazione si aprirà automaticamente su `http://localhost:3000`
 
 ```
 WorkoutBuilder/
-├── client/           # Frontend React + Vite
-│   ├── src/         # Codice sorgente
+├── src/             # Codice sorgente React
 │   ├── components/  # Componenti React
 │   ├── lib/         # Utility e logica
-│   └── index.html   # Entry point
-├── attached_assets/ # Asset allegati
+│   ├── hooks/       # Custom hooks
+│   ├── pages/       # Pagine dell'app
+│   ├── App.tsx      # Componente principale
+│   ├── main.tsx     # Entry point React
+│   └── index.css    # Stili globali
+├── index.html       # Entry point HTML
 └── dist/            # Build di produzione
 ```
 
