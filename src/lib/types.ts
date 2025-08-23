@@ -5,7 +5,6 @@ export type WorkoutType =
   | "threshold"
   | "vo2max"
   | "anaerobic";
-export type Difficulty = "easy" | "standard" | "hard";
 
 export const WORKOUT_TYPES = {
   recovery: {
@@ -74,5 +73,4 @@ export interface WorkoutFormData {
   ftp: number;
   durationMin: number;
   type: WorkoutType;
-  difficulty: Difficulty;
 }

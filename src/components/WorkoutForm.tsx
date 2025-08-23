@@ -8,8 +8,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -58,7 +56,6 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       ftp: 250,
       durationMin: 60,
       type: "threshold",
-      difficulty: "standard",
     },
   });
 
@@ -217,82 +214,11 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             )}
           />
 
-          {/* Difficulty Selection */}
-          <FormField
-            control={form.control}
-            name="difficulty"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-300 mb-3">
-                  Difficulty Level
-                </FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    className="grid grid-cols-3 gap-3"
-                    data-testid="radio-difficulty"
-                  >
-                    <div className="relative">
-                      <RadioGroupItem
-                        value="easy"
-                        id="easy"
-                        className="sr-only peer"
-                      />
-                      <Label
-                        htmlFor="easy"
-                        className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-center cursor-pointer peer-checked:bg-emerald-600 peer-checked:border-emerald-500 peer-checked:text-white transition-colors block"
-                      >
-                        <div className="text-sm font-medium">Easy</div>
-                        <div className="text-xs text-gray-400 peer-checked:text-emerald-100">
-                          -5% FTP
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="relative">
-                      <RadioGroupItem
-                        value="standard"
-                        id="standard"
-                        className="sr-only peer"
-                      />
-                      <Label
-                        htmlFor="standard"
-                        className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-center cursor-pointer peer-checked:bg-emerald-600 peer-checked:border-emerald-500 peer-checked:text-white transition-colors block"
-                      >
-                        <div className="text-sm font-medium">Standard</div>
-                        <div className="text-xs text-gray-400 peer-checked:text-emerald-100">
-                          Base FTP
-                        </div>
-                      </Label>
-                    </div>
-                    <div className="relative">
-                      <RadioGroupItem
-                        value="hard"
-                        id="hard"
-                        className="sr-only peer"
-                      />
-                      <Label
-                        htmlFor="hard"
-                        className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-center cursor-pointer peer-checked:bg-emerald-600 peer-checked:border-emerald-500 peer-checked:text-white transition-colors block"
-                      >
-                        <div className="text-sm font-medium">Hard</div>
-                        <div className="text-xs text-gray-400 peer-checked:text-emerald-100">
-                          +5% FTP
-                        </div>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Generate Button */}
           <Button
             type="submit"
             disabled={isGenerating}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+            className="w-full !mt-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />
