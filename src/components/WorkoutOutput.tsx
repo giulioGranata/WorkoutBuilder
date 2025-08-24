@@ -121,7 +121,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     } catch {
       toast({
         title: "Copy failed",
-        description: "Failed to copy to clipboard - try again later",
+        description: "Failed to copy to clipboard",
         variant: "destructive",
       });
     } finally {
