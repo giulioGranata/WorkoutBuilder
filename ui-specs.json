@@ -1,0 +1,132 @@
+{
+  "meta": { "name": "Workout Generator 2.0 – Design Spec", "version": "1.1.0" },
+
+  "tokens": {
+    "color": {
+      "bg": "#0a0a0a",
+      "card": "#111317",
+      "muted": "#1c1f26",
+      "border": "#2a2f3a",
+      "text": {
+        "primary": "#e5e7eb",
+        "secondary": "#9ca3af",
+        "tertiary": "#6b7280"
+      },
+      "accent": {
+        "solid": "#10b981",
+        "solidHover": "#059669",
+        "soft": "rgba(16,185,129,0.1)"
+      },
+      "phase": {
+        "warmup": "#3b82f6",
+        "work": "#10b981",
+        "recovery": "#f59e0b",
+        "cooldown": "#a78bfa"
+      }
+    },
+    "radius": { "md": "0.75rem", "xl": "1.25rem" },
+    "shadow": { "card": "0 8px 30px rgba(0,0,0,0.25)" },
+    "font": {
+      "family": "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto",
+      "size": { "sm": "0.875rem", "base": "1rem", "xl": "1.25rem" }
+    }
+  },
+
+  "components": {
+    "Button": {
+      "base": "inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60",
+      "variants": {
+        "primary": "bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]",
+        "muted": "bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+      },
+      "sizes": { "sm": "px-3 py-1.5 text-sm", "md": "px-4 py-2" }
+    },
+    "Input": {
+      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]",
+      "number": "appearance-none [field-sizing:content] tabular-nums"
+    },
+    "Select": {
+      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]"
+    },
+    "Card": {
+      "base": "rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]"
+    },
+    "Badge": {
+      "base": "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums",
+      "byPhase": {
+        "warmup": "bg-[--phase-warmup]",
+        "work": "bg-[--phase-work]",
+        "recovery": "bg-[--phase-recovery]",
+        "cooldown": "bg-[--phase-cooldown]"
+      }
+    }
+  },
+
+  "pages": {
+    "Home": {
+      "container": "mx-auto max-w-3xl px-4 py-6 md:py-10",
+      "header": {
+        "title": "text-2xl md:text-3xl font-semibold text-[--text-primary]"
+      },
+      "grid": {
+        "layout": "grid gap-4 md:gap-6",
+        "cols": "grid-cols-1 md:grid-cols-2"
+      }
+    }
+  },
+
+  "blueprints": {
+    "WorkoutForm": {
+      "section": "Card.base",
+      "fields": [
+        {
+          "type": "number",
+          "label": "FTP (W)",
+          "input": "Input.base Input.number"
+        },
+        {
+          "type": "number",
+          "label": "Duration (min)",
+          "input": "Input.base Input.number"
+        },
+        { "type": "select", "label": "Workout Type", "input": "Select.base" }
+      ],
+      "actions": [
+        {
+          "kind": "primary",
+          "label": "Generate workout",
+          "class": "Button.base Button.variants.primary Button.sizes.md"
+        }
+      ]
+    },
+
+    "WorkoutOutput": {
+      "section": "Card.base",
+      "header": {
+        "title": "text-xl font-semibold text-[--text-primary]",
+        "meta": "text-sm text-[--text-secondary]"
+      },
+
+      "biasControls": {
+        "wrap": "flex items-center gap-2",
+        "minus": "Button.base Button.variants.muted Button.sizes.sm",
+        "range": "w-44 accent-emerald-500",
+        "plus": "Button.base Button.variants.muted Button.sizes.sm",
+        "value": "text-sm text-[--text-secondary] tabular-nums"
+      },
+
+      "stepCard": {
+        "wrap": "bg-[--muted]/60 rounded-xl p-4 border-l-4",
+        "leftBorderByPhase": {
+          "warmup": "border-l-[--phase-warmup]",
+          "work": "border-l-[--phase-work]",
+          "recovery": "border-l-[--phase-recovery]",
+          "cooldown": "border-l-[--phase-cooldown]"
+        },
+        "leftBadge": "Badge.base",
+        "title": "text-[--text-primary] font-medium tabular-nums",
+        "desc": "text-[--text-secondary] text-sm"
+      }
+    }
+  }
+}

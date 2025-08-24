@@ -72,10 +72,10 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
   };
 
   return (
-    <div className="bg-gray-850 rounded-xl border border-gray-700 p-6">
+    <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-6">
-        <Settings className="text-emerald-500 mr-3 h-5 w-5" />
-        <h2 className="text-xl font-semibold text-white">
+        <Settings className="text-[--accent-solid] mr-3 h-5 w-5" />
+        <h2 className="text-xl font-semibold text-[--text-primary]">
           Workout Configuration
         </h2>
       </div>
@@ -92,7 +92,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             name="ftp"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-300">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   FTP (Functional Threshold Power)
                 </FormLabel>
                 <FormControl>
@@ -100,7 +100,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                     <Input
                       type="number"
                       placeholder="250"
-                      className="w-full bg-gray-700 border border-gray-600 text-white placeholder-gray-400 pr-16"
+                      className="w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 outline-none border border-[--border] focus:border-[--accent-solid] appearance-none [field-sizing:content] tabular-nums pr-16"
                       data-testid="input-ftp"
                       {...field}
                       onChange={(e) =>
@@ -108,11 +108,13 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                       }
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <span className="text-gray-400 text-sm">watts</span>
+                      <span className="text-[--text-tertiary] text-sm tabular-nums">
+                        watts
+                      </span>
                     </div>
                   </div>
                 </FormControl>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[--text-tertiary]">
                   Your maximum sustainable power for 1 hour
                 </p>
                 <FormMessage />
@@ -126,7 +128,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             name="durationMin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-300">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   Duration
                 </FormLabel>
                 <FormControl>
@@ -134,7 +136,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                     <Input
                       type="number"
                       placeholder="60"
-                      className="w-full bg-gray-700 border border-gray-600 text-white placeholder-gray-400 pr-20"
+                      className="w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 outline-none border border-[--border] focus:border-[--accent-solid] appearance-none [field-sizing:content] tabular-nums pr-20"
                       data-testid="input-duration"
                       {...field}
                       onChange={(e) =>
@@ -142,7 +144,9 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                       }
                     />
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <span className="text-gray-400 text-sm">minutes</span>
+                      <span className="text-[--text-tertiary] text-sm tabular-nums">
+                        minutes
+                      </span>
                     </div>
                   </div>
                 </FormControl>
@@ -157,7 +161,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-gray-300">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   Workout Type
                 </FormLabel>
                 <Select
@@ -166,44 +170,44 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                   data-testid="select-workout-type"
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full bg-gray-700 border border-gray-600 text-white">
+                    <SelectTrigger className="w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]">
                       <SelectValue placeholder="Select workout type" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-gray-700 border border-gray-600">
+                  <SelectContent className="bg-[--muted] border border-[--border]">
                     <SelectItem
                       value="recovery"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["recovery"].label}
                     </SelectItem>
                     <SelectItem
                       value="endurance"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["endurance"].label}
                     </SelectItem>
                     <SelectItem
                       value="tempo"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["tempo"].label}
                     </SelectItem>
                     <SelectItem
                       value="threshold"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["threshold"].label}
                     </SelectItem>
                     <SelectItem
                       value="vo2max"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["vo2max"].label}
                     </SelectItem>
                     <SelectItem
                       value="anaerobic"
-                      className="text-white hover:bg-gray-600"
+                      className="text-[--text-primary] hover:bg-[--border]"
                     >
                       {WORKOUT_TYPES["anaerobic"].label}
                     </SelectItem>
@@ -218,7 +222,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
           <Button
             type="submit"
             disabled={isGenerating}
-            className="w-full !mt-10 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
+            className="w-full !mt-10 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />
