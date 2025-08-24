@@ -13,10 +13,10 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "echo '\\033[36m🚀 Starting pre-commit checks...\\033[0m'",
-      "npm run check && echo '\\033[32m✅ TypeScript check passed\\033[0m' || (echo '\\033[31m❌ TypeScript check failed\\033[0m' && exit 1)",
-      "npm run build && echo '\\033[32m✅ Build check passed\\033[0m' || (echo '\\033[31m❌ Build check failed\\033[0m' && exit 1)",
-      "echo '\\033[32m�� All checks passed! Committing...\\033[0m'"
+      "echo '🚀 Starting pre-commit checks...'",
+      "npm run check",
+      "npm run build",
+      "echo '✅ All checks passed! Committing...'"
     ]
   },
   "dependencies": {
