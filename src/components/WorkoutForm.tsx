@@ -40,7 +40,6 @@ const formSchema = z.object({
     "vo2max",
     "anaerobic",
   ]),
-  difficulty: z.enum(["easy", "standard", "hard"]).default("standard"),
 });
 
 interface WorkoutFormProps {
@@ -52,11 +51,8 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      ftp: 250,
-      durationMin: 60,
-      type: "threshold",
-    },
+    defaultValues: { ftp: 250, durationMin: 60, type: "threshold" },
+    mode: "onChange",
   });
 
   const onSubmit = async (data: WorkoutFormData) => {
@@ -99,8 +95,16 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                   <div className="relative">
                     <Input
                       type="number"
+                      inputMode="numeric"
+                      min={50}
+                      max={500}
+                      required
                       placeholder="250"
-                      className="w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 outline-none border border-[--border] focus:border-[--accent-solid] appearance-none [field-sizing:content] tabular-nums pr-16"
+                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                        form.formState.errors.ftp
+                          ? "border-[--error]"
+                          : "border-[--border]"
+                      } focus:border-[--accent-solid]`}
                       data-testid="input-ftp"
                       {...field}
                       onChange={(e) =>
@@ -117,7 +121,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 <p className="text-xs text-[--text-tertiary]">
                   Your maximum sustainable power for 1 hour
                 </p>
-                <FormMessage />
+                <FormMessage className="text-[--error] text-sm mt-1" />{" "}
               </FormItem>
             )}
           />
@@ -135,8 +139,16 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                   <div className="relative">
                     <Input
                       type="number"
+                      inputMode="numeric"
+                      min={20}
+                      max={180}
+                      required
                       placeholder="60"
-                      className="w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 outline-none border border-[--border] focus:border-[--accent-solid] appearance-none [field-sizing:content] tabular-nums pr-20"
+                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                        form.formState.errors.durationMin
+                          ? "border-[--error]"
+                          : "border-[--border]"
+                      } focus:border-[--accent-solid]`}
                       data-testid="input-duration"
                       {...field}
                       onChange={(e) =>
@@ -150,7 +162,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                     </div>
                   </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-[--error] text-sm mt-1" />
               </FormItem>
             )}
           />
@@ -170,7 +182,13 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                   data-testid="select-workout-type"
                 >
                   <FormControl>
-                    <SelectTrigger className="w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]">
+                    <SelectTrigger
+                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                        form.formState.errors.type
+                          ? "border-[--error]"
+                          : "border-[--border]"
+                      } focus:border-[--accent-solid]`}
+                    >
                       <SelectValue placeholder="Select workout type" />
                     </SelectTrigger>
                   </FormControl>
@@ -213,7 +231,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-[--error] text-sm mt-1" />{" "}
               </FormItem>
             )}
           />
@@ -221,7 +239,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
           {/* Generate Button */}
           <Button
             type="submit"
-            disabled={isGenerating}
+            disabled={isGenerating || !form.formState.isValid}
             className="w-full !mt-10 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
             data-testid="button-generate"
           >

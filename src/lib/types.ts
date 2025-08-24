@@ -62,6 +62,7 @@ export type Step = {
 
 export type Workout = {
   title: string;
+  ftp: number;
   steps: Step[];
   totalMinutes: number;
   workMinutes?: number;

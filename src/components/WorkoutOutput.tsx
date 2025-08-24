@@ -101,7 +101,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     setIsCopying(true);
 
     const workoutText =
-      `${workout.title} (bias ${bias}%)\n\n` +
+      `${workout.title} • FTP: ${workout.ftp}W • Bias: ${bias}%\n\n` +
       biasedSteps
         .map(
           (step, index) =>

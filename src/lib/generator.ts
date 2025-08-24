@@ -88,6 +88,7 @@ export function generateWorkout({
 
   return {
     title: `${typeTitle} — ${durationMin}'`,
+    ftp,
     steps,
     totalMinutes,
     workMinutes,
