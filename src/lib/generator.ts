@@ -214,7 +214,7 @@ function generateThresholdSteps(ftp: number, duration: number): Step[] {
   return steps;
 }
 
-function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
+export function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
   const steps: Step[] = [];
   const workDuration = 3;
   const restDuration = workDuration; // Equal rest
