@@ -224,10 +224,10 @@ function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
   let remaining = duration;
   let intervalCount = 1;
 
-  while (remaining > workDuration) {
+  while (remaining >= workDuration) {
     steps.push({
       minutes: workDuration,
-      intensity: intensity,
+      intensity,
       description: `VO2max interval ${intervalCount} - high intensity effort`,
       phase: "work",
     });
@@ -245,12 +245,10 @@ function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
     intervalCount++;
   }
 
-  // If there's time left that wasn't enough for a full interval
-  // add one final work step to use the remaining minutes
   if (remaining > 0) {
     steps.push({
       minutes: remaining,
-      intensity: intensity,
+      intensity,
       description: `Final VO2max interval - give it your all`,
       phase: "work",
     });
