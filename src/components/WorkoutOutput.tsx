@@ -38,7 +38,6 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [isCopying, setIsCopying] = useState(false);
 
-  // Bias state: -75% .. +125%, step 1%
   const [bias, setBias] = useState<number>(100);
   const nudge = (delta: number) => {
     if (bias + delta > BIAS_MAX || bias + delta < BIAS_MIN) return;

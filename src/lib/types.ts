@@ -48,7 +48,7 @@ export const WORKOUT_TYPES = {
     label: "Anaerobic (125-150% FTP)",
     minFtp: 125,
     maxFtp: 150,
-    description: "High-intensity efforts that push you to your limits",
+    description: "Very high-intensity efforts to build anaerobic capacity",
     value: "anaerobic",
   },
 };
