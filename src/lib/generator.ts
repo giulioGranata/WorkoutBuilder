@@ -245,6 +245,17 @@ function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
     intervalCount++;
   }
 
+  // If there's time left that wasn't enough for a full interval
+  // add one final work step to use the remaining minutes
+  if (remaining > 0) {
+    steps.push({
+      minutes: remaining,
+      intensity: intensity,
+      description: `Final VO2max interval - give it your all`,
+      phase: "work",
+    });
+  }
+
   return steps;
 }
 
@@ -277,6 +288,16 @@ function generateAnaerobicSteps(ftp: number, duration: number): Step[] {
       remaining -= restDuration;
     }
     intervalCount++;
+  }
+
+  // Include any leftover time as a final anaerobic effort
+  if (remaining > 0) {
+    steps.push({
+      minutes: remaining,
+      intensity: intensity,
+      description: `Final anaerobic effort - all out`,
+      phase: "work",
+    });
   }
 
   return steps;
