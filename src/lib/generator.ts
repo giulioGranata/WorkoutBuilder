@@ -46,7 +46,7 @@ export function generateWorkout({
         minutes,
         intensity: Math.round((block.intensityPct / 100) * ftp),
         description:
-          block.description + (minutes < blockMinutes ? " (truncated)" : ""),
+          block.description + (minutes < blockMinutes ? " (shortened)" : ""),
         phase: block.phase,
       });
       remaining -= minutes;
