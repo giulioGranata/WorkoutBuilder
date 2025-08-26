@@ -1,3 +1,4 @@
+import { PATTERNS } from "./patterns";
 import { Step, Workout, WorkoutFormData } from "./types";
 
 export function generateWorkout({
@@ -5,23 +6,17 @@ export function generateWorkout({
   durationMin,
   type,
 }: WorkoutFormData): Workout {
-  // Apply difficulty modifiers
   const adjustedFtp = ftp;
 
-  // Calculate warm-up and cool-down durations
-  const warmupDuration = Math.max(
-    5,
-    Math.min(12, Math.floor(durationMin * 0.1))
-  );
-  const cooldownDuration = Math.max(
-    5,
-    Math.min(8, Math.floor(durationMin * 0.1))
-  );
-  const availableWorkTime = durationMin - warmupDuration - cooldownDuration;
+  // Warm-up and cool-down durations (~10% each)
+  const warmupDuration = Math.max(5, Math.min(12, Math.floor(durationMin * 0.1)));
+  const cooldownDuration = Math.max(5, Math.min(8, Math.floor(durationMin * 0.1)));
+  const coreDuration = durationMin - warmupDuration - cooldownDuration;
+  const isTooShort = durationMin < warmupDuration + cooldownDuration;
 
   const steps: Step[] = [];
 
-  // Add warm-up
+  // Warm-up step
   steps.push({
     minutes: warmupDuration,
     intensity: Math.round(adjustedFtp * 0.6),
@@ -29,40 +24,41 @@ export function generateWorkout({
     phase: "warmup",
   });
 
-  // Generate core workout based on type
-  let workSteps: Step[] = [];
-  let remainingTime = availableWorkTime;
+  // Core workout from static patterns
+  const pattern = PATTERNS[type];
+  const coreSteps: Step[] = [];
+  if (!isTooShort) {
+    let remaining = coreDuration;
+    let index = 0;
+    while (remaining >= 1) {
+      const block = pattern[index % pattern.length];
+      const blockMinutes = Math.max(1, Math.round(block.minutes));
 
-  switch (type) {
-    case "recovery":
-      workSteps = generateRecoverySteps(adjustedFtp, remainingTime);
-      break;
-    case "endurance":
-      workSteps = generateEnduranceSteps(adjustedFtp, remainingTime);
-      break;
-    case "tempo":
-      workSteps = generateTempoSteps(adjustedFtp, remainingTime);
-      break;
-    case "threshold":
-      workSteps = generateThresholdSteps(adjustedFtp, remainingTime);
-      break;
-    case "vo2max":
-      workSteps = generateVO2MaxSteps(adjustedFtp, remainingTime);
-      break;
-    case "anaerobic":
-      workSteps = generateAnaerobicSteps(adjustedFtp, remainingTime);
-      break;
+      let minutes: number;
+      if (remaining < blockMinutes) {
+        minutes = Math.floor(remaining);
+        if (minutes < 1) {
+          break;
+        }
+      } else {
+        minutes = blockMinutes;
+      }
+
+      coreSteps.push({
+        minutes,
+        intensity: Math.round((block.intensityPct / 100) * ftp),
+        description:
+          block.description + (minutes < blockMinutes ? " (shortened)" : ""),
+        phase: block.phase,
+      });
+      remaining -= minutes;
+      index++;
+    }
   }
+  const validCoreSteps = coreSteps.filter((s) => s.minutes > 0);
+  steps.push(...validCoreSteps);
 
-  // Check if we need to truncate
-  const totalWorkTime = workSteps.reduce((sum, step) => sum + step.minutes, 0);
-  if (totalWorkTime > remainingTime) {
-    workSteps = truncateWorkSteps(workSteps, remainingTime);
-  }
-
-  steps.push(...workSteps);
-
-  // Add cool-down
+  // Cool-down step
   steps.push({
     minutes: cooldownDuration,
     intensity: Math.round(adjustedFtp * 0.5),
@@ -70,257 +66,36 @@ export function generateWorkout({
     phase: "cooldown",
   });
 
-  const totalMinutes = steps.reduce((sum, step) => sum + step.minutes, 0);
-  const workMinutes = workSteps
+  const validSteps = steps.filter((s) => s.minutes > 0);
+
+  const totalMinutes = validSteps.reduce((sum, step) => sum + step.minutes, 0);
+  const workMinutes = validCoreSteps
     .filter((step) => step.phase === "work")
     .reduce((sum, step) => sum + step.minutes, 0);
-  const recoveryMinutes = workSteps
+  const recoveryMinutes = validCoreSteps
     .filter((step) => step.phase === "recovery")
     .reduce((sum, step) => sum + step.minutes, 0);
   const avgIntensity = Math.round(
-    steps.reduce((sum, step) => sum + step.intensity * step.minutes, 0) /
+    validSteps.reduce((sum, step) => sum + step.intensity * step.minutes, 0) /
       totalMinutes
   );
 
-  // Format title with proper capitalization
   const typeTitle =
     type === "vo2max" ? "VO2max" : type.charAt(0).toUpperCase() + type.slice(1);
 
-  return {
+  const workout: Workout = {
     title: `${typeTitle} — ${durationMin}'`,
     ftp,
-    steps,
+    steps: validSteps,
     totalMinutes,
     workMinutes,
     recoveryMinutes,
     avgIntensity,
   };
-}
 
-function generateRecoverySteps(ftp: number, duration: number): Step[] {
-  return [
-    {
-      minutes: duration,
-      intensity: Math.round(ftp * 0.55),
-      description: "Continuous easy pace for active recovery",
-      phase: "work",
-    },
-  ];
-}
-
-function generateEnduranceSteps(ftp: number, duration: number): Step[] {
-  const steps: Step[] = [];
-  const chunkDuration = 10;
-  const intensity = Math.round(ftp * 0.7);
-
-  let remaining = duration;
-  while (remaining > 0) {
-    const stepDuration = Math.min(chunkDuration, remaining);
-    steps.push({
-      minutes: stepDuration,
-      intensity: intensity,
-      description: "Steady aerobic pace for base building",
-      phase: "work",
-    });
-    remaining -= stepDuration;
+  if (isTooShort) {
+    workout.hint = "Increase duration to generate a complete workout";
   }
 
-  return steps;
-}
-
-function generateTempoSteps(ftp: number, duration: number): Step[] {
-  const steps: Step[] = [];
-  const workDuration = 10;
-  const restDuration = 3;
-  const intensity = Math.round(ftp * 0.83);
-  const restIntensity = Math.round(ftp * 0.55);
-
-  let remaining = duration;
-  let intervalCount = 1;
-
-  while (remaining > workDuration) {
-    steps.push({
-      minutes: workDuration,
-      intensity: intensity,
-      description: `Tempo effort ${intervalCount} - moderately hard sustainable pace`,
-      phase: "work",
-    });
-    remaining -= workDuration;
-
-    if (remaining > restDuration) {
-      steps.push({
-        minutes: restDuration,
-        intensity: restIntensity,
-        description: "Easy recovery between tempo efforts",
-        phase: "recovery",
-      });
-      remaining -= restDuration;
-    }
-    intervalCount++;
-  }
-
-  if (remaining > 0) {
-    steps.push({
-      minutes: remaining,
-      intensity: intensity,
-      description: `Final tempo effort - maintain steady power`,
-      phase: "work",
-    });
-  }
-
-  return steps;
-}
-
-function generateThresholdSteps(ftp: number, duration: number): Step[] {
-  const steps: Step[] = [];
-  const workDuration = 8;
-  const restDuration = 4;
-  const intensity = Math.round(ftp * 1.0);
-  const restIntensity = Math.round(ftp * 0.55);
-
-  let remaining = duration;
-  let intervalCount = 1;
-
-  while (remaining > workDuration) {
-    steps.push({
-      minutes: workDuration,
-      intensity: intensity,
-      description: `Threshold effort ${intervalCount} - sustainable but challenging`,
-      phase: "work",
-    });
-    remaining -= workDuration;
-
-    if (remaining > restDuration) {
-      steps.push({
-        minutes: restDuration,
-        intensity: restIntensity,
-        description: "Easy recovery between threshold efforts",
-        phase: "recovery",
-      });
-      remaining -= restDuration;
-    }
-    intervalCount++;
-  }
-
-  if (remaining > 0) {
-    steps.push({
-      minutes: remaining,
-      intensity: intensity,
-      description: `Final threshold effort - push through fatigue`,
-      phase: "work",
-    });
-  }
-
-  return steps;
-}
-
-export function generateVO2MaxSteps(ftp: number, duration: number): Step[] {
-  const steps: Step[] = [];
-  const workDuration = 3;
-  const restDuration = workDuration; // Equal rest
-  const intensity = Math.round(ftp * 1.15);
-  const restIntensity = Math.round(ftp * 0.55);
-
-  let remaining = duration;
-  let intervalCount = 1;
-
-  while (remaining >= workDuration) {
-    steps.push({
-      minutes: workDuration,
-      intensity,
-      description: `VO2max interval ${intervalCount} - high intensity effort`,
-      phase: "work",
-    });
-    remaining -= workDuration;
-
-    if (remaining > restDuration) {
-      steps.push({
-        minutes: restDuration,
-        intensity: restIntensity,
-        description: "Recovery between VO2max intervals",
-        phase: "recovery",
-      });
-      remaining -= restDuration;
-    }
-    intervalCount++;
-  }
-
-  if (remaining > 0) {
-    steps.push({
-      minutes: remaining,
-      intensity,
-      description: `Final VO2max interval - give it your all`,
-      phase: "work",
-    });
-  }
-
-  return steps;
-}
-
-function generateAnaerobicSteps(ftp: number, duration: number): Step[] {
-  const steps: Step[] = [];
-  const workDuration = 1; // 1 minute for MVP (keeping integers)
-  const restDuration = 2;
-  const intensity = Math.round(ftp * 1.35);
-  const restIntensity = Math.round(ftp * 0.55);
-
-  let remaining = duration;
-  let intervalCount = 1;
-
-  while (remaining > workDuration) {
-    steps.push({
-      minutes: workDuration,
-      intensity: intensity,
-      description: `Anaerobic effort ${intervalCount} - very high intensity`,
-      phase: "work",
-    });
-    remaining -= workDuration;
-
-    if (remaining > restDuration) {
-      steps.push({
-        minutes: restDuration,
-        intensity: restIntensity,
-        description: "Recovery between anaerobic efforts",
-        phase: "recovery",
-      });
-      remaining -= restDuration;
-    }
-    intervalCount++;
-  }
-
-  // Include any leftover time as a final anaerobic effort
-  if (remaining > 0) {
-    steps.push({
-      minutes: remaining,
-      intensity: intensity,
-      description: `Final anaerobic effort - all out`,
-      phase: "work",
-    });
-  }
-
-  return steps;
-}
-
-function truncateWorkSteps(steps: Step[], maxDuration: number): Step[] {
-  const truncatedSteps: Step[] = [];
-  let currentDuration = 0;
-
-  for (const step of steps) {
-    if (currentDuration + step.minutes <= maxDuration) {
-      truncatedSteps.push(step);
-      currentDuration += step.minutes;
-    } else {
-      const remainingTime = maxDuration - currentDuration;
-      if (remainingTime > 0) {
-        truncatedSteps.push({
-          ...step,
-          minutes: remainingTime,
-          description: step.description + " (truncated)",
-        });
-      }
-      break;
-    }
-  }
-
-  return truncatedSteps;
+  return workout;
 }

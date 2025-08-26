@@ -94,7 +94,6 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 <FormControl>
                   <div className="relative">
                     <Input
-                      type="number"
                       inputMode="numeric"
                       min={50}
                       max={500}
@@ -138,7 +137,6 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 <FormControl>
                   <div className="relative">
                     <Input
-                      type="number"
                       inputMode="numeric"
                       min={20}
                       max={180}

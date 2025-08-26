@@ -19,10 +19,16 @@
   --accent-solidHover: #059669;
   --accent-soft: rgba(16, 185, 129, 0.1);
 
-  --phase-warmup: #3b82f6;
+  --phase-warmup: #9ca3af;
   --phase-work: #10b981;
   --phase-recovery: #f59e0b;
-  --phase-cooldown: #a78bfa;
+  --phase-cooldown: #9ca3af;
+
+  --z1: #9ca3af;
+  --z2: #3b82f6;
+  --z3: #10b981;
+  --z4: #f59e0b;
+  --z5: #ef4444;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
