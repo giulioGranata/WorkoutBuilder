@@ -12,6 +12,7 @@ export function generateWorkout({
   const warmupDuration = Math.max(5, Math.min(12, Math.floor(durationMin * 0.1)));
   const cooldownDuration = Math.max(5, Math.min(8, Math.floor(durationMin * 0.1)));
   const coreDuration = durationMin - warmupDuration - cooldownDuration;
+  const isTooShort = durationMin < warmupDuration + cooldownDuration;
 
   const steps: Step[] = [];
 
@@ -26,30 +27,34 @@ export function generateWorkout({
   // Core workout from static patterns
   const pattern = PATTERNS[type];
   const coreSteps: Step[] = [];
-  let remaining = coreDuration;
-  let index = 0;
-  while (remaining > 0) {
-    const block = pattern[index % pattern.length];
-    const blockMinutes = Math.max(1, block.minutes);
-    let minutes = Math.min(blockMinutes, remaining);
-    if (minutes < 1) {
-      // roll leftover time into previous step to avoid very short blocks
-      if (coreSteps.length) {
-        coreSteps[coreSteps.length - 1].minutes += remaining;
+  if (!isTooShort) {
+    let remaining = coreDuration;
+    let index = 0;
+    while (remaining > 0) {
+      const block = pattern[index % pattern.length];
+      const blockMinutes = Math.max(1, block.minutes);
+      let minutes = Math.min(blockMinutes, remaining);
+      if (minutes < 1) {
+        // roll leftover time into previous step to avoid very short blocks
+        if (coreSteps.length) {
+          coreSteps[coreSteps.length - 1].minutes += remaining;
+        }
+        remaining = 0;
+        break;
       }
-      remaining = 0;
-      break;
+      coreSteps.push({
+        minutes,
+        intensity: Math.round((block.intensityPct / 100) * ftp),
+        description:
+          block.description + (minutes < blockMinutes ? " (truncated)" : ""),
+        phase: block.phase,
+      });
+      remaining -= minutes;
+      index++;
     }
-    coreSteps.push({
-      minutes,
-      intensity: Math.round((block.intensityPct / 100) * ftp),
-      description: block.description + (minutes < blockMinutes ? " (truncated)" : ""),
-      phase: block.phase,
-    });
-    remaining -= minutes;
-    index++;
   }
-  steps.push(...coreSteps);
+  const validCoreSteps = coreSteps.filter((s) => s.minutes > 0);
+  steps.push(...validCoreSteps);
 
   // Cool-down step
   steps.push({
@@ -59,28 +64,36 @@ export function generateWorkout({
     phase: "cooldown",
   });
 
-  const totalMinutes = steps.reduce((sum, step) => sum + step.minutes, 0);
-  const workMinutes = coreSteps
+  const validSteps = steps.filter((s) => s.minutes > 0);
+
+  const totalMinutes = validSteps.reduce((sum, step) => sum + step.minutes, 0);
+  const workMinutes = validCoreSteps
     .filter((step) => step.phase === "work")
     .reduce((sum, step) => sum + step.minutes, 0);
-  const recoveryMinutes = coreSteps
+  const recoveryMinutes = validCoreSteps
     .filter((step) => step.phase === "recovery")
     .reduce((sum, step) => sum + step.minutes, 0);
   const avgIntensity = Math.round(
-    steps.reduce((sum, step) => sum + step.intensity * step.minutes, 0) /
+    validSteps.reduce((sum, step) => sum + step.intensity * step.minutes, 0) /
       totalMinutes
   );
 
   const typeTitle =
     type === "vo2max" ? "VO2max" : type.charAt(0).toUpperCase() + type.slice(1);
 
-  return {
+  const workout: Workout = {
     title: `${typeTitle} — ${durationMin}'`,
     ftp,
-    steps,
+    steps: validSteps,
     totalMinutes,
     workMinutes,
     recoveryMinutes,
     avgIntensity,
   };
+
+  if (isTooShort) {
+    workout.hint = "Increase duration to generate a complete workout";
+  }
+
+  return workout;
 }
