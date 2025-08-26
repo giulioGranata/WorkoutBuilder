@@ -24,6 +24,12 @@
   --phase-recovery: #f59e0b;
   --phase-cooldown: #a78bfa;
 
+  --z1: #9ca3af; /* light gray */
+  --z2: #3b82f6; /* blue */
+  --z3: #10b981; /* green */
+  --z4: #f59e0b; /* yellow */
+  --z5: #ef4444; /* red */
+
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
