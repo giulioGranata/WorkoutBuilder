@@ -149,7 +149,8 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     const baseClasses =
       "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums";
     if (step.phase === "warmup") return `${baseClasses} bg-[--phase-warmup]`;
-    if (step.phase === "cooldown") return `${baseClasses} bg-[--phase-cooldown]`;
+    if (step.phase === "cooldown")
+      return `${baseClasses} bg-[--phase-cooldown]`;
     return `${baseClasses} ${getZoneColors(step.intensity, ftp).badge}`;
   };
 
@@ -278,7 +279,10 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               <>
                 <div
                   key={index}
-                  className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${getStepBorderColor(step, workout.ftp)}`}
+                  className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${getStepBorderColor(
+                    step,
+                    workout.ftp
+                  )}`}
                   data-testid={`workout-step-${index}`}
                 >
                   <div className="flex items-center gap-2">
@@ -305,7 +309,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
               <div className="bg-[--muted]/30 rounded-lg p-3">
                 <div
-                  className="text-2xl font-bold text-[--accent-solid] tabular-nums"
+                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
                   data-testid="text-total-minutes"
                 >
                   {workout.totalMinutes}'
@@ -316,7 +320,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               </div>
               <div className="bg-[--muted]/30 rounded-lg p-3">
                 <div
-                  className="text-2xl font-bold text-[--phase-work] tabular-nums"
+                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
                   data-testid="text-work-minutes"
                 >
                   {workout.workMinutes || 0}'
@@ -327,7 +331,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               </div>
               <div className="bg-[--muted]/30 rounded-lg p-3">
                 <div
-                  className="text-2xl font-bold text-[--phase-recovery] tabular-nums"
+                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
                   data-testid="text-recovery-minutes"
                 >
                   {workout.recoveryMinutes || 0}'
@@ -338,7 +342,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               </div>
               <div className="bg-[--muted]/30 rounded-lg p-3">
                 <div
-                  className="text-2xl font-bold text-[--phase-cooldown] tabular-nums"
+                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
                   data-testid="text-avg-intensity"
                 >
                   {biasedAvgIntensity}W
