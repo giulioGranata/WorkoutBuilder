@@ -68,6 +68,7 @@ export type Workout = {
   workMinutes?: number;
   recoveryMinutes?: number;
   avgIntensity?: number;
+  hint?: string;
 };
 
 export interface WorkoutFormData {

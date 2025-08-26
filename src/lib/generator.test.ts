@@ -33,4 +33,19 @@ describe("generateWorkout", () => {
     const total = workout.steps.reduce((sum, step) => sum + step.minutes, 0);
     expect(total).toBe(60);
   });
+
+  it("returns warm-up and cool-down with hint for durations < 10", () => {
+    const workout = generateWorkout({ ftp: 250, durationMin: 5, type: "recovery" });
+    expect(workout.steps).toHaveLength(2);
+    expect(workout.steps[0].phase).toBe("warmup");
+    expect(workout.steps[1].phase).toBe("cooldown");
+    expect(workout.totalMinutes).toBe(10);
+    expect(workout.hint).toBe("Increase duration to generate a complete workout");
+    expect(workout.steps.every((s) => s.minutes > 0)).toBe(true);
+  });
+
+  it("never produces steps with 0 minutes", () => {
+    const workout = generateWorkout({ ftp: 250, durationMin: 20, type: "tempo" });
+    expect(workout.steps.every((s) => s.minutes > 0)).toBe(true);
+  });
 });
