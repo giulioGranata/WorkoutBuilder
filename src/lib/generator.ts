@@ -30,23 +30,25 @@ export function generateWorkout({
   if (!isTooShort) {
     let remaining = coreDuration;
     let index = 0;
-    while (remaining > 0) {
+    while (remaining >= 1) {
       const block = pattern[index % pattern.length];
-      const blockMinutes = Math.max(1, block.minutes);
-      let minutes = Math.min(blockMinutes, remaining);
-      if (minutes < 1) {
-        // roll leftover time into previous step to avoid very short blocks
-        if (coreSteps.length) {
-          coreSteps[coreSteps.length - 1].minutes += remaining;
+      const blockMinutes = Math.max(1, Math.round(block.minutes));
+
+      let minutes: number;
+      if (remaining < blockMinutes) {
+        minutes = Math.floor(remaining);
+        if (minutes < 1) {
+          break;
         }
-        remaining = 0;
-        break;
+      } else {
+        minutes = blockMinutes;
       }
+
       coreSteps.push({
         minutes,
         intensity: Math.round((block.intensityPct / 100) * ftp),
         description:
-          block.description + (minutes < blockMinutes ? " (truncated)" : ""),
+          block.description + (minutes < blockMinutes ? " (shortened)" : ""),
         phase: block.phase,
       });
       remaining -= minutes;
