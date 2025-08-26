@@ -139,6 +139,20 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     return { border: "border-l-[--z5]", badge: "bg-[--z5]" };
   };
 
+  const getStepBorderColor = (step: Step, ftp: number) => {
+    if (step.phase === "warmup") return "border-l-[--phase-warmup]";
+    if (step.phase === "cooldown") return "border-l-[--phase-cooldown]";
+    return getZoneColors(step.intensity, ftp).border;
+  };
+
+  const getStepBadgeClasses = (step: Step, ftp: number) => {
+    const baseClasses =
+      "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums";
+    if (step.phase === "warmup") return `${baseClasses} bg-[--phase-warmup]`;
+    if (step.phase === "cooldown") return `${baseClasses} bg-[--phase-cooldown]`;
+    return `${baseClasses} ${getZoneColors(step.intensity, ftp).badge}`;
+  };
+
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center justify-between mb-6">
@@ -260,47 +274,30 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
 
           {/* Workout Steps (biased view) */}
           <div className="space-y-3" data-testid="workout-steps">
-            {biasedSteps.map((step, index) => {
-              const color =
-                step.phase === "warmup"
-                  ? {
-                      border: "border-l-[--phase-warmup]",
-                      badge: "bg-[--phase-warmup]",
-                    }
-                  : step.phase === "cooldown"
-                    ? {
-                        border: "border-l-[--phase-cooldown]",
-                        badge: "bg-[--phase-cooldown]",
-                      }
-                    : getZoneColors(step.intensity, workout.ftp);
-
-              return (
-                <>
-                  <div
-                    key={index}
-                    className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${color.border}`}
-                    data-testid={`workout-step-${index}`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums ${color.badge}`}
-                      >
-                        {step.minutes}'
+            {biasedSteps.map((step, index) => (
+              <>
+                <div
+                  key={index}
+                  className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${getStepBorderColor(step, workout.ftp)}`}
+                  data-testid={`workout-step-${index}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className={getStepBadgeClasses(step, workout.ftp)}>
+                      {step.minutes}'
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-[--text-primary] font-bold tabular-nums">
+                        {step.intensity} W
                       </div>
-                      <div className="flex-1">
-                        <div className="text-[--text-primary] font-bold tabular-nums">
-                          {step.intensity} W
-                        </div>
-                        <div className="text-[--text-secondary] text-sm">
-                          {step.description}
-                        </div>
+                      <div className="text-[--text-secondary] text-sm">
+                        {step.description}
                       </div>
                     </div>
                   </div>
-                  <div className="hidden md:block border-t border-[--border]/60 my-4" />
-                </>
-              );
-            })}
+                </div>
+                <div className="hidden md:block border-t border-[--border]/60 my-4" />
+              </>
+            ))}
           </div>
 
           {/* Workout Summary (avg in biased W) */}
