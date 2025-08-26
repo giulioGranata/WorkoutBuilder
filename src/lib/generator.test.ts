@@ -8,7 +8,7 @@ describe("generateWorkout", () => {
     expect(total).toBe(30);
   });
 
-  it("repeats pattern blocks and truncates final block", () => {
+  it("repeats pattern blocks and shortens final block", () => {
     const ftp = 200;
     const workout = generateWorkout({ ftp, durationMin: 60, type: "tempo" });
 
@@ -22,16 +22,34 @@ describe("generateWorkout", () => {
       phase: "work",
     });
 
-    // last step should be truncated to fit duration
+    // last step should be shortened to fit duration
     const lastStep = coreSteps[coreSteps.length - 1];
-    expect(lastStep.minutes).toBe(13);
+    expect(lastStep.description.endsWith("(shortened)")).toBe(true);
+    expect(lastStep.minutes).toBeGreaterThanOrEqual(1);
 
     // ensure no step shorter than 1 minute
     expect(coreSteps.every((s) => s.minutes >= 1)).toBe(true);
+    expect(workout.steps.every((s) => s.minutes >= 1)).toBe(true);
 
     // total minutes equals requested duration
     const total = workout.steps.reduce((sum, step) => sum + step.minutes, 0);
     expect(total).toBe(60);
+  });
+
+  it("handles core remainder under one minute without extra step", () => {
+    const durationMin = 30.6;
+    const workout = generateWorkout({ ftp: 250, durationMin, type: "recovery" });
+
+    // core should still be represented by a single step
+    const coreSteps = workout.steps.slice(1, -1);
+    expect(coreSteps).toHaveLength(1);
+
+    // total duration preserved
+    const total = workout.steps.reduce((sum, step) => sum + step.minutes, 0);
+    expect(total).toBeCloseTo(durationMin, 5);
+
+    // ensure no zero-minute steps
+    expect(workout.steps.every((s) => s.minutes >= 1)).toBe(true);
   });
 
   it("returns warm-up and cool-down with hint for durations < 10", () => {
@@ -45,7 +63,15 @@ describe("generateWorkout", () => {
   });
 
   it("never produces steps with 0 minutes", () => {
-    const workout = generateWorkout({ ftp: 250, durationMin: 20, type: "tempo" });
-    expect(workout.steps.every((s) => s.minutes > 0)).toBe(true);
+    const cases = [
+      { ftp: 250, durationMin: 20, type: "tempo" },
+      { ftp: 250, durationMin: 60, type: "tempo" },
+      { ftp: 250, durationMin: 30.6, type: "recovery" },
+    ];
+
+    for (const args of cases) {
+      const workout = generateWorkout(args);
+      expect(workout.steps.every((s) => s.minutes > 0)).toBe(true);
+    }
   });
 });
