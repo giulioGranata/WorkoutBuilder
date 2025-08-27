@@ -229,7 +229,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               size="sm"
               className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               onClick={() => nudge(-1)}
-              aria-label="Decrease bias by 1%"
+              aria-label="Decrease bias"
               data-testid="bias-dec"
             >
               <Minus className="h-4 w-4" />
@@ -252,7 +252,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               size="sm"
               className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               onClick={() => nudge(1)}
-              aria-label="Increase bias by 1%"
+              aria-label="Increase bias"
               data-testid="bias-inc"
             >
               <Plus className="h-4 w-4" />
