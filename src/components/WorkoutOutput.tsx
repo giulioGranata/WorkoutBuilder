@@ -12,13 +12,14 @@ import {
   Minus,
   Plus,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { getParamInt, setParam } from "@/lib/url";
 
 interface WorkoutOutputProps {
   workout: Workout | null;
@@ -38,11 +39,30 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [isCopying, setIsCopying] = useState(false);
 
-  const [bias, setBias] = useState<number>(100);
+  const biasFromUrlRef = useRef(false);
+  const [bias, setBias] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      const b = getParamInt(url, "bias");
+      if (b !== null && b >= BIAS_MIN && b <= BIAS_MAX) {
+        biasFromUrlRef.current = true;
+        return b;
+      }
+    }
+    return 100;
+  });
   const nudge = (delta: number) => {
     if (bias + delta > BIAS_MAX || bias + delta < BIAS_MIN) return;
     setBias((b) => clamp(b + delta, BIAS_MIN, BIAS_MAX));
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!biasFromUrlRef.current && bias === 100) return;
+    const url = new URL(window.location.href);
+    setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
+    biasFromUrlRef.current = true;
+  }, [bias]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
@@ -65,17 +85,26 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
+  const normalizeDescription = (text: string) =>
+    text.replace(/truncated/gi, "shortened");
+
   const handleExportJSON = () => {
     if (!workout) return;
 
+    const sanitizedSteps = biasedSteps.map((s) => ({
+      ...s,
+      description: normalizeDescription(s.description),
+    }));
+
     const payload = {
       ...workout,
-      steps: biasedSteps, // export with current bias applied
+      steps: sanitizedSteps, // export with current bias applied
       avgIntensity: biasedAvgIntensity,
       biasPct: bias, // include bias metadata (non-breaking)
     };
 
-    const dataStr = JSON.stringify(payload, null, 2);
+    const header = `// ${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n`;
+    const dataStr = header + JSON.stringify(payload, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
 
@@ -100,12 +129,12 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     setIsCopying(true);
 
     const workoutText =
-      `${workout.title} • FTP: ${workout.ftp}W • Bias: ${bias}%\n\n` +
+      `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n` +
       biasedSteps
         .map(
           (step, index) =>
             `${index + 1}. ${step.minutes}' — ${step.intensity} W — ${
-              step.description
+              normalizeDescription(step.description)
             }`
         )
         .join("\n") +
@@ -172,6 +201,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               onClick={handleExportJSON}
               className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               title="Export as JSON"
+              aria-label="Export workout as JSON"
               data-testid="button-export-json"
             >
               <Download className="h-4 w-4" />
@@ -183,6 +213,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               disabled={isCopying}
               className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               title="Copy to clipboard"
+              aria-label="Copy workout details"
               data-testid="button-copy-text"
             >
               <Copy className="h-4 w-4" />
@@ -229,7 +260,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               size="sm"
               className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               onClick={() => nudge(-1)}
-              aria-label="Decrease bias by 1%"
+              aria-label="Decrease bias"
               data-testid="bias-dec"
             >
               <Minus className="h-4 w-4" />
@@ -252,7 +283,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               size="sm"
               className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               onClick={() => nudge(1)}
-              aria-label="Increase bias by 1%"
+              aria-label="Increase bias"
               data-testid="bias-inc"
             >
               <Plus className="h-4 w-4" />
@@ -294,7 +325,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
                         {step.intensity} W
                       </div>
                       <div className="text-[--text-secondary] text-sm">
-                        {step.description}
+                        {normalizeDescription(step.description)}
                       </div>
                     </div>
                   </div>
@@ -360,6 +391,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               <Button
                 onClick={handleExportJSON}
                 className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
+                aria-label="Export workout as JSON"
                 data-testid="button-export-json-full"
               >
                 <Download className="mr-2 h-4 w-4" />
@@ -370,6 +402,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
                 disabled={isCopying}
                 variant="outline"
                 className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+                aria-label="Copy workout details"
                 data-testid="button-copy-text-full"
               >
                 <Copy className="mr-2 h-4 w-4" />

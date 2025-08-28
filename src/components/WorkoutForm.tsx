@@ -19,9 +19,11 @@ import { generateWorkout } from "@/lib/generator";
 import { Workout, WORKOUT_TYPES, WorkoutFormData } from "@/lib/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Play, Settings } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { readFtp, writeFtp } from "@/lib/storage";
+import { getParamInt, setParam } from "@/lib/url";
 
 const formSchema = z.object({
   ftp: z
@@ -55,10 +57,67 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
     mode: "onChange",
   });
 
+  const ftp = form.watch("ftp");
+
+  // Load persisted/URL params on mount and sync FTP changes across tabs
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+
+    const urlFtp = getParamInt(url, "ftp");
+    const urlDur = getParamInt(url, "dur");
+    const urlType = url.searchParams.get("type");
+
+    if (urlFtp !== null && urlFtp >= 50 && urlFtp <= 500) {
+      form.setValue("ftp", urlFtp, { shouldDirty: false });
+    } else {
+      const stored = readFtp();
+      if (stored !== null && stored >= 50 && stored <= 500) {
+        form.setValue("ftp", stored, { shouldDirty: false });
+      }
+    }
+
+    if (urlDur !== null && urlDur >= 20 && urlDur <= 180) {
+      form.setValue("durationMin", urlDur, { shouldDirty: false });
+    }
+
+    if (urlType && urlType in WORKOUT_TYPES) {
+      form.setValue("type", urlType as keyof typeof WORKOUT_TYPES, {
+        shouldDirty: false,
+      });
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "wg:ftp") {
+        const val = readFtp();
+        if (val !== null && val >= 50 && val <= 500) {
+          form.setValue("ftp", val, { shouldDirty: false });
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [form]);
+
+  // Persist FTP changes when valid
+  useEffect(() => {
+    if (ftp >= 50 && ftp <= 500) {
+      writeFtp(ftp);
+    }
+  }, [ftp]);
+
   const onSubmit = async (data: WorkoutFormData) => {
     setIsGenerating(true);
     try {
       const workout = generateWorkout(data);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        setParam(url, "ftp", data.ftp);
+        setParam(url, "dur", data.durationMin);
+        setParam(url, "type", data.type);
+      }
       onWorkoutGenerated(workout);
     } catch (error) {
       console.error("Error generating workout:", error);
