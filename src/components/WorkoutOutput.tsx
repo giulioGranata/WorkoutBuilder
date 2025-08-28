@@ -12,13 +12,14 @@ import {
   Minus,
   Plus,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { getParamInt, setParam } from "@/lib/url";
 
 interface WorkoutOutputProps {
   workout: Workout | null;
@@ -38,11 +39,30 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [isCopying, setIsCopying] = useState(false);
 
-  const [bias, setBias] = useState<number>(100);
+  const biasFromUrlRef = useRef(false);
+  const [bias, setBias] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      const b = getParamInt(url, "bias");
+      if (b !== null && b >= BIAS_MIN && b <= BIAS_MAX) {
+        biasFromUrlRef.current = true;
+        return b;
+      }
+    }
+    return 100;
+  });
   const nudge = (delta: number) => {
     if (bias + delta > BIAS_MAX || bias + delta < BIAS_MIN) return;
     setBias((b) => clamp(b + delta, BIAS_MIN, BIAS_MAX));
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!biasFromUrlRef.current && bias === 100) return;
+    const url = new URL(window.location.href);
+    setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
+    biasFromUrlRef.current = true;
+  }, [bias]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
