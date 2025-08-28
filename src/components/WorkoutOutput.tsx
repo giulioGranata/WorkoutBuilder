@@ -65,17 +65,26 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
+  const normalizeDescription = (text: string) =>
+    text.replace(/truncated/gi, "shortened");
+
   const handleExportJSON = () => {
     if (!workout) return;
 
+    const sanitizedSteps = biasedSteps.map((s) => ({
+      ...s,
+      description: normalizeDescription(s.description),
+    }));
+
     const payload = {
       ...workout,
-      steps: biasedSteps, // export with current bias applied
+      steps: sanitizedSteps, // export with current bias applied
       avgIntensity: biasedAvgIntensity,
       biasPct: bias, // include bias metadata (non-breaking)
     };
 
-    const dataStr = JSON.stringify(payload, null, 2);
+    const header = `// ${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n`;
+    const dataStr = header + JSON.stringify(payload, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
 
@@ -100,12 +109,12 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     setIsCopying(true);
 
     const workoutText =
-      `${workout.title} • FTP: ${workout.ftp}W • Bias: ${bias}%\n\n` +
+      `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n` +
       biasedSteps
         .map(
           (step, index) =>
             `${index + 1}. ${step.minutes}' — ${step.intensity} W — ${
-              step.description
+              normalizeDescription(step.description)
             }`
         )
         .join("\n") +
@@ -172,6 +181,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               onClick={handleExportJSON}
               className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               title="Export as JSON"
+              aria-label="Export workout as JSON"
               data-testid="button-export-json"
             >
               <Download className="h-4 w-4" />
@@ -183,6 +193,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               disabled={isCopying}
               className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
               title="Copy to clipboard"
+              aria-label="Copy workout details"
               data-testid="button-copy-text"
             >
               <Copy className="h-4 w-4" />
@@ -294,7 +305,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
                         {step.intensity} W
                       </div>
                       <div className="text-[--text-secondary] text-sm">
-                        {step.description}
+                        {normalizeDescription(step.description)}
                       </div>
                     </div>
                   </div>
@@ -360,6 +371,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
               <Button
                 onClick={handleExportJSON}
                 className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
+                aria-label="Export workout as JSON"
                 data-testid="button-export-json-full"
               >
                 <Download className="mr-2 h-4 w-4" />
@@ -370,6 +382,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
                 disabled={isCopying}
                 variant="outline"
                 className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+                aria-label="Copy workout details"
                 data-testid="button-copy-text-full"
               >
                 <Copy className="mr-2 h-4 w-4" />
