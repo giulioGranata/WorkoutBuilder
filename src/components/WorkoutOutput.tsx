@@ -29,10 +29,10 @@ const BIAS_MIN = 75;
 const BIAS_MAX = 125;
 
 // --- helpers (bias) ---
-const clamp = (v: number, min: number, max: number) =>
+export const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, v));
 
-const applyBias = (watts: number, biasPct: number) =>
+export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
 export function WorkoutOutput({ workout }: WorkoutOutputProps) {
