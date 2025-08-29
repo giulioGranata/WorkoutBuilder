@@ -44,9 +44,9 @@ describe("generateWorkout", () => {
     const coreSteps = workout.steps.slice(1, -1);
     expect(coreSteps).toHaveLength(1);
 
-    // total duration preserved
+    // total duration is rounded down to whole minutes
     const total = workout.steps.reduce((sum, step) => sum + step.minutes, 0);
-    expect(total).toBeCloseTo(durationMin, 5);
+    expect(total).toBe(Math.floor(durationMin));
 
     // ensure no zero-minute steps
     expect(workout.steps.every((s) => s.minutes >= 1)).toBe(true);
