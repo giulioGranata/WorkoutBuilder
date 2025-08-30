@@ -24,14 +24,15 @@ export function generateWorkout({
     phase: "warmup",
   });
 
-  // Core workout from static patterns
-  const pattern = PATTERNS[type];
+  // Core workout from static patterns (random variant selection)
+  const variants = PATTERNS[type];
+  const chosen = variants[Math.floor(Math.random() * variants.length)];
   const coreSteps: Step[] = [];
   if (!isTooShort) {
     let remaining = coreDuration;
     let index = 0;
     while (remaining >= 1) {
-      const block = pattern[index % pattern.length];
+      const block = chosen[index % chosen.length];
       const blockMinutes = Math.max(1, Math.round(block.minutes));
 
       let minutes: number;
