@@ -1,8 +1,14 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
-import { WorkoutOutput } from "./WorkoutOutput";
 import type { Workout } from "@/lib/types";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { WorkoutOutput } from "./WorkoutOutput";
 
 const toastMock = vi.fn();
 vi.mock("@/hooks/use-toast", () => ({
@@ -43,7 +49,7 @@ describe("WorkoutOutput export & clipboard", () => {
 
     render(<WorkoutOutput workout={sampleWorkout} />);
 
-    fireEvent.click(screen.getByTestId("button-export-json"));
+    fireEvent.click(screen.getByTestId("button-export-json-full"));
 
     expect(blobSpy).toHaveBeenCalled();
     const data = blobSpy.mock.calls[0][0][0] as string;
@@ -61,7 +67,7 @@ describe("WorkoutOutput export & clipboard", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
 
     await act(async () => {
-      fireEvent.click(screen.getByTestId("button-copy-text"));
+      fireEvent.click(screen.getByTestId("button-copy-text-full"));
     });
     expect(writeText).toHaveBeenCalled();
     expect(toastMock).toHaveBeenCalledWith({
@@ -72,7 +78,7 @@ describe("WorkoutOutput export & clipboard", () => {
     toastMock.mockReset();
     writeText.mockRejectedValueOnce(new Error("fail"));
     await act(async () => {
-      fireEvent.click(screen.getByTestId("button-copy-text"));
+      fireEvent.click(screen.getByTestId("button-copy-text-full"));
     });
     expect(toastMock).toHaveBeenCalledWith({
       title: "Copy failed",
