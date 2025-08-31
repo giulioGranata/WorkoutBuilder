@@ -1,0 +1,21 @@
+import * as React from "react";
+
+export function ExportZwoIcon(
+  props: React.SVGProps<SVGSVGElement>
+): JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      fill="none"
+      strokeWidth={2}
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M10.9524,6.7761a5.4524,5.4524,0,0,0,0,10.9048H15.21L6.2454,33.0193a5.452,5.452,0,0,0,4.707,8.2034h8.2645l.0182.0012.0184-.0012h14.222a5.4524,5.4524,0,1,0,0-10.9048H28.7412L42.5,6.7761Z" />
+    </svg>
+  );
+}

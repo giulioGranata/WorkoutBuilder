@@ -1,8 +1,11 @@
 "use client";
 
+import { ExportZwoIcon } from "@/components/icons/ExportZwo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Step, Workout } from "@/lib/types";
+import { getParamInt, setParam } from "@/lib/url";
+import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
   Copy,
@@ -19,7 +22,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { getParamInt, setParam } from "@/lib/url";
 
 interface WorkoutOutputProps {
   workout: Workout | null;
@@ -123,6 +125,26 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     });
   };
 
+  const handleExportZWO = () => {
+    if (!workout) return;
+    const xml = toZwoXml({ ...workout, biasPct: bias });
+    const blob = new Blob([xml], { type: "text/xml" });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${safeTitle}.zwo`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export successful",
+      description: "Workout exported as ZWO.",
+    });
+  };
+
   const handleCopyToClipboard = async () => {
     if (!workout) return;
 
@@ -133,9 +155,9 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
       biasedSteps
         .map(
           (step, index) =>
-            `${index + 1}. ${step.minutes}' — ${step.intensity} W — ${
-              normalizeDescription(step.description)
-            }`
+            `${index + 1}. ${step.minutes}' — ${
+              step.intensity
+            } W — ${normalizeDescription(step.description)}`
         )
         .join("\n") +
       `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
@@ -185,41 +207,11 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
 
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <ListOrdered className="text-[--accent-solid] mr-3 h-5 w-5" />
-          <h2 className="text-xl font-semibold text-[--text-primary]">
-            Generated Workout
-          </h2>
-        </div>
-
-        {workout && (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportJSON}
-              className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
-              title="Export as JSON"
-              aria-label="Export workout as JSON"
-              data-testid="button-export-json"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyToClipboard}
-              disabled={isCopying}
-              className="inline-flex items-center justify-center rounded-2xl px-3 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
-              title="Copy to clipboard"
-              aria-label="Copy workout details"
-              data-testid="button-copy-text"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
+      <div className="flex items-center mb-5">
+        <ListOrdered className="text-[--accent-solid] mr-3 h-5 w-5" />
+        <h2 className="text-xl font-semibold text-[--text-primary]">
+          Generated Workout
+        </h2>
       </div>
 
       {/* Bias controls */}
@@ -387,25 +379,34 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
 
           {/* Export Actions */}
           <div className="mt-6 pt-6 border-t border-[--border]">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
               <Button
                 onClick={handleExportJSON}
-                className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
+                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
                 aria-label="Export workout as JSON"
                 data-testid="button-export-json-full"
               >
-                <Download className="mr-2 h-4 w-4" />
+                <Download className="h-4 w-4" />
                 Export JSON
+              </Button>
+              <Button
+                onClick={handleExportZWO}
+                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
+                aria-label="Export workout as ZWO"
+                data-testid="button-export-zwo-full"
+              >
+                <ExportZwoIcon className="h-4 w-4" />
+                Export ZWO
               </Button>
               <Button
                 onClick={handleCopyToClipboard}
                 disabled={isCopying}
                 variant="outline"
-                className="flex-1 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border] border-[--text-secondary]"
                 aria-label="Copy workout details"
                 data-testid="button-copy-text-full"
               >
-                <Copy className="mr-2 h-4 w-4" />
+                <Copy className="h-4 w-4" />
                 {isCopying ? "Copying..." : "Copy Text"}
               </Button>
             </div>
