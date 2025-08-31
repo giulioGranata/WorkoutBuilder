@@ -16,6 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import WorkoutChart from "./WorkoutChart";
 import {
   Tooltip,
   TooltipContent,
@@ -179,31 +180,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     }
   };
 
-  const getZoneColors = (watts: number, ftp: number) => {
-    if (ftp <= 0) return { border: "border-l-[--z1]", badge: "bg-[--z1]" };
-    const pct = (watts / ftp) * 100;
-
-    if (pct <= 60) return { border: "border-l-[--z1]", badge: "bg-[--z1]" };
-    if (pct <= 75) return { border: "border-l-[--z2]", badge: "bg-[--z2]" };
-    if (pct <= 90) return { border: "border-l-[--z3]", badge: "bg-[--z3]" };
-    if (pct <= 105) return { border: "border-l-[--z4]", badge: "bg-[--z4]" };
-    return { border: "border-l-[--z5]", badge: "bg-[--z5]" };
-  };
-
-  const getStepBorderColor = (step: Step, ftp: number) => {
-    if (step.phase === "warmup") return "border-l-[--phase-warmup]";
-    if (step.phase === "cooldown") return "border-l-[--phase-cooldown]";
-    return getZoneColors(step.intensity, ftp).border;
-  };
-
-  const getStepBadgeClasses = (step: Step, ftp: number) => {
-    const baseClasses =
-      "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums";
-    if (step.phase === "warmup") return `${baseClasses} bg-[--phase-warmup]`;
-    if (step.phase === "cooldown")
-      return `${baseClasses} bg-[--phase-cooldown]`;
-    return `${baseClasses} ${getZoneColors(step.intensity, ftp).badge}`;
-  };
+  // step list visuals removed in favor of the chart
 
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
@@ -296,36 +273,8 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             </h3>
           </div>
 
-          {/* Workout Steps (biased view) */}
-          <div className="space-y-3" data-testid="workout-steps">
-            {biasedSteps.map((step, index) => (
-              <>
-                <div
-                  key={index}
-                  className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${getStepBorderColor(
-                    step,
-                    workout.ftp
-                  )}`}
-                  data-testid={`workout-step-${index}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={getStepBadgeClasses(step, workout.ftp)}>
-                      {step.minutes}'
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[--text-primary] font-bold tabular-nums">
-                        {step.intensity} W
-                      </div>
-                      <div className="text-[--text-secondary] text-sm">
-                        {normalizeDescription(step.description)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden md:block border-t border-[--border]/60 my-4" />
-              </>
-            ))}
-          </div>
+          {/* Workout Chart (biased view) */}
+          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
 
           {/* Workout Summary (avg in biased W) */}
           <div className="mt-6 pt-6 border-t border-[--border]">

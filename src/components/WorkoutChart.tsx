@@ -1,0 +1,217 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+export type StepLike = {
+  minutes: number;
+  intensity: number; // watts (bias already applied upstream)
+  description: string;
+  phase?: "warmup" | "cooldown" | "work" | "recovery";
+};
+
+interface Props {
+  steps: StepLike[];
+  ftp: number;
+}
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+function colorForStep(step: StepLike, ftp: number) {
+  if (step.phase === "warmup") return "var(--phase-warmup)";
+  if (step.phase === "cooldown") return "var(--phase-cooldown)";
+
+  if (ftp <= 0) return "var(--z1)";
+  const pct = (step.intensity / ftp) * 100;
+  if (pct <= 60) return "var(--z1)";
+  if (pct <= 75) return "var(--z2)";
+  if (pct <= 90) return "var(--z3)";
+  if (pct <= 105) return "var(--z4)";
+  return "var(--z5)";
+}
+
+export function WorkoutChart({ steps, ftp }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [active, setActive] = useState<null | number>(null);
+  const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
+
+  // Resize observer for responsive tooltip positioning
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      const rect = el.getBoundingClientRect();
+      setContainerSize({ width: rect.width, height: rect.height });
+    });
+    ro.observe(el);
+    // initial read
+    const rect = el.getBoundingClientRect();
+    setContainerSize({ width: rect.width, height: rect.height });
+    return () => ro.disconnect();
+  }, []);
+
+  const totalMinutes = useMemo(
+    () => steps.reduce((acc, s) => acc + (s.minutes || 0), 0),
+    [steps]
+  );
+
+  const bars = useMemo(() => {
+    const maxPerc = 1.6; // 160% FTP = full height
+    const rampBasePerc = 0.5; // external side ~50% FTP
+    const rampInnerPerc = 0.85; // internal side ~85% FTP (equal on both ends)
+    const baseH = (clamp(rampBasePerc, 0, maxPerc) / maxPerc) * 100;
+    const innerH = (clamp(rampInnerPerc, 0, maxPerc) / maxPerc) * 100;
+    let xCursor = 0; // percentage of chart width
+    return steps.map((s) => {
+      const widthPct = totalMinutes > 0 ? (s.minutes / totalMinutes) * 100 : 0;
+      const endPerc = ftp > 0 ? clamp(s.intensity / ftp, 0, maxPerc) : 0;
+      const endH = (endPerc / maxPerc) * 100; // height percent of full SVG height
+
+      const x = xCursor;
+      const w = widthPct;
+
+      const shape: "rect" | "ramp-up" | "ramp-down" =
+        s.phase === "warmup" ? "ramp-up" : s.phase === "cooldown" ? "ramp-down" : "rect";
+
+      // Default rectangle metrics
+      let h = endH;
+      let y = 100 - h;
+      let yStart = 100 - endH; // top at left
+      let yEnd = 100 - endH; // top at right
+
+      if (shape === "ramp-up") {
+        // external side lower, internal side higher
+        yStart = 100 - baseH;
+        yEnd = 100 - innerH;
+      } else if (shape === "ramp-down") {
+        // internal side higher, external side lower
+        yStart = 100 - innerH;
+        yEnd = 100 - baseH;
+      }
+
+      const topY = Math.min(yStart, yEnd, y);
+      xCursor += widthPct;
+      return { x, y, w, h, s, shape, topY, yStart, yEnd };
+    });
+  }, [steps, ftp, totalMinutes]);
+
+  const updateTooltipForIndex = (index: number | null) => {
+    if (index === null) return;
+    const bar = bars[index];
+    if (!bar || !containerRef.current) return;
+
+    const { width, height } = containerSize;
+    const centerX = (bar.x + bar.w / 2) / 100 * width;
+    const tooltipEl = tooltipRef.current;
+    const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
+    const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
+
+    const left = clamp(centerX - tooltipW / 2, 4, Math.max(4, width - tooltipW - 4));
+    const barTop = ((bar.topY ?? bar.y) / 100) * height; // px from top
+    const top = clamp(barTop - tooltipH - 8, 4, Math.max(4, height - tooltipH - 4));
+    setTooltipPos({ left, top });
+  };
+
+  useEffect(() => {
+    if (active !== null) updateTooltipForIndex(active);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, containerSize.width, containerSize.height]);
+
+  if (!steps || steps.length === 0 || totalMinutes === 0) {
+    return (
+      <div className="w-full h-40 sm:h-48 flex items-center justify-center text-[--text-tertiary]">
+        No steps to display
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="relative w-full h-40 sm:h-48 select-none">
+      <svg
+        className="w-full h-full"
+        role="img"
+        aria-label="Workout chart"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        {/* Optional baseline */}
+        <rect x={0} y={0} width={100} height={100} fill="transparent" />
+
+        {bars.map((bar, idx) => {
+          const fill = colorForStep(bar.s, ftp);
+          const isActive = active === idx;
+          if (bar.shape === "rect") {
+            return (
+              <g key={idx}>
+                <rect
+                  x={bar.x}
+                  y={bar.y}
+                  width={Math.max(0.001, bar.w)}
+                  height={bar.h}
+                  rx={2}
+                  style={{ fill }}
+                  stroke={isActive ? "var(--ring)" : "transparent"}
+                  strokeWidth={isActive ? 1.5 : 0}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
+                  onFocus={() => {
+                    setActive(idx);
+                    updateTooltipForIndex(idx);
+                  }}
+                  onBlur={() => setActive(null)}
+                  onMouseEnter={() => {
+                    setActive(idx);
+                    updateTooltipForIndex(idx);
+                  }}
+                  onMouseLeave={() => setActive(null)}
+                />
+              </g>
+            );
+          }
+
+          // Right-angled trapezoids for warmup/cooldown
+          const x0 = bar.x;
+          const x1 = bar.x + Math.max(0.001, bar.w);
+          const yBase = 100; // bottom baseline
+          // BL -> BR -> TR -> TL -> Z (top edge slanted)
+          const d = `M ${x0} ${yBase} L ${x1} ${yBase} L ${x1} ${bar.yEnd} L ${x0} ${bar.yStart} Z`;
+          return (
+            <path
+              key={idx}
+              d={d}
+              style={{ fill }}
+              stroke={isActive ? "var(--ring)" : "transparent"}
+              strokeWidth={isActive ? 1.5 : 0}
+              role="button"
+              tabIndex={0}
+              aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
+              onFocus={() => {
+                setActive(idx);
+                updateTooltipForIndex(idx);
+              }}
+              onBlur={() => setActive(null)}
+              onMouseEnter={() => {
+                setActive(idx);
+                updateTooltipForIndex(idx);
+              }}
+              onMouseLeave={() => setActive(null)}
+            />
+          );
+        })}
+      </svg>
+
+      {active !== null && (
+        <div
+          ref={tooltipRef}
+          className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-md rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
+          style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
+        >
+          <div className="font-semibold">{`${steps[active].minutes}' • ${steps[active].intensity} W`}</div>
+          <div className="text-[--text-secondary]">{steps[active].description}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default WorkoutChart;
