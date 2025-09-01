@@ -14,6 +14,13 @@ interface Props {
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
+// Visual/geometry constants
+const MAX_PERC = 1.6; // 160% FTP = full height
+const RAMP_OUTER_FACTOR = 0.6; // outer side as a fraction of target height
+const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
+const CORNER_RADIUS = 2; // rounded corners radius for bars
+const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
+
 function colorForStep(step: StepLike, ftp: number) {
   if (step.phase === "warmup") return "var(--phase-warmup)";
   if (step.phase === "cooldown") return "var(--phase-cooldown)";
@@ -25,6 +32,104 @@ function colorForStep(step: StepLike, ftp: number) {
   if (pct <= 90) return "var(--z3)";
   if (pct <= 105) return "var(--z4)";
   return "var(--z5)";
+}
+
+type BarShape = "rect" | "ramp-up" | "ramp-down";
+type BarGeom = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  s: StepLike;
+  shape: BarShape;
+  topY: number;
+  yStart: number;
+  yEnd: number;
+};
+
+const shapeForPhase = (phase?: StepLike["phase"]): BarShape =>
+  phase === "warmup" ? "ramp-up" : phase === "cooldown" ? "ramp-down" : "rect";
+
+const heightPct = (watts: number, ftp: number): number => {
+  if (ftp <= 0) return 0;
+  const ratio = clamp(watts / ftp, 0, MAX_PERC) / MAX_PERC;
+  return ratio * 100;
+};
+
+// Build a rounded right-angled trapezoid path.
+// Corners order (clockwise): BL -> BR -> TR -> TL.
+function roundedTrapezoidPath(
+  x0: number,
+  x1: number,
+  yBase: number,
+  yStart: number, // top-left Y
+  yEnd: number, // top-right Y
+  rBase: number = 2
+): string {
+  const w = Math.max(0, x1 - x0);
+  if (w === 0) return `M ${x0} ${yBase} Z`;
+
+  // Top edge vector and length
+  const dx = x1 - x0;
+  const dy = yEnd - yStart;
+  const L = Math.hypot(dx, dy);
+
+  // Limit radius so it fits all sides
+  const hl = Math.max(0, yBase - yStart);
+  const hr = Math.max(0, yBase - yEnd);
+  const r = Math.max(
+    0,
+    Math.min(rBase, w / 2, hl / 2, hr / 2, L > 0 ? L / 2 : rBase)
+  );
+  if (r === 0) {
+    // Sharp path fallback
+    return `M ${x0} ${yBase} L ${x1} ${yBase} L ${x1} ${yEnd} L ${x0} ${yStart} Z`;
+  }
+
+  if (L === 0) {
+    // Degenerate to a rounded rectangle (top is flat)
+    const yTop = yStart;
+    return [
+      `M ${x0 + r} ${yBase}`,
+      `L ${x1 - r} ${yBase}`,
+      `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
+      `L ${x1} ${yTop + r}`,
+      `Q ${x1} ${yTop} ${x1 - r} ${yTop}`,
+      `L ${x0 + r} ${yTop}`,
+      `Q ${x0} ${yTop} ${x0} ${yTop + r}`,
+      `L ${x0} ${yBase - r}`,
+      `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
+      "Z",
+    ].join(" ");
+  }
+
+  const t = r / L; // param along the top edge for rounding
+  const pTLx = x0 + dx * t;
+  const pTLy = yStart + dy * t;
+  const pTRx = x0 + dx * (1 - t);
+  const pTRy = yStart + dy * (1 - t);
+
+  // Build path clockwise with 4 rounded corners
+  return [
+    // bottom edge to just before BR corner
+    `M ${x0 + r} ${yBase}`,
+    `L ${x1 - r} ${yBase}`,
+    // round BR
+    `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
+    // right edge up to just before TR corner
+    `L ${x1} ${yEnd + r}`,
+    // round TR to top edge point
+    `Q ${x1} ${yEnd} ${pTRx} ${pTRy}`,
+    // along top edge to just after TL corner
+    `L ${pTLx} ${pTLy}`,
+    // round TL
+    `Q ${x0} ${yStart} ${x0} ${yStart + r}`,
+    // left edge down to just before BL corner
+    `L ${x0} ${yBase - r}`,
+    // round BL back to start
+    `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
+    "Z",
+  ].join(" ");
 }
 
 export function WorkoutChart({ steps, ftp }: Props) {
@@ -67,46 +172,23 @@ export function WorkoutChart({ steps, ftp }: Props) {
     [steps]
   );
 
-  const bars = useMemo(() => {
-    // Constants for simple, consistent math
-    const maxPerc = 1.6; // 160% FTP = full height
-    const rampOuterFactor = 0.6; // outer side is a fraction of target height
-    const gap = 0.6; // horizontal gap between bars, in % of total width
-
+  const bars = useMemo<BarGeom[]>(() => {
     // Precompute available width after gaps
     const count = steps.length;
-    const gapsTotal = Math.max(0, count - 1) * gap;
+    const gapsTotal = Math.max(0, count - 1) * GAP_PCT;
     const available = Math.max(0, 100 - gapsTotal);
 
-    // Helper: watts -> height% (0..100) relative to maxPerc*FTP
-    const heightPct = (watts: number) => {
-      if (ftp <= 0) return 0;
-      const ratio = clamp(watts / ftp, 0, maxPerc) / maxPerc;
-      return ratio * 100;
-    };
-
     let xCursor = 0; // percentage of chart width
-    const out: Array<{
-      x: number;
-      y: number;
-      w: number;
-      h: number;
-      s: StepLike;
-      shape: "rect" | "ramp-up" | "ramp-down";
-      topY: number;
-      yStart: number;
-      yEnd: number;
-    }> = [];
+    const out: BarGeom[] = [];
 
     for (let i = 0; i < steps.length; i++) {
       const s = steps[i];
       const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const innerH = heightPct(s.intensity); // biased intensity already applied upstream
-      const outerH = innerH * rampOuterFactor;
+      const innerH = heightPct(s.intensity, ftp); // biased intensity already applied upstream
+      const outerH = innerH * RAMP_OUTER_FACTOR;
 
       const x = xCursor;
-      const shape: "rect" | "ramp-up" | "ramp-down" =
-        s.phase === "warmup" ? "ramp-up" : s.phase === "cooldown" ? "ramp-down" : "rect";
+      const shape = shapeForPhase(s.phase);
 
       // Default rectangle metrics (work/recovery blocks)
       let h = innerH;
@@ -128,15 +210,15 @@ export function WorkoutChart({ steps, ftp }: Props) {
       out.push({ x, y, w, h, s, shape, topY, yStart, yEnd });
 
       // advance cursor; add gap after every bar except the last
-      xCursor += w + (i < steps.length - 1 ? gap : 0);
+      xCursor += w + (i < steps.length - 1 ? GAP_PCT : 0);
     }
 
     return out;
   }, [steps, ftp, totalMinutes]);
 
   // Visual vertical padding inside the SVG drawing area (in % of viewBox)
-  const vPad = 6; // equal top/bottom space to keep chart visually centered
-  const scaleY = (100 - 2 * vPad) / 100;
+  const vPad = V_PAD; // equal top/bottom space to keep chart visually centered
+  const scaleY = (100 - 2 * V_PAD) / 100;
 
   const updateTooltipForIndex = (index: number | null) => {
     if (index === null) return;
@@ -187,6 +269,11 @@ export function WorkoutChart({ steps, ftp }: Props) {
         <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
           {bars.map((bar, idx) => {
           const fill = colorForStep(bar.s, ftp);
+          const activate = () => {
+            setActive(idx);
+            updateTooltipForIndex(idx);
+          };
+          const clear = () => setActive(null);
           const isActive = active === idx;
           if (bar.shape === "rect") {
             return (
@@ -196,34 +283,27 @@ export function WorkoutChart({ steps, ftp }: Props) {
                   y={bar.y}
                   width={Math.max(0.001, bar.w)}
                   height={bar.h}
-                  rx={2}
+                  rx={CORNER_RADIUS}
                   style={{ fill }}
                   stroke={isActive ? "var(--ring)" : "transparent"}
                   strokeWidth={isActive ? 1.5 : 0}
                   role="button"
                   tabIndex={0}
                   aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
-                  onFocus={() => {
-                    setActive(idx);
-                    updateTooltipForIndex(idx);
-                  }}
-                  onBlur={() => setActive(null)}
-                  onMouseEnter={() => {
-                    setActive(idx);
-                    updateTooltipForIndex(idx);
-                  }}
-                  onMouseLeave={() => setActive(null)}
+                  onFocus={activate}
+                  onBlur={clear}
+                  onMouseEnter={activate}
+                  onMouseLeave={clear}
                 />
               </g>
             );
           }
 
-          // Right-angled trapezoids for warmup/cooldown
+          // Right-angled trapezoids for warmup/cooldown (rounded corners)
           const x0 = bar.x;
           const x1 = bar.x + Math.max(0.001, bar.w);
           const yBase = 100; // bottom baseline
-          // BL -> BR -> TR -> TL -> Z (top edge slanted)
-          const d = `M ${x0} ${yBase} L ${x1} ${yBase} L ${x1} ${bar.yEnd} L ${x0} ${bar.yStart} Z`;
+          const d = roundedTrapezoidPath(x0, x1, yBase, bar.yStart, bar.yEnd, CORNER_RADIUS);
           return (
             <path
               key={idx}
@@ -234,16 +314,10 @@ export function WorkoutChart({ steps, ftp }: Props) {
               role="button"
               tabIndex={0}
               aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
-              onFocus={() => {
-                setActive(idx);
-                updateTooltipForIndex(idx);
-              }}
-              onBlur={() => setActive(null)}
-              onMouseEnter={() => {
-                setActive(idx);
-                updateTooltipForIndex(idx);
-              }}
-              onMouseLeave={() => setActive(null)}
+              onFocus={activate}
+              onBlur={clear}
+              onMouseEnter={activate}
+              onMouseLeave={clear}
             />
           );
           })}
