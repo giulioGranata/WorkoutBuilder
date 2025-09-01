@@ -38,15 +38,28 @@ export function WorkoutChart({ steps, ftp }: Props) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => {
+
+    // initial read
+    const initialRect = el.getBoundingClientRect();
+    setContainerSize({ width: initialRect.width, height: initialRect.height });
+
+    // Prefer ResizeObserver when available; jsdom in tests may not provide it
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(() => {
+        const rect = el.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      });
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+
+    // Fallback: listen to window resize
+    const onResize = () => {
       const rect = el.getBoundingClientRect();
       setContainerSize({ width: rect.width, height: rect.height });
-    });
-    ro.observe(el);
-    // initial read
-    const rect = el.getBoundingClientRect();
-    setContainerSize({ width: rect.width, height: rect.height });
-    return () => ro.disconnect();
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const totalMinutes = useMemo(
@@ -94,6 +107,10 @@ export function WorkoutChart({ steps, ftp }: Props) {
     });
   }, [steps, ftp, totalMinutes]);
 
+  // Visual vertical padding inside the SVG drawing area (in % of viewBox)
+  const vPad = 6; // equal top/bottom space to keep chart visually centered
+  const scaleY = (100 - 2 * vPad) / 100;
+
   const updateTooltipForIndex = (index: number | null) => {
     if (index === null) return;
     const bar = bars[index];
@@ -106,7 +123,9 @@ export function WorkoutChart({ steps, ftp }: Props) {
     const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
 
     const left = clamp(centerX - tooltipW / 2, 4, Math.max(4, width - tooltipW - 4));
-    const barTop = ((bar.topY ?? bar.y) / 100) * height; // px from top
+    // Account for internal SVG vertical padding and scale to position tooltip correctly
+    const barTopPct = vPad + ((bar.topY ?? bar.y) * scaleY);
+    const barTop = (barTopPct / 100) * height; // px from top
     const top = clamp(barTop - tooltipH - 8, 4, Math.max(4, height - tooltipH - 4));
     setTooltipPos({ left, top });
   };
@@ -125,7 +144,10 @@ export function WorkoutChart({ steps, ftp }: Props) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full h-40 sm:h-48 select-none">
+    <div
+      ref={containerRef}
+      className="relative w-full h-40 sm:h-48 select-none py-4 sm:py-6"
+    >
       <svg
         className="w-full h-full"
         role="img"
@@ -135,8 +157,8 @@ export function WorkoutChart({ steps, ftp }: Props) {
       >
         {/* Optional baseline */}
         <rect x={0} y={0} width={100} height={100} fill="transparent" />
-
-        {bars.map((bar, idx) => {
+        <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
+          {bars.map((bar, idx) => {
           const fill = colorForStep(bar.s, ftp);
           const isActive = active === idx;
           if (bar.shape === "rect") {
@@ -197,13 +219,14 @@ export function WorkoutChart({ steps, ftp }: Props) {
               onMouseLeave={() => setActive(null)}
             />
           );
-        })}
+          })}
+        </g>
       </svg>
 
       {active !== null && (
         <div
           ref={tooltipRef}
-          className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-md rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
+          className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-sm rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
           style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
         >
           <div className="font-semibold">{`${steps[active].minutes}' • ${steps[active].intensity} W`}</div>
