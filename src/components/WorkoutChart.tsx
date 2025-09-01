@@ -68,12 +68,22 @@ export function WorkoutChart({ steps, ftp }: Props) {
   );
 
   const bars = useMemo(() => {
+    // Constants for simple, consistent math
     const maxPerc = 1.6; // 160% FTP = full height
-    const rampOuterFactor = 0.6; // external side is ~60% of target intensity
+    const rampOuterFactor = 0.6; // outer side is a fraction of target height
     const gap = 0.6; // horizontal gap between bars, in % of total width
+
+    // Precompute available width after gaps
     const count = steps.length;
     const gapsTotal = Math.max(0, count - 1) * gap;
     const available = Math.max(0, 100 - gapsTotal);
+
+    // Helper: watts -> height% (0..100) relative to maxPerc*FTP
+    const heightPct = (watts: number) => {
+      if (ftp <= 0) return 0;
+      const ratio = clamp(watts / ftp, 0, maxPerc) / maxPerc;
+      return ratio * 100;
+    };
 
     let xCursor = 0; // percentage of chart width
     const out: Array<{
@@ -90,41 +100,35 @@ export function WorkoutChart({ steps, ftp }: Props) {
 
     for (let i = 0; i < steps.length; i++) {
       const s = steps[i];
-      const widthPct = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const endPerc = ftp > 0 ? clamp(s.intensity / ftp, 0, maxPerc) : 0; // uses biased intensity upstream
-      const endH = (endPerc / maxPerc) * 100; // height percent of full SVG height
+      const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
+      const innerH = heightPct(s.intensity); // biased intensity already applied upstream
+      const outerH = innerH * rampOuterFactor;
 
       const x = xCursor;
-      const w = widthPct; // note: overall spacing handled by xCursor increment with gap
-
       const shape: "rect" | "ramp-up" | "ramp-down" =
         s.phase === "warmup" ? "ramp-up" : s.phase === "cooldown" ? "ramp-down" : "rect";
 
       // Default rectangle metrics (work/recovery blocks)
-      let h = endH;
+      let h = innerH;
       let y = 100 - h;
-      let yStart = 100 - endH; // top at left
-      let yEnd = 100 - endH; // top at right
+      let yStart = 100 - innerH; // top at left
+      let yEnd = 100 - innerH; // top at right
 
       if (shape === "ramp-up") {
-        // Warmup: ramp from a fraction of the biased intensity up to the biased intensity
-        const outerPerc = clamp(endPerc * rampOuterFactor, 0, maxPerc);
-        const outerH = (outerPerc / maxPerc) * 100;
-        yStart = 100 - outerH; // left side scales with bias too
-        yEnd = 100 - endH; // right side at biased intensity height
+        // Warmup: ramp from a fraction of target height to full target height
+        yStart = 100 - outerH;
+        yEnd = 100 - innerH;
       } else if (shape === "ramp-down") {
-        // Cooldown: ramp from biased intensity down to a fraction of it
-        const outerPerc = clamp(endPerc * rampOuterFactor, 0, maxPerc);
-        const outerH = (outerPerc / maxPerc) * 100;
-        yStart = 100 - endH; // left side at biased intensity height
-        yEnd = 100 - outerH; // right side scales with bias too
+        // Cooldown: ramp from full target height down to its fraction
+        yStart = 100 - innerH;
+        yEnd = 100 - outerH;
       }
 
       const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
       out.push({ x, y, w, h, s, shape, topY, yStart, yEnd });
 
       // advance cursor; add gap after every bar except the last
-      xCursor += widthPct + (i < steps.length - 1 ? gap : 0);
+      xCursor += w + (i < steps.length - 1 ? gap : 0);
     }
 
     return out;
