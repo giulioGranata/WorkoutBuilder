@@ -70,14 +70,32 @@ export function WorkoutChart({ steps, ftp }: Props) {
   const bars = useMemo(() => {
     const maxPerc = 1.6; // 160% FTP = full height
     const rampOuterFactor = 0.6; // external side is ~60% of target intensity
+    const gap = 0.6; // horizontal gap between bars, in % of total width
+    const count = steps.length;
+    const gapsTotal = Math.max(0, count - 1) * gap;
+    const available = Math.max(0, 100 - gapsTotal);
+
     let xCursor = 0; // percentage of chart width
-    return steps.map((s) => {
-      const widthPct = totalMinutes > 0 ? (s.minutes / totalMinutes) * 100 : 0;
+    const out: Array<{
+      x: number;
+      y: number;
+      w: number;
+      h: number;
+      s: StepLike;
+      shape: "rect" | "ramp-up" | "ramp-down";
+      topY: number;
+      yStart: number;
+      yEnd: number;
+    }> = [];
+
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i];
+      const widthPct = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
       const endPerc = ftp > 0 ? clamp(s.intensity / ftp, 0, maxPerc) : 0; // uses biased intensity upstream
       const endH = (endPerc / maxPerc) * 100; // height percent of full SVG height
 
       const x = xCursor;
-      const w = widthPct;
+      const w = widthPct; // note: overall spacing handled by xCursor increment with gap
 
       const shape: "rect" | "ramp-up" | "ramp-down" =
         s.phase === "warmup" ? "ramp-up" : s.phase === "cooldown" ? "ramp-down" : "rect";
@@ -103,9 +121,13 @@ export function WorkoutChart({ steps, ftp }: Props) {
       }
 
       const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
-      xCursor += widthPct;
-      return { x, y, w, h, s, shape, topY, yStart, yEnd };
-    });
+      out.push({ x, y, w, h, s, shape, topY, yStart, yEnd });
+
+      // advance cursor; add gap after every bar except the last
+      xCursor += widthPct + (i < steps.length - 1 ? gap : 0);
+    }
+
+    return out;
   }, [steps, ftp, totalMinutes]);
 
   // Visual vertical padding inside the SVG drawing area (in % of viewBox)
