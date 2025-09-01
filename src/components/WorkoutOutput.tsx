@@ -1,6 +1,5 @@
 "use client";
 
-import { ExportZwoIcon } from "@/components/icons/ExportZwo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Step, Workout } from "@/lib/types";
@@ -8,8 +7,11 @@ import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
-  Copy,
+  ChevronDown,
+  Code,
   Download,
+  FileCog,
+  FileText,
   Info,
   ListOrdered,
   Minus,
@@ -17,6 +19,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import WorkoutChart from "./WorkoutChart";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -40,7 +48,7 @@ export const applyBias = (watts: number, biasPct: number) =>
 
 export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const { toast } = useToast();
-  const [isCopying, setIsCopying] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const biasFromUrlRef = useRef(false);
   const [bias, setBias] = useState<number>(() => {
@@ -91,6 +99,21 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const normalizeDescription = (text: string) =>
     text.replace(/truncated/gi, "shortened");
 
+  const buildWorkoutText = () => {
+    if (!workout) return "";
+    const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n`;
+    const body = biasedSteps
+      .map(
+        (step, index) =>
+          `${index + 1}. ${step.minutes}' — ${
+            step.intensity
+          } W — ${normalizeDescription(step.description)}`
+      )
+      .join("\n");
+    const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
+    return header + body + footer;
+  };
+
   const handleExportJSON = () => {
     if (!workout) return;
 
@@ -126,6 +149,21 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     });
   };
 
+  const handleExportText = () => {
+    if (!workout) return;
+    const data = buildWorkoutText();
+    const blob = new Blob([data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${safeTitle}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportZWO = () => {
     if (!workout) return;
     const xml = toZwoXml({ ...workout, biasPct: bias });
@@ -146,39 +184,7 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     });
   };
 
-  const handleCopyToClipboard = async () => {
-    if (!workout) return;
-
-    setIsCopying(true);
-
-    const workoutText =
-      `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n` +
-      biasedSteps
-        .map(
-          (step, index) =>
-            `${index + 1}. ${step.minutes}' — ${
-              step.intensity
-            } W — ${normalizeDescription(step.description)}`
-        )
-        .join("\n") +
-      `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
-
-    try {
-      await navigator.clipboard.writeText(workoutText);
-      toast({
-        title: "Copied to clipboard",
-        description: "Workout details copied (with bias).",
-      });
-    } catch {
-      toast({
-        title: "Copy failed",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCopying(false);
-    }
-  };
+  // Copy Text button removed in new UX
 
   // step list visuals removed in favor of the chart
 
@@ -329,35 +335,60 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
           {/* Export Actions */}
           <div className="mt-6 pt-6 border-t border-[--border]">
             <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-              <Button
-                onClick={handleExportJSON}
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-                aria-label="Export workout as JSON"
-                data-testid="button-export-json-full"
-              >
-                <Download className="h-4 w-4" />
-                Export JSON
-              </Button>
-              <Button
-                onClick={handleExportZWO}
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-                aria-label="Export workout as ZWO"
-                data-testid="button-export-zwo-full"
-              >
-                <ExportZwoIcon className="h-4 w-4" />
-                Export ZWO
-              </Button>
-              <Button
-                onClick={handleCopyToClipboard}
-                disabled={isCopying}
-                variant="outline"
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border] border-[--text-secondary]"
-                aria-label="Copy workout details"
-                data-testid="button-copy-text-full"
-              >
-                <Copy className="h-4 w-4" />
-                {isCopying ? "Copying..." : "Copy Text"}
-              </Button>
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    disabled={!workout}
+                    className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                    aria-label="Open export menu"
+                    data-testid="button-export-dropdown"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  role="menu"
+                  className="bg-[--muted] text-[--text-primary] border border-[--border] rounded-lg shadow-lg min-w-[180px] w-auto animate-in fade-in slide-in-from-top-1 duration-150 ease-out data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-1 "
+                  align="start"
+                  sideOffset={8}
+                >
+                  <DropdownMenuItem
+                    onClick={handleExportJSON}
+                    role="menuitem"
+                    aria-label="Export workout as JSON"
+                    data-testid="menu-export-json"
+                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
+                  >
+                    <Code className="h-4 w-4" />
+                    <span>Export JSON</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={handleExportText}
+                    role="menuitem"
+                    aria-label="Export workout as Text"
+                    data-testid="menu-export-text"
+                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Export Text</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleExportZWO}
+                    role="menuitem"
+                    aria-label="Export workout as ZWO"
+                    data-testid="menu-export-zwo"
+                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
+                  >
+                    <FileCog className="h-4 w-4" />
+                    <span>Export ZWO</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
