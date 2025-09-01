@@ -69,14 +69,11 @@ export function WorkoutChart({ steps, ftp }: Props) {
 
   const bars = useMemo(() => {
     const maxPerc = 1.6; // 160% FTP = full height
-    const rampBasePerc = 0.5; // external side ~50% FTP
-    const rampInnerPerc = 0.85; // internal side ~85% FTP (equal on both ends)
-    const baseH = (clamp(rampBasePerc, 0, maxPerc) / maxPerc) * 100;
-    const innerH = (clamp(rampInnerPerc, 0, maxPerc) / maxPerc) * 100;
+    const rampOuterFactor = 0.6; // external side is ~60% of target intensity
     let xCursor = 0; // percentage of chart width
     return steps.map((s) => {
       const widthPct = totalMinutes > 0 ? (s.minutes / totalMinutes) * 100 : 0;
-      const endPerc = ftp > 0 ? clamp(s.intensity / ftp, 0, maxPerc) : 0;
+      const endPerc = ftp > 0 ? clamp(s.intensity / ftp, 0, maxPerc) : 0; // uses biased intensity upstream
       const endH = (endPerc / maxPerc) * 100; // height percent of full SVG height
 
       const x = xCursor;
@@ -85,23 +82,27 @@ export function WorkoutChart({ steps, ftp }: Props) {
       const shape: "rect" | "ramp-up" | "ramp-down" =
         s.phase === "warmup" ? "ramp-up" : s.phase === "cooldown" ? "ramp-down" : "rect";
 
-      // Default rectangle metrics
+      // Default rectangle metrics (work/recovery blocks)
       let h = endH;
       let y = 100 - h;
       let yStart = 100 - endH; // top at left
       let yEnd = 100 - endH; // top at right
 
       if (shape === "ramp-up") {
-        // external side lower, internal side higher
-        yStart = 100 - baseH;
-        yEnd = 100 - innerH;
+        // Warmup: ramp from a fraction of the biased intensity up to the biased intensity
+        const outerPerc = clamp(endPerc * rampOuterFactor, 0, maxPerc);
+        const outerH = (outerPerc / maxPerc) * 100;
+        yStart = 100 - outerH; // left side scales with bias too
+        yEnd = 100 - endH; // right side at biased intensity height
       } else if (shape === "ramp-down") {
-        // internal side higher, external side lower
-        yStart = 100 - innerH;
-        yEnd = 100 - baseH;
+        // Cooldown: ramp from biased intensity down to a fraction of it
+        const outerPerc = clamp(endPerc * rampOuterFactor, 0, maxPerc);
+        const outerH = (outerPerc / maxPerc) * 100;
+        yStart = 100 - endH; // left side at biased intensity height
+        yEnd = 100 - outerH; // right side scales with bias too
       }
 
-      const topY = Math.min(yStart, yEnd, y);
+      const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
       xCursor += widthPct;
       return { x, y, w, h, s, shape, topY, yStart, yEnd };
     });
