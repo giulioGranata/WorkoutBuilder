@@ -34,6 +34,7 @@ import {
 
 interface WorkoutOutputProps {
   workout: Workout | null;
+  attempted?: boolean;
 }
 
 const BIAS_MIN = 75;
@@ -46,7 +47,7 @@ export const clamp = (v: number, min: number, max: number) =>
 export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
-export function WorkoutOutput({ workout }: WorkoutOutputProps) {
+export function WorkoutOutput({ workout, attempted = false }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -392,18 +393,24 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             </div>
           </div>
         </div>
+      ) : attempted ? (
+        <div className="empty-state text-center py-12" data-testid="empty-state">
+          <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
+          <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
+            No workout found
+          </h3>
+          <p className="text-[--text-tertiary]">
+            No pattern fits the selected duration range. Try a longer range or another type.
+          </p>
+        </div>
       ) : (
-        <div
-          className="empty-state text-center py-12"
-          data-testid="empty-state"
-        >
+        <div className="empty-state text-center py-12" data-testid="empty-state">
           <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
           <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
             No workout generated yet
           </h3>
           <p className="text-[--text-tertiary]">
-            Configure your settings and click "Generate Workout" to create a
-            personalized training session.
+            Configure your settings and click "Generate Workout" to create a personalized training session.
           </p>
         </div>
       )}

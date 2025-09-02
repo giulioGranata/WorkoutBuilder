@@ -16,24 +16,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { generateWorkout } from "@/lib/generator";
-import { Workout, WORKOUT_TYPES, WorkoutFormData } from "@/lib/types";
+import { readFtp, writeFtp } from "@/lib/storage";
+import {
+  DurationRangeValue,
+  Workout,
+  WORKOUT_TYPES,
+  WorkoutFormData,
+} from "@/lib/types";
+import { getParamInt, setParam } from "@/lib/url";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Play, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { readFtp, writeFtp } from "@/lib/storage";
-import { getParamInt, setParam } from "@/lib/url";
 
 const formSchema = z.object({
   ftp: z
     .number()
     .min(50, "FTP must be at least 50 watts")
     .max(500, "FTP must be at most 500 watts"),
-  durationMin: z
-    .number()
-    .min(20, "Duration must be at least 20 minutes")
-    .max(180, "Duration must be at most 180 minutes"),
+  durationRange: z.enum(["30-45", "45-60", "60-75", "75-90", "90-plus"]),
   type: z.enum([
     "recovery",
     "endurance",
@@ -45,7 +47,7 @@ const formSchema = z.object({
 });
 
 interface WorkoutFormProps {
-  onWorkoutGenerated: (workout: Workout) => void;
+  onWorkoutGenerated: (workout: Workout | null) => void;
 }
 
 export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
@@ -53,7 +55,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(formSchema),
-    defaultValues: { ftp: 250, durationMin: 60, type: "threshold" },
+    defaultValues: { ftp: 250, durationRange: "60-75", type: "threshold" },
     mode: "onChange",
   });
 
@@ -66,7 +68,9 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
     const url = new URL(window.location.href);
 
     const urlFtp = getParamInt(url, "ftp");
-    const urlDur = getParamInt(url, "dur");
+    const urlDurRange = url.searchParams.get(
+      "durRange"
+    ) as DurationRangeValue | null;
     const urlType = url.searchParams.get("type");
 
     if (urlFtp !== null && urlFtp >= 50 && urlFtp <= 500) {
@@ -78,8 +82,15 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       }
     }
 
-    if (urlDur !== null && urlDur >= 20 && urlDur <= 180) {
-      form.setValue("durationMin", urlDur, { shouldDirty: false });
+    const allowed: DurationRangeValue[] = [
+      "30-45",
+      "45-60",
+      "60-75",
+      "75-90",
+      "90-plus",
+    ];
+    if (urlDurRange && (allowed as string[]).includes(urlDurRange)) {
+      form.setValue("durationRange", urlDurRange, { shouldDirty: false });
     }
 
     if (urlType && urlType in WORKOUT_TYPES) {
@@ -115,7 +126,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         setParam(url, "ftp", data.ftp);
-        setParam(url, "dur", data.durationMin);
+        setParam(url, "durRange", data.durationRange);
         setParam(url, "type", data.type);
       }
       onWorkoutGenerated(workout);
@@ -165,7 +176,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                       } focus:border-[--accent-solid]`}
                       data-testid="input-ftp"
                       {...field}
-                      onChange={(e) =>
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         field.onChange(parseInt(e.target.value) || 0)
                       }
                     />
@@ -184,41 +195,64 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             )}
           />
 
-          {/* Duration Input */}
+          {/* Duration Range Select */}
           <FormField
             control={form.control}
-            name="durationMin"
+            name="durationRange"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   Duration
                 </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      inputMode="numeric"
-                      min={20}
-                      max={180}
-                      required
-                      placeholder="60"
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  data-testid="select-duration-range"
+                >
+                  <FormControl>
+                    <SelectTrigger
                       className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
-                        form.formState.errors.durationMin
+                        form.formState.errors.durationRange
                           ? "border-[--error]"
                           : "border-[--border]"
                       } focus:border-[--accent-solid]`}
-                      data-testid="input-duration"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <span className="text-[--text-tertiary] text-sm tabular-nums">
-                        minutes
-                      </span>
-                    </div>
-                  </div>
-                </FormControl>
+                    >
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-[--muted] border border-[--border]">
+                    <SelectItem
+                      value="30-45"
+                      className="text-[--text-primary] hover:bg-[--border]"
+                    >
+                      30'-45'
+                    </SelectItem>
+                    <SelectItem
+                      value="45-60"
+                      className="text-[--text-primary] hover:bg-[--border]"
+                    >
+                      45'-60'
+                    </SelectItem>
+                    <SelectItem
+                      value="60-75"
+                      className="text-[--text-primary] hover:bg-[--border]"
+                    >
+                      60'-75'
+                    </SelectItem>
+                    <SelectItem
+                      value="75-90"
+                      className="text-[--text-primary] hover:bg-[--border]"
+                    >
+                      75'-90'
+                    </SelectItem>
+                    <SelectItem
+                      value="90-plus"
+                      className="text-[--text-primary] hover:bg-[--border]"
+                    >
+                      90'+
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage className="text-[--error] text-sm mt-1" />
               </FormItem>
             )}

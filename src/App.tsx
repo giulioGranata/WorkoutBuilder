@@ -10,8 +10,10 @@ import { queryClient } from "./lib/queryClient";
 
 function App() {
   const [workout, setWorkout] = useState<Workout | null>(null);
+  const [attempted, setAttempted] = useState(false);
 
-  const handleWorkoutGenerated = (newWorkout: Workout) => {
+  const handleWorkoutGenerated = (newWorkout: Workout | null) => {
+    setAttempted(true);
     setWorkout(newWorkout);
   };
 
@@ -42,7 +44,7 @@ function App() {
           <main className="max-w-4xl mx-auto px-4 py-8">
             <div className="grid lg:grid-cols-2 gap-8">
               <WorkoutForm onWorkoutGenerated={handleWorkoutGenerated} />
-              <WorkoutOutput workout={workout} />
+              <WorkoutOutput workout={workout} attempted={attempted} />
             </div>
 
             {/* Additional Information Section */}

@@ -71,8 +71,15 @@ export type Workout = {
   hint?: string;
 };
 
+export type DurationRangeValue =
+  | "30-45"
+  | "45-60"
+  | "60-75"
+  | "75-90"
+  | "90-plus";
+
 export interface WorkoutFormData {
   ftp: number;
-  durationMin: number;
   type: WorkoutType;
+  durationRange: DurationRangeValue;
 }

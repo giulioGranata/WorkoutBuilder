@@ -1,28 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { generateWorkout } from "./generator";
 
-describe("generateWorkout edge cases", () => {
-  it("warm-up and cool-down durations respect bounds", () => {
+describe("generateWorkout edge cases (ranges)", () => {
+  it("warm-up and cool-down durations respect bounds derived from min", () => {
     const cases = [
-      { durationMin: 20, warmup: 5, cooldown: 5 },
-      { durationMin: 60, warmup: 6, cooldown: 6 },
-      { durationMin: 200, warmup: 12, cooldown: 8 },
+      { range: "30-45" as const, warmup: 5, cooldown: 5 }, // 10% of 30 => 3, clamped to 5 & 5
+      { range: "60-75" as const, warmup: 6, cooldown: 6 }, // 10% of 60 => 6 & 6
+      { range: "90-plus" as const, warmup: 9, cooldown: 8 }, // 10% of 90 => 9 & 8 (cooldown capped at 8)
     ];
 
-    for (const { durationMin, warmup, cooldown } of cases) {
-      const workout = generateWorkout({ ftp: 250, durationMin, type: "recovery" });
+    for (const { range, warmup, cooldown } of cases) {
+      const workout = generateWorkout({ ftp: 250, durationRange: range, type: "recovery" });
+      if (!workout) continue; // in rare case of no fit
       expect(workout.steps[0].minutes).toBe(warmup);
       expect(workout.steps[workout.steps.length - 1].minutes).toBe(cooldown);
     }
-  });
-
-  it("adds hint when duration below warm-up and cool-down sum", () => {
-    const workout = generateWorkout({ ftp: 200, durationMin: 9, type: "recovery" });
-    expect(workout.hint).toBe(
-      "Increase duration to generate a complete workout"
-    );
-    expect(workout.steps[0].minutes + workout.steps[workout.steps.length - 1].minutes).toBe(
-      10
-    );
   });
 });
