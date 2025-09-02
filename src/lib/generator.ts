@@ -47,10 +47,9 @@ export function generateWorkout({
   const withFit = variants
     .map((variant) => {
       const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
-      const k = Math.floor(coreBudgetMax / len);
-      const total = warmupDuration + cooldownDuration + k * len;
-      const fits = k >= 1 && total >= min;
-      return { variant, len, k, total, fits };
+      const total = warmupDuration + len + cooldownDuration;
+      const fits = total >= min && total <= cap;
+      return { variant, len, total, fits };
     })
     .filter((x) => x.fits);
 
@@ -63,7 +62,6 @@ export function generateWorkout({
 
   const chosen = pick.variant;
   const cycleLen = pick.len;
-  const k = pick.k;
 
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
@@ -74,16 +72,15 @@ export function generateWorkout({
     phase: "warmup",
   });
 
-  for (let i = 0; i < k; i++) {
-    for (const block of chosen) {
-      const minutes = Math.round(block.minutes); // blocks are integer minutes
-      steps.push({
-        minutes,
-        intensity: Math.round((block.intensityPct / 100) * ftp),
-        description: block.description,
-        phase: block.phase,
-      });
-    }
+  // Single core block (no repetition)
+  for (const block of chosen) {
+    const minutes = Math.round(block.minutes);
+    steps.push({
+      minutes,
+      intensity: Math.round((block.intensityPct / 100) * ftp),
+      description: block.description,
+      phase: block.phase,
+    });
   }
 
   steps.push({
