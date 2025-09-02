@@ -29,16 +29,12 @@ afterEach(() => {
   toastMock.mockReset();
 });
 
-describe("Export dropdown", () => {
-  it("renders Export button and opens menu", () => {
+describe("Export actions", () => {
+  it("renders three export buttons", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
-    const btn = screen.getByTestId("button-export-dropdown");
-    expect(btn).toBeInTheDocument();
-    expect(btn).toHaveAttribute("aria-haspopup", "menu");
-    fireEvent.click(btn);
-    expect(screen.getByTestId("menu-export-json")).toBeInTheDocument();
-    expect(screen.getByTestId("menu-export-text")).toBeInTheDocument();
-    expect(screen.getByTestId("menu-export-zwo")).toBeInTheDocument();
+    expect(screen.getByTestId("button-export-zwo")).toBeInTheDocument();
+    expect(screen.getByTestId("button-export-text")).toBeInTheDocument();
+    expect(screen.getByTestId("button-export-json")).toBeInTheDocument();
   });
 
   it("downloads JSON, Text, and ZWO with correct filenames and content", async () => {
@@ -63,8 +59,7 @@ describe("Export dropdown", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
 
     // JSON
-    fireEvent.click(screen.getByTestId("button-export-dropdown"));
-    fireEvent.click(screen.getByTestId("menu-export-json"));
+    fireEvent.click(screen.getByTestId("button-export-json"));
     expect(blobSpy).toHaveBeenCalled();
     const jsonParts = blobSpy.mock.calls[0][0] as any[];
     const jsonStr = String(jsonParts[0]);
@@ -72,8 +67,7 @@ describe("Export dropdown", () => {
     expect(clickedDownloads).toContain("Test_Workout_bias_100.json");
 
     // Text
-    fireEvent.click(screen.getByTestId("button-export-dropdown"));
-    fireEvent.click(screen.getByTestId("menu-export-text"));
+    fireEvent.click(screen.getByTestId("button-export-text"));
     const textParts = blobSpy.mock.calls.find((c: any[]) => c[1]?.type === "text/plain")[0] as any[];
     const textStr = String(textParts[0]);
     expect(textStr).toContain("FTP: 200 W");
@@ -81,33 +75,17 @@ describe("Export dropdown", () => {
     expect(clickedDownloads).toContain("Test_Workout.txt");
 
     // ZWO
-    fireEvent.click(screen.getByTestId("button-export-dropdown"));
-    fireEvent.click(screen.getByTestId("menu-export-zwo"));
+    fireEvent.click(screen.getByTestId("button-export-zwo"));
     expect(clickedDownloads).toContain("Test_Workout.zwo");
 
     // restore
     (HTMLAnchorElement.prototype as any).click = origClick;
   });
 
-  it("supports keyboard navigation", async () => {
-    render(<WorkoutOutput workout={sampleWorkout} />);
-    const btn = screen.getByTestId("button-export-dropdown");
-    btn.focus();
-    await act(async () => {
-      fireEvent.keyDown(btn, { key: "Enter" });
-    });
-    const jsonItem = screen.getByTestId("menu-export-json");
-    // Arrow down and press Enter should select
-    jsonItem.focus();
-    await act(async () => {
-      fireEvent.keyDown(jsonItem, { key: "ArrowDown" });
-      fireEvent.keyDown(jsonItem, { key: "Enter" });
-    });
-  });
+  // Keyboard navigation via dropdown removed in new UX; buttons remain clickable
 
   it("does not show Copy Text button anymore", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
     expect(screen.queryByTestId("button-copy-text-full")).toBeNull();
   });
 });
-

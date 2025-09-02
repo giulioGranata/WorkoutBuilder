@@ -7,9 +7,7 @@ import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
-  ChevronDown,
   Code,
-  Download,
   FileCog,
   FileText,
   Info,
@@ -19,12 +17,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import WorkoutChart from "./WorkoutChart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import {
   Tooltip,
   TooltipContent,
@@ -47,7 +39,10 @@ export const clamp = (v: number, min: number, max: number) =>
 export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
-export function WorkoutOutput({ workout, attempted = false }: WorkoutOutputProps) {
+export function WorkoutOutput({
+  workout,
+  attempted = false,
+}: WorkoutOutputProps) {
   const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -333,84 +328,64 @@ export function WorkoutOutput({ workout, attempted = false }: WorkoutOutputProps
             </div>
           </div>
 
+          {/* Export (button group, no overlays) */}
           {/* Export Actions */}
           <div className="mt-6 pt-6 border-t border-[--border]">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    disabled={!workout}
-                    className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-                    aria-haspopup="menu"
-                    aria-expanded={menuOpen}
-                    aria-label="Open export menu"
-                    data-testid="button-export-dropdown"
-                  >
-                    <Download className="h-4 w-4" />
-                    Export
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  role="menu"
-                  className="bg-[--muted] text-[--text-primary] border border-[--border] rounded-lg shadow-lg min-w-[180px] w-auto animate-in fade-in slide-in-from-top-1 duration-150 ease-out data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-1 "
-                  align="start"
-                  sideOffset={8}
-                >
-                  <DropdownMenuItem
-                    onClick={handleExportJSON}
-                    role="menuitem"
-                    aria-label="Export workout as JSON"
-                    data-testid="menu-export-json"
-                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
-                  >
-                    <Code className="h-4 w-4" />
-                    <span>Export JSON</span>
-                  </DropdownMenuItem>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <Button
+                onClick={handleExportZWO}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
+              >
+                <FileCog className="h-4 w-4" />
+                Export ZWO
+              </Button>
 
-                  <DropdownMenuItem
-                    onClick={handleExportText}
-                    role="menuitem"
-                    aria-label="Export workout as Text"
-                    data-testid="menu-export-text"
-                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>Export Text</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleExportZWO}
-                    role="menuitem"
-                    aria-label="Export workout as ZWO"
-                    data-testid="menu-export-zwo"
-                    className="px-3 py-2.5 flex items-center gap-2 hover:bg-[--accent-solid]/10 rounded-md text-[--text-primary] cursor-pointer"
-                  >
-                    <FileCog className="h-4 w-4" />
-                    <span>Export ZWO</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                onClick={handleExportText}
+                variant="outline"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
+              >
+                <FileText className="h-4 w-4" />
+                Export Text
+              </Button>
+
+              <Button
+                onClick={handleExportJSON}
+                variant="outline"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
+              >
+                <Code className="h-4 w-4" />
+                Export JSON
+              </Button>
             </div>
           </div>
         </div>
       ) : attempted ? (
-        <div className="empty-state text-center py-12" data-testid="empty-state">
+        <div
+          className="empty-state text-center py-12"
+          data-testid="empty-state"
+        >
           <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
           <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
             No workout found
           </h3>
           <p className="text-[--text-tertiary]">
-            No pattern fits the selected duration range. Try a longer range or another type.
+            No pattern fits the selected duration range. Try a longer range or
+            another type.
           </p>
         </div>
       ) : (
-        <div className="empty-state text-center py-12" data-testid="empty-state">
+        <div
+          className="empty-state text-center py-12"
+          data-testid="empty-state"
+        >
           <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
           <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
             No workout generated yet
           </h3>
           <p className="text-[--text-tertiary]">
-            Configure your settings and click "Generate Workout" to create a personalized training session.
+            Configure your settings and click "Generate Workout" to create a
+            personalized training session.
           </p>
         </div>
       )}
