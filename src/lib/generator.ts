@@ -33,7 +33,6 @@ export function generateWorkout({
 
   // Warm-up and cool-down durations (~10% each of the min bound)
 
-  const coreBudgetMin = min - (WARMUP_DURATION + COOLDOWN_DURATION);
   const cap = typeof max === "number" ? max : MAX_CAP;
   const coreBudgetMax = cap - (WARMUP_DURATION + COOLDOWN_DURATION);
 
@@ -57,9 +56,6 @@ export function generateWorkout({
       ? withFit[0]
       : withFit[Math.floor(Math.random() * withFit.length)];
 
-  const chosen = pick.variant;
-  const cycleLen = pick.len;
-
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
   steps.push({
@@ -70,15 +66,14 @@ export function generateWorkout({
   });
 
   // Single core block (no repetition)
-  for (const block of chosen) {
-    const minutes = Math.round(block.minutes);
+  pick.variant.forEach((block) => {
     steps.push({
-      minutes,
-      intensity: Math.round((block.intensityPct / 100) * ftp),
+      minutes: block.minutes,
+      intensity: Math.round(ftp * (block.intensityPct / 100)),
       description: block.description,
       phase: block.phase,
     });
-  }
+  });
 
   steps.push({
     minutes: COOLDOWN_DURATION,
