@@ -1,16 +1,15 @@
 import { PATTERNS } from "./patterns";
-import {
-  Step,
-  Workout,
-  WorkoutFormData,
-  DurationRangeValue,
-} from "./types";
+import { DurationRangeValue, Step, Workout, WorkoutFormData } from "./types";
+
+const WARMUP_DURATION = 10;
+const COOLDOWN_DURATION = 10;
 
 const MAX_CAP = 240;
 
-export function rangeToBounds(
-  r: DurationRangeValue
-): { min: number; max?: number } {
+export function rangeToBounds(r: DurationRangeValue): {
+  min: number;
+  max?: number;
+} {
   switch (r) {
     case "30-45":
       return { min: 30, max: 45 };
@@ -33,12 +32,10 @@ export function generateWorkout({
   const { min, max } = rangeToBounds(durationRange);
 
   // Warm-up and cool-down durations (~10% each of the min bound)
-  const warmupDuration = Math.max(5, Math.min(12, Math.floor(min * 0.1)));
-  const cooldownDuration = Math.max(5, Math.min(8, Math.floor(min * 0.1)));
 
-  const coreBudgetMin = min - (warmupDuration + cooldownDuration);
+  const coreBudgetMin = min - (WARMUP_DURATION + COOLDOWN_DURATION);
   const cap = typeof max === "number" ? max : MAX_CAP;
-  const coreBudgetMax = cap - (warmupDuration + cooldownDuration);
+  const coreBudgetMax = cap - (WARMUP_DURATION + COOLDOWN_DURATION);
 
   if (coreBudgetMax < 1) return null;
 
@@ -47,7 +44,7 @@ export function generateWorkout({
   const withFit = variants
     .map((variant) => {
       const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
-      const total = warmupDuration + len + cooldownDuration;
+      const total = WARMUP_DURATION + len + COOLDOWN_DURATION;
       const fits = total >= min && total <= cap;
       return { variant, len, total, fits };
     })
@@ -66,7 +63,7 @@ export function generateWorkout({
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
   steps.push({
-    minutes: warmupDuration,
+    minutes: WARMUP_DURATION,
     intensity: Math.round(ftp * 0.6),
     description: "Easy warm-up pace to prepare for main efforts",
     phase: "warmup",
@@ -84,7 +81,7 @@ export function generateWorkout({
   }
 
   steps.push({
-    minutes: cooldownDuration,
+    minutes: COOLDOWN_DURATION,
     intensity: Math.round(ftp * 0.5),
     description: "Easy cool-down to aid recovery",
     phase: "cooldown",
