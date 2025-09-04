@@ -32,9 +32,9 @@ afterEach(() => {
 describe("Export actions", () => {
   it("renders three export buttons", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
-    expect(screen.getByTestId("button-export-zwo")).toBeInTheDocument();
-    expect(screen.getByTestId("button-export-text")).toBeInTheDocument();
-    expect(screen.getByTestId("button-export-json")).toBeInTheDocument();
+    expect(screen.getByText("Export ZWO")).toBeTruthy();
+    expect(screen.getByText("Export Text")).toBeTruthy();
+    expect(screen.getByText("Export JSON")).toBeTruthy();
   });
 
   it("downloads JSON, Text, and ZWO with correct filenames and content", async () => {
@@ -59,7 +59,7 @@ describe("Export actions", () => {
     render(<WorkoutOutput workout={sampleWorkout} />);
 
     // JSON
-    fireEvent.click(screen.getByTestId("button-export-json"));
+    fireEvent.click(screen.getByText("Export JSON"));
     expect(blobSpy).toHaveBeenCalled();
     const jsonParts = blobSpy.mock.calls[0][0] as any[];
     const jsonStr = String(jsonParts[0]);
@@ -67,7 +67,7 @@ describe("Export actions", () => {
     expect(clickedDownloads).toContain("Test_Workout_bias_100.json");
 
     // Text
-    fireEvent.click(screen.getByTestId("button-export-text"));
+    fireEvent.click(screen.getByText("Export Text"));
     const textParts = blobSpy.mock.calls.find((c: any[]) => c[1]?.type === "text/plain")[0] as any[];
     const textStr = String(textParts[0]);
     expect(textStr).toContain("FTP: 200 W");
@@ -75,7 +75,7 @@ describe("Export actions", () => {
     expect(clickedDownloads).toContain("Test_Workout.txt");
 
     // ZWO
-    fireEvent.click(screen.getByTestId("button-export-zwo"));
+    fireEvent.click(screen.getByText("Export ZWO"));
     expect(clickedDownloads).toContain("Test_Workout.zwo");
 
     // restore
