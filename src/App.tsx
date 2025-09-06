@@ -30,7 +30,7 @@ function App() {
                     <Dumbbell className="text-white h-4 w-4" />
                   </div>
                   <h1 className="text-2xl font-bold text-[--text-primary]">
-                    Workout Generator 2.0
+                    Workout Generator
                   </h1>
                 </div>
                 <div className="hidden sm:flex items-center text-sm text-[--text-secondary]">
@@ -115,7 +115,8 @@ function App() {
             <div className="max-w-4xl mx-auto px-4 py-6">
               <div className="flex flex-col sm:flex-row justify-between items-center">
                 <div className="text-[--text-secondary] text-sm mb-4 sm:mb-0">
-                  © 2024 Workout Generator 2.0. Built for cyclists, by cyclists.
+                  © {new Date().getFullYear()} Workout Generator. Built for
+                  cyclists, by cyclists.
                 </div>
                 <div className="flex items-center space-x-4">
                   <span className="text-[--text-tertiary] text-xs">
