@@ -13,14 +13,34 @@ const sampleWorkout: Workout = {
   title: "Test Workout",
   ftp: 200,
   steps: [
-    { minutes: 5, intensity: 120, description: "Warmup", phase: "warmup" },
-    { minutes: 5, intensity: 150, description: "Work", phase: "work" },
-    { minutes: 5, intensity: 100, description: "Cooldown", phase: "cooldown" },
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 100,
+      to: 120,
+      description: "Warmup",
+      phase: "warmup",
+    },
+    {
+      kind: "steady",
+      minutes: 5,
+      intensity: 150,
+      description: "Work",
+      phase: "work",
+    },
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 120,
+      to: 100,
+      description: "Cooldown",
+      phase: "cooldown",
+    },
   ],
   totalMinutes: 15,
   workMinutes: 5,
   recoveryMinutes: 0,
-  avgIntensity: 120,
+  avgIntensity: 123,
   signature: "sig",
 };
 
@@ -65,6 +85,9 @@ describe("Export actions", () => {
     const jsonParts = blobSpy.mock.calls[0][0] as any[];
     const jsonStr = String(jsonParts[0]);
     expect(jsonStr).toContain("\"biasPct\": 100");
+    expect(jsonStr).toContain('"kind": "ramp"');
+    expect(jsonStr).toContain('"from": 100');
+    expect(jsonStr).toContain('"to": 120');
     expect(clickedDownloads).toContain("Test_Workout_bias_100.json");
 
     // Text
@@ -73,6 +96,7 @@ describe("Export actions", () => {
     const textStr = String(textParts[0]);
     expect(textStr).toContain("FTP: 200 W");
     expect(textStr).toContain("Bias: 100%");
+    expect(textStr).toContain("ramp 100→120 W");
     expect(clickedDownloads).toContain("Test_Workout.txt");
 
     // ZWO

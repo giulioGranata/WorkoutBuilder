@@ -6,7 +6,9 @@ describe("generateWorkout", () => {
     expect(result).not.toBeNull();
     const workout = result!;
     expect(workout.steps[0].phase).toBe("warmup");
+    expect((workout.steps[0] as any).kind).toBe("ramp");
     expect(workout.steps[workout.steps.length - 1].phase).toBe("cooldown");
+    expect((workout.steps[workout.steps.length - 1] as any).kind).toBe("ramp");
     expect(workout.steps.length).toBeGreaterThanOrEqual(3);
 
     const totalMinutes = workout.steps.reduce((sum, s) => sum + s.minutes, 0);
@@ -23,7 +25,13 @@ describe("generateWorkout", () => {
     expect(workout.recoveryMinutes).toBe(recoveryMinutes);
 
     const avgIntensity = Math.round(
-      workout.steps.reduce((sum, s) => sum + s.intensity * s.minutes, 0) / totalMinutes
+      workout.steps.reduce((sum, s) => {
+        const kind = (s as any).kind ?? "steady";
+        if (kind === "ramp") {
+          return sum + ((s as any).from + (s as any).to) / 2 * s.minutes;
+        }
+        return sum + (s as any).intensity * s.minutes;
+      }, 0) / totalMinutes
     );
     expect(workout.avgIntensity).toBe(avgIntensity);
   });

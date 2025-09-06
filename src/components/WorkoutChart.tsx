@@ -1,14 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
-export type StepLike = {
-  minutes: number;
-  intensity: number; // watts (bias already applied upstream)
-  description: string;
-  phase?: "warmup" | "cooldown" | "work" | "recovery";
-};
+import type { Step } from "@/lib/types";
 
 interface Props {
-  steps: StepLike[];
+  steps: Step[];
   ftp: number;
 }
 
@@ -16,17 +10,13 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 
 // Visual/geometry constants
 const MAX_PERC = 1.6; // 160% FTP = full height
-const RAMP_OUTER_FACTOR = 0.6; // outer side as a fraction of target height
 const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
 const CORNER_RADIUS = 2; // rounded corners radius for bars
 const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
 
-function colorForStep(step: StepLike, ftp: number) {
-  if (step.phase === "warmup") return "var(--phase-warmup)";
-  if (step.phase === "cooldown") return "var(--phase-cooldown)";
-
+function zoneColor(watts: number, ftp: number) {
   if (ftp <= 0) return "var(--z1)";
-  const pct = (step.intensity / ftp) * 100;
+  const pct = (watts / ftp) * 100;
   if (pct <= 60) return "var(--z1)";
   if (pct <= 75) return "var(--z2)";
   if (pct <= 90) return "var(--z3)";
@@ -34,21 +24,33 @@ function colorForStep(step: StepLike, ftp: number) {
   return "var(--z5)";
 }
 
-type BarShape = "rect" | "ramp-up" | "ramp-down";
+function colorForStep(step: Step, ftp: number) {
+  const kind = (step as any).kind ?? "steady";
+  if (kind === "ramp") {
+    if (step.phase === "warmup") return "var(--phase-warmup)";
+    if (step.phase === "cooldown") return "var(--phase-cooldown)";
+    const rs = step as any;
+    const avgWatts = (rs.from + rs.to) / 2;
+    return zoneColor(avgWatts, ftp);
+  }
+  if (step.phase === "warmup") return "var(--phase-warmup)";
+  if (step.phase === "cooldown") return "var(--phase-cooldown)";
+  const ss = step as any;
+  return zoneColor(ss.intensity, ftp);
+}
+
+type BarShape = "rect" | "trapezoid";
 type BarGeom = {
   x: number;
   y: number;
   w: number;
   h: number;
-  s: StepLike;
+  s: Step;
   shape: BarShape;
   topY: number;
   yStart: number;
   yEnd: number;
 };
-
-const shapeForPhase = (phase?: StepLike["phase"]): BarShape =>
-  phase === "warmup" ? "ramp-up" : phase === "cooldown" ? "ramp-down" : "rect";
 
 const heightPct = (watts: number, ftp: number): number => {
   if (ftp <= 0) return 0;
@@ -184,30 +186,33 @@ export function WorkoutChart({ steps, ftp }: Props) {
     for (let i = 0; i < steps.length; i++) {
       const s = steps[i];
       const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const innerH = heightPct(s.intensity, ftp); // biased intensity already applied upstream
-      const outerH = innerH * RAMP_OUTER_FACTOR;
+      const kind = (s as any).kind ?? "steady";
 
-      const x = xCursor;
-      const shape = shapeForPhase(s.phase);
+      let h = 0;
+      let y = 0;
+      let yStart = 0;
+      let yEnd = 0;
+      let shape: BarShape = "rect";
 
-      // Default rectangle metrics (work/recovery blocks)
-      let h = innerH;
-      let y = 100 - h;
-      let yStart = 100 - innerH; // top at left
-      let yEnd = 100 - innerH; // top at right
-
-      if (shape === "ramp-up") {
-        // Warmup: ramp from a fraction of target height to full target height
-        yStart = 100 - outerH;
-        yEnd = 100 - innerH;
-      } else if (shape === "ramp-down") {
-        // Cooldown: ramp from full target height down to its fraction
-        yStart = 100 - innerH;
-        yEnd = 100 - outerH;
+      if (kind === "ramp") {
+        const fromH = heightPct((s as any).from, ftp);
+        const toH = heightPct((s as any).to, ftp);
+        h = Math.max(fromH, toH);
+        y = 100 - h;
+        yStart = 100 - fromH;
+        yEnd = 100 - toH;
+        shape = "trapezoid";
+      } else {
+        const intH = heightPct((s as any).intensity, ftp);
+        h = intH;
+        y = 100 - h;
+        yStart = 100 - intH;
+        yEnd = 100 - intH;
+        shape = "rect";
       }
 
       const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
-      out.push({ x, y, w, h, s, shape, topY, yStart, yEnd });
+      out.push({ x: xCursor, y, w, h, s, shape, topY, yStart, yEnd });
 
       // advance cursor; add gap after every bar except the last
       xCursor += w + (i < steps.length - 1 ? GAP_PCT : 0);
@@ -268,58 +273,70 @@ export function WorkoutChart({ steps, ftp }: Props) {
         <rect x={0} y={0} width={100} height={100} fill="transparent" />
         <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
           {bars.map((bar, idx) => {
-          const fill = colorForStep(bar.s, ftp);
-          const activate = () => {
-            setActive(idx);
-            updateTooltipForIndex(idx);
-          };
-          const clear = () => setActive(null);
-          const isActive = active === idx;
-          if (bar.shape === "rect") {
-            return (
-              <g key={idx}>
-                <rect
-                  x={bar.x}
-                  y={bar.y}
-                  width={Math.max(0.001, bar.w)}
-                  height={bar.h}
-                  rx={CORNER_RADIUS}
-                  style={{ fill }}
-                  stroke={isActive ? "var(--ring)" : "transparent"}
-                  strokeWidth={isActive ? 1.5 : 0}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
-                  onFocus={activate}
-                  onBlur={clear}
-                  onMouseEnter={activate}
-                  onMouseLeave={clear}
-                />
-              </g>
-            );
-          }
+            const fill = colorForStep(bar.s, ftp);
+            const activate = () => {
+              setActive(idx);
+              updateTooltipForIndex(idx);
+            };
+            const clear = () => setActive(null);
+            const isActive = active === idx;
+            const kind = (bar.s as any).kind ?? "steady";
+            const wattsText =
+              kind === "ramp"
+                ? `ramp ${(bar.s as any).from}→${(bar.s as any).to} W`
+                : `${(bar.s as any).intensity} W`;
+            const label = `${bar.s.minutes}' • ${wattsText} — ${bar.s.description}`;
+            if (bar.shape === "rect") {
+              return (
+                <g key={idx}>
+                  <rect
+                    x={bar.x}
+                    y={bar.y}
+                    width={Math.max(0.001, bar.w)}
+                    height={bar.h}
+                    rx={CORNER_RADIUS}
+                    style={{ fill }}
+                    stroke={isActive ? "var(--ring)" : "transparent"}
+                    strokeWidth={isActive ? 1.5 : 0}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={label}
+                    onFocus={activate}
+                    onBlur={clear}
+                    onMouseEnter={activate}
+                    onMouseLeave={clear}
+                  />
+                </g>
+              );
+            }
 
-          // Right-angled trapezoids for warmup/cooldown (rounded corners)
-          const x0 = bar.x;
-          const x1 = bar.x + Math.max(0.001, bar.w);
-          const yBase = 100; // bottom baseline
-          const d = roundedTrapezoidPath(x0, x1, yBase, bar.yStart, bar.yEnd, CORNER_RADIUS);
-          return (
-            <path
-              key={idx}
-              d={d}
-              style={{ fill }}
-              stroke={isActive ? "var(--ring)" : "transparent"}
-              strokeWidth={isActive ? 1.5 : 0}
-              role="button"
-              tabIndex={0}
-              aria-label={`${bar.s.minutes}' • ${bar.s.intensity} W — ${bar.s.description}`}
-              onFocus={activate}
-              onBlur={clear}
-              onMouseEnter={activate}
-              onMouseLeave={clear}
-            />
-          );
+            const x0 = bar.x;
+            const x1 = bar.x + Math.max(0.001, bar.w);
+            const yBase = 100; // bottom baseline
+            const d = roundedTrapezoidPath(
+              x0,
+              x1,
+              yBase,
+              bar.yStart,
+              bar.yEnd,
+              CORNER_RADIUS
+            );
+            return (
+              <path
+                key={idx}
+                d={d}
+                style={{ fill }}
+                stroke={isActive ? "var(--ring)" : "transparent"}
+                strokeWidth={isActive ? 1.5 : 0}
+                role="button"
+                tabIndex={0}
+                aria-label={label}
+                onFocus={activate}
+                onBlur={clear}
+                onMouseEnter={activate}
+                onMouseLeave={clear}
+              />
+            );
           })}
         </g>
       </svg>
@@ -330,8 +347,20 @@ export function WorkoutChart({ steps, ftp }: Props) {
           className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-sm rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
           style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
         >
-          <div className="font-semibold">{`${steps[active].minutes}' • ${steps[active].intensity} W`}</div>
-          <div className="text-[--text-secondary]">{steps[active].description}</div>
+          {(() => {
+            const step = steps[active];
+            const kind = (step as any).kind ?? "steady";
+            const wattsText =
+              kind === "ramp"
+                ? `ramp ${(step as any).from}→${(step as any).to} W`
+                : `${(step as any).intensity} W`;
+            return (
+              <>
+                <div className="font-semibold">{`${step.minutes}' • ${wattsText}`}</div>
+                <div className="text-[--text-secondary]">{step.description}</div>
+              </>
+            );
+          })()}
         </div>
       )}
     </div>
