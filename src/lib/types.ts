@@ -53,12 +53,26 @@ export const WORKOUT_TYPES = {
   },
 };
 
-export type Step = {
+export type StepPhase = "warmup" | "work" | "recovery" | "cooldown";
+
+export type SteadyStep = {
+  kind?: "steady";
   minutes: number;
   intensity: number;
+  phase: StepPhase;
   description: string;
-  phase?: "warmup" | "work" | "recovery" | "cooldown";
 };
+
+export type RampStep = {
+  kind?: "ramp";
+  minutes: number;
+  from: number;
+  to: number;
+  phase: StepPhase;
+  description: string;
+};
+
+export type Step = SteadyStep | (RampStep & { kind?: "steady" | "ramp" });
 
 export type Workout = {
   title: string;
