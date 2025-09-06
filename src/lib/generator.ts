@@ -1,11 +1,6 @@
 import { PATTERNS } from "./patterns";
 import { makeSignature } from "./signature";
-import {
-  DurationRangeValue,
-  Step,
-  Workout,
-  WorkoutFormData,
-} from "./types";
+import { DurationRangeValue, Step, Workout, WorkoutFormData } from "./types";
 
 const WARMUP_DURATION = 10;
 const COOLDOWN_DURATION = 10;
@@ -47,18 +42,11 @@ export function generateWorkout(
   const variants = PATTERNS[type];
   const withFit = variants
     .map((variant) => {
-      const coreSteps: Step[] = variant.map((block) => ({
-        kind: "steady",
-        minutes: block.minutes,
-        intensity: Math.round(ftp * (block.intensityPct / 100)),
-        description: block.description,
-        phase: block.phase,
-      }));
-      const len = coreSteps.reduce((sum, b) => sum + Math.round(b.minutes), 0);
+      const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
       const total = WARMUP_DURATION + len + COOLDOWN_DURATION;
       const fits = total >= min && total <= cap;
-      const signature = makeSignature(coreSteps);
-      return { coreSteps, len, total, fits, signature };
+      const signature = makeSignature(variant);
+      return { coreSteps: variant, len, total, fits, signature };
     })
     .filter((x) => x.fits);
 
