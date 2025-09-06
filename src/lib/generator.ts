@@ -1,4 +1,5 @@
 import { PATTERNS } from "./patterns";
+import { makeSignature } from "./signature";
 import { DurationRangeValue, Step, Workout, WorkoutFormData } from "./types";
 
 const WARMUP_DURATION = 10;
@@ -24,11 +25,10 @@ export function rangeToBounds(r: DurationRangeValue): {
   }
 }
 
-export function generateWorkout({
-  ftp,
-  type,
-  durationRange,
-}: WorkoutFormData): Workout | null {
+export function generateWorkout(
+  { ftp, type, durationRange }: WorkoutFormData,
+  prevSignature?: string
+): Workout | null {
   const { min, max } = rangeToBounds(durationRange);
 
   // Warm-up and cool-down durations (~10% each of the min bound)
@@ -42,19 +42,32 @@ export function generateWorkout({
   const variants = PATTERNS[type];
   const withFit = variants
     .map((variant) => {
-      const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
+      const coreSteps: Step[] = variant.map((block) => ({
+        minutes: block.minutes,
+        intensity: Math.round(ftp * (block.intensityPct / 100)),
+        description: block.description,
+        phase: block.phase,
+      }));
+      const len = coreSteps.reduce((sum, b) => sum + Math.round(b.minutes), 0);
       const total = WARMUP_DURATION + len + COOLDOWN_DURATION;
       const fits = total >= min && total <= cap;
-      return { variant, len, total, fits };
+      const signature = makeSignature(coreSteps);
+      return { coreSteps, len, total, fits, signature };
     })
     .filter((x) => x.fits);
 
   if (withFit.length === 0) return null;
 
-  const pick =
-    withFit.length === 1
-      ? withFit[0]
-      : withFit[Math.floor(Math.random() * withFit.length)];
+  let pickIndex = 0;
+  if (withFit.length === 1) {
+    pickIndex = 0;
+  } else {
+    pickIndex = Math.floor(Math.random() * withFit.length);
+    if (withFit[pickIndex].signature === prevSignature) {
+      pickIndex = (pickIndex + 1) % withFit.length;
+    }
+  }
+  const pick = withFit[pickIndex];
 
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
@@ -66,13 +79,8 @@ export function generateWorkout({
   });
 
   // Single core block (no repetition)
-  pick.variant.forEach((block) => {
-    steps.push({
-      minutes: block.minutes,
-      intensity: Math.round(ftp * (block.intensityPct / 100)),
-      description: block.description,
-      phase: block.phase,
-    });
+  pick.coreSteps.forEach((block) => {
+    steps.push(block);
   });
 
   steps.push({
@@ -106,6 +114,7 @@ export function generateWorkout({
     workMinutes,
     recoveryMinutes,
     avgIntensity,
+    signature: pick.signature,
   };
 
   return workout;

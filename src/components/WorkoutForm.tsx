@@ -52,6 +52,7 @@ interface WorkoutFormProps {
 
 export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lastSignature, setLastSignature] = useState<string | undefined>();
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(formSchema),
@@ -60,6 +61,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
   });
 
   const ftp = form.watch("ftp");
+  const typeWatch = form.watch("type");
 
   // Load persisted/URL params on mount and sync FTP changes across tabs
   useEffect(() => {
@@ -122,7 +124,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
   const onSubmit = async (data: WorkoutFormData) => {
     setIsGenerating(true);
     try {
-      const workout = generateWorkout(data);
+      const workout = generateWorkout(data, lastSignature);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         setParam(url, "ftp", data.ftp);
@@ -130,12 +132,17 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
         setParam(url, "type", data.type);
       }
       onWorkoutGenerated(workout);
+      setLastSignature(workout?.signature);
     } catch (error) {
       console.error("Error generating workout:", error);
     } finally {
       setIsGenerating(false);
     }
   };
+
+  useEffect(() => {
+    setLastSignature(undefined);
+  }, [typeWatch]);
 
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
