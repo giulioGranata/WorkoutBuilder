@@ -14,7 +14,7 @@ const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
 const CORNER_RADIUS = 2; // rounded corners radius for bars
 const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
 
-function colorForStep(step: Step, ftp: number) {
+export function colorForStep(step: Step, ftp: number) {
   if (step.phase === "warmup") return "var(--phase-warmup)";
   if (step.phase === "cooldown") return "var(--phase-cooldown)";
 
