@@ -8,16 +8,13 @@ import { Step } from "./types";
 export function makeSignature(steps: Step[]): string {
   return steps
     .map((s) => {
-      const parts: (string | number)[] = [s.minutes];
-      const anyStep = s as any;
-      if (typeof anyStep.intensity === "number") {
-        parts.push(anyStep.intensity);
-      } else {
-        if (typeof anyStep.from === "number") parts.push(anyStep.from);
-        if (typeof anyStep.to === "number") parts.push(anyStep.to);
+      const kind = (s as any).kind ?? "steady";
+      if (kind === "ramp") {
+        const rs = s as any;
+        return `r:${rs.minutes}:${rs.from}:${rs.to}${rs.phase ? `:${rs.phase}` : ""}`;
       }
-      if (s.phase) parts.push(s.phase);
-      return parts.join(":");
+      const ss = s as any;
+      return `s:${ss.minutes}:${ss.intensity}${ss.phase ? `:${ss.phase}` : ""}`;
     })
     .join("|");
 }
