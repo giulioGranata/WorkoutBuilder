@@ -1,5 +1,11 @@
 import { PATTERNS } from "./patterns";
-import { Step, Workout, WorkoutFormData } from "./types";
+import {
+  Step,
+  SteadyStep,
+  RampStep,
+  Workout,
+  WorkoutFormData,
+} from "./types";
 
 export function generateWorkout({
   ftp,
@@ -16,18 +22,21 @@ export function generateWorkout({
 
   const steps: Step[] = [];
 
-  // Warm-up step
-  steps.push({
+  // Warm-up step (ramp 50% -> 60% FTP)
+  const warmupStep: RampStep = {
+    kind: "ramp",
     minutes: warmupDuration,
-    intensity: Math.round(adjustedFtp * 0.6),
+    from: Math.round(adjustedFtp * 0.5),
+    to: Math.round(adjustedFtp * 0.6),
     description: "Easy warm-up pace to prepare for main efforts",
     phase: "warmup",
-  });
+  };
+  steps.push(warmupStep);
 
   // Core workout from static patterns (random variant selection)
   const variants = PATTERNS[type];
   const chosen = variants[Math.floor(Math.random() * variants.length)];
-  const coreSteps: Step[] = [];
+  const coreSteps: SteadyStep[] = [];
   if (!isTooShort) {
     let remaining = coreDuration;
     let index = 0;
@@ -45,13 +54,15 @@ export function generateWorkout({
         minutes = blockMinutes;
       }
 
-      coreSteps.push({
+      const coreStep: SteadyStep = {
+        kind: "steady",
         minutes,
         intensity: Math.round((block.intensityPct / 100) * ftp),
         description:
           block.description + (minutes < blockMinutes ? " (shortened)" : ""),
         phase: block.phase,
-      });
+      };
+      coreSteps.push(coreStep);
       remaining -= minutes;
       index++;
     }
@@ -59,13 +70,16 @@ export function generateWorkout({
   const validCoreSteps = coreSteps.filter((s) => s.minutes > 0);
   steps.push(...validCoreSteps);
 
-  // Cool-down step
-  steps.push({
+  // Cool-down step (ramp 60% -> 50% FTP)
+  const cooldownStep: RampStep = {
+    kind: "ramp",
     minutes: cooldownDuration,
-    intensity: Math.round(adjustedFtp * 0.5),
+    from: Math.round(adjustedFtp * 0.6),
+    to: Math.round(adjustedFtp * 0.5),
     description: "Easy cool-down to aid recovery",
     phase: "cooldown",
-  });
+  };
+  steps.push(cooldownStep);
 
   const validSteps = steps.filter((s) => s.minutes > 0);
 
@@ -77,7 +91,13 @@ export function generateWorkout({
     .filter((step) => step.phase === "recovery")
     .reduce((sum, step) => sum + step.minutes, 0);
   const avgIntensity = Math.round(
-    validSteps.reduce((sum, step) => sum + step.intensity * step.minutes, 0) /
+    validSteps.reduce((sum, step) => {
+      const avg =
+        ("kind" in step && step.kind === "ramp")
+          ? ((step.from + step.to) / 2)
+          : (step as SteadyStep).intensity;
+      return sum + avg * step.minutes;
+    }, 0) /
       totalMinutes
   );
 

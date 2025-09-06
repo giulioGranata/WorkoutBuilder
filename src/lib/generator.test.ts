@@ -8,6 +8,26 @@ describe("generateWorkout", () => {
     expect(total).toBe(30);
   });
 
+  it("creates ramp steps for warm-up and cool-down with correct targets", () => {
+    const ftp = 200;
+    const workout = generateWorkout({ ftp, durationMin: 40, type: "endurance" });
+    const warm = workout.steps[0];
+    const cool = workout.steps[workout.steps.length - 1];
+    expect((warm as any).kind).toBe("ramp");
+    expect((cool as any).kind).toBe("ramp");
+    expect((warm as any).from).toBe(Math.round(ftp * 0.5));
+    expect((warm as any).to).toBe(Math.round(ftp * 0.6));
+    expect((cool as any).from).toBe(Math.round(ftp * 0.6));
+    expect((cool as any).to).toBe(Math.round(ftp * 0.5));
+  });
+
+  it("computes avg intensity using ramp averages", () => {
+    const ftp = 200;
+    const w = generateWorkout({ ftp, durationMin: 9, type: "recovery" });
+    expect(w.steps).toHaveLength(2); // only warmup/cooldown
+    expect(w.avgIntensity).toBe(110);
+  });
+
   it("repeats chosen variant and shortens final block when needed", () => {
     const ftp = 200;
     const spy = vi.spyOn(Math, "random").mockReturnValue(0); // pick variant A

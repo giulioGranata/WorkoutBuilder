@@ -19,14 +19,34 @@ const sampleWorkout: Workout = {
   title: "Test Workout",
   ftp: 200,
   steps: [
-    { minutes: 5, intensity: 120, description: "Warmup", phase: "warmup" },
-    { minutes: 5, intensity: 150, description: "Work", phase: "work" },
-    { minutes: 5, intensity: 100, description: "Cooldown", phase: "cooldown" },
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 100,
+      to: 120,
+      description: "Warmup",
+      phase: "warmup",
+    },
+    {
+      kind: "steady",
+      minutes: 5,
+      intensity: 150,
+      description: "Work",
+      phase: "work",
+    },
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 120,
+      to: 100,
+      description: "Cooldown",
+      phase: "cooldown",
+    },
   ],
   totalMinutes: 15,
   workMinutes: 5,
   recoveryMinutes: 0,
-  avgIntensity: 120,
+  avgIntensity: 123,
 };
 
 afterEach(() => {

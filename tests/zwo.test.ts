@@ -7,10 +7,36 @@ const workout: Workout = {
   title: "Zwift Export <Test>",
   ftp: 250,
   steps: [
-    { minutes: 5, intensity: 100, description: "Warmup", phase: "warmup" }, // 100/250=0.40
-    { minutes: 10, intensity: 300, description: "Work 1", phase: "work" }, // 300/250=1.20
-    { minutes: 5, intensity: 500, description: "Work 2", phase: "work" }, // 500/250=2.00 -> 1.60 (clamp)
-    { minutes: 5, intensity: 50, description: "Cooldown", phase: "cooldown" }, // 50/250=0.20 -> 0.30 (clamp)
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 100,
+      to: 150,
+      description: "Warmup",
+      phase: "warmup",
+    }, // 100→150
+    {
+      kind: "steady",
+      minutes: 10,
+      intensity: 300,
+      description: "Work 1",
+      phase: "work",
+    }, // 300/250=1.20
+    {
+      kind: "steady",
+      minutes: 5,
+      intensity: 500,
+      description: "Work 2",
+      phase: "work",
+    }, // 500/250=2.00 -> 1.60 (clamp)
+    {
+      kind: "ramp",
+      minutes: 5,
+      from: 150,
+      to: 100,
+      description: "Cooldown",
+      phase: "cooldown",
+    }, // 150→100
   ],
   totalMinutes: 25,
   workMinutes: 15,
@@ -28,18 +54,19 @@ describe("toZwoXml", () => {
     expect(xml).toContain('<description>FTP 250W • Bias 100%</description>');
   });
 
-  it("creates one SteadyState per step with floored duration and clamped 2-decimal power", () => {
+  it("creates proper blocks with floored duration and clamped 2-decimal power", () => {
     const xml = toZwoXml({ ...workout, biasPct: 100 });
 
-    // 4 steps -> 4 blocks
-    const matches = xml.match(/<SteadyState\s/g) || [];
-    expect(matches.length).toBe(workout.steps.length);
+    // 4 steps -> 4 blocks (2 Ramp + 2 SteadyState)
+    const steady = xml.match(/<SteadyState\s/g) || [];
+    const ramps = xml.match(/<Ramp\s/g) || [];
+    expect(steady.length + ramps.length).toBe(workout.steps.length);
 
-    // Duration check (floor(minutes*60))
-    expect(xml).toContain('Duration="300" Power="0.40"'); // 5' warmup
-    expect(xml).toContain('Duration="600" Power="1.20"'); // 10' work 1
-    expect(xml).toContain('Duration="300" Power="1.60"'); // 5' work 2 clamped down from 2.00
-    expect(xml).toContain('Duration="300" Power="0.30"'); // 5' cooldown clamped up from 0.20
+    // Duration and power checks
+    expect(xml).toContain('Duration="300" PowerLow="0.40" PowerHigh="0.60"'); // warmup ramp
+    expect(xml).toContain('Duration="600" Power="1.20"'); // work 1
+    expect(xml).toContain('Duration="300" Power="1.60"'); // work 2 clamped
+    expect(xml).toContain('Duration="300" PowerLow="0.60" PowerHigh="0.40"'); // cooldown ramp
 
     // No NaN/undefined strings
     expect(xml.includes('NaN')).toBe(false);
@@ -50,11 +77,11 @@ describe("toZwoXml", () => {
     const xml = toZwoXml({ ...workout });
     const parser = new DOMParser();
     const doc = parser.parseFromString(xml, 'application/xml');
-    const nodes = doc.querySelectorAll('SteadyState');
+    const nodes = doc.querySelectorAll('SteadyState, Ramp');
     expect(nodes.length).toBe(workout.steps.length);
     const first = nodes[0] as Element;
     expect(first.getAttribute('Duration')).toBe('300');
-    expect(first.getAttribute('Power')).toBe('0.40');
+    expect(first.tagName).toBe('Ramp');
   });
 });
 

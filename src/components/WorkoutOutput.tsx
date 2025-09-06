@@ -70,10 +70,20 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const biasedSteps = useMemo<Step[]>(
     () =>
       workout
-        ? workout.steps.map((s) => ({
-            ...s,
-            intensity: applyBias(s.intensity, bias),
-          }))
+        ? workout.steps.map((s) => {
+            if ("kind" in s && s.kind === "ramp") {
+              return {
+                ...s,
+                from: applyBias(s.from, bias),
+                to: applyBias(s.to, bias),
+              };
+            }
+            return {
+              ...s,
+              kind: (s as any).kind ?? "steady",
+              intensity: applyBias((s as any).intensity, bias),
+            };
+          })
         : [],
     [workout, bias]
   );
@@ -82,8 +92,13 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const biasedAvgIntensity = useMemo<number>(() => {
     if (!workout || biasedSteps.length === 0 || !workout.totalMinutes) return 0;
     const weighted =
-      biasedSteps.reduce((sum, s) => sum + s.intensity * s.minutes, 0) /
-      workout.totalMinutes;
+      biasedSteps.reduce((sum, s) => {
+        const avg =
+          ("kind" in s && s.kind === "ramp")
+            ? (s.from + s.to) / 2
+            : s.intensity;
+        return sum + avg * s.minutes;
+      }, 0) / workout.totalMinutes;
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
@@ -153,12 +168,14 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     const workoutText =
       `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n` +
       biasedSteps
-        .map(
-          (step, index) =>
-            `${index + 1}. ${step.minutes}' — ${
-              step.intensity
-            } W — ${normalizeDescription(step.description)}`
-        )
+        .map((step, index) => {
+          if ("kind" in step && step.kind === "ramp") {
+            return `${index + 1}. ${step.minutes}' — ramp ${step.from}→${
+              step.to
+            } W — ${normalizeDescription(step.description)}`;
+          }
+          return `${index + 1}. ${step.minutes}' — ${step.intensity} W — ${normalizeDescription(step.description)}`;
+        })
         .join("\n") +
       `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
 
@@ -193,7 +210,11 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const getStepBorderColor = (step: Step, ftp: number) => {
     if (step.phase === "warmup") return "border-l-[--phase-warmup]";
     if (step.phase === "cooldown") return "border-l-[--phase-cooldown]";
-    return getZoneColors(step.intensity, ftp).border;
+    const watts =
+      "kind" in step && step.kind === "ramp"
+        ? (step.from + step.to) / 2
+        : step.intensity;
+    return getZoneColors(watts, ftp).border;
   };
 
   const getStepBadgeClasses = (step: Step, ftp: number) => {
@@ -202,7 +223,11 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     if (step.phase === "warmup") return `${baseClasses} bg-[--phase-warmup]`;
     if (step.phase === "cooldown")
       return `${baseClasses} bg-[--phase-cooldown]`;
-    return `${baseClasses} ${getZoneColors(step.intensity, ftp).badge}`;
+    const watts =
+      "kind" in step && step.kind === "ramp"
+        ? (step.from + step.to) / 2
+        : step.intensity;
+    return `${baseClasses} ${getZoneColors(watts, ftp).badge}`;
   };
 
   return (
@@ -314,7 +339,9 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
                     </div>
                     <div className="flex-1">
                       <div className="text-[--text-primary] font-bold tabular-nums">
-                        {step.intensity} W
+                        {"kind" in step && step.kind === "ramp"
+                          ? `${step.from}→${step.to} W`
+                          : `${step.intensity} W`}
                       </div>
                       <div className="text-[--text-secondary] text-sm">
                         {normalizeDescription(step.description)}

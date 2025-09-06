@@ -12,4 +12,11 @@ describe("bias helpers", () => {
     expect(applyBias(-100, 80)).toBe(0);
     expect(applyBias(200, 80)).toBe(160);
   });
+
+  it("applies bias uniformly to ramp endpoints", () => {
+    const from = applyBias(100, 110);
+    const to = applyBias(200, 110);
+    expect(from).toBe(110);
+    expect(to).toBe(220);
+  });
 });
