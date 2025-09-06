@@ -16,6 +16,7 @@ const workout: Workout = {
   workMinutes: 15,
   recoveryMinutes: 0,
   avgIntensity: 230,
+  signature: "sig",
 };
 
 describe("toZwoXml", () => {

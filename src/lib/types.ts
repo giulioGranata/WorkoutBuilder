@@ -69,6 +69,7 @@ export type Workout = {
   recoveryMinutes?: number;
   avgIntensity?: number;
   hint?: string;
+  signature: string;
 };
 
 export type DurationRangeValue =

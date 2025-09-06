@@ -21,6 +21,7 @@ const sampleWorkout: Workout = {
   workMinutes: 5,
   recoveryMinutes: 0,
   avgIntensity: 120,
+  signature: "sig",
 };
 
 afterEach(() => {
