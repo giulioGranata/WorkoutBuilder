@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import type { Step } from "@/lib/types";
+import { type Step, isRampStep } from "@/lib/types";
 
 interface Props {
   steps: Step[];
@@ -25,18 +25,15 @@ function zoneColor(watts: number, ftp: number) {
 }
 
 function colorForStep(step: Step, ftp: number) {
-  const kind = (step as any).kind ?? "steady";
-  if (kind === "ramp") {
+  if (isRampStep(step)) {
     if (step.phase === "warmup") return "var(--phase-warmup)";
     if (step.phase === "cooldown") return "var(--phase-cooldown)";
-    const rs = step as any;
-    const avgWatts = (rs.from + rs.to) / 2;
+    const avgWatts = (step.from + step.to) / 2;
     return zoneColor(avgWatts, ftp);
   }
   if (step.phase === "warmup") return "var(--phase-warmup)";
   if (step.phase === "cooldown") return "var(--phase-cooldown)";
-  const ss = step as any;
-  return zoneColor(ss.intensity, ftp);
+  return zoneColor(step.intensity, ftp);
 }
 
 type BarShape = "rect" | "trapezoid";
@@ -186,24 +183,22 @@ export function WorkoutChart({ steps, ftp }: Props) {
     for (let i = 0; i < steps.length; i++) {
       const s = steps[i];
       const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const kind = (s as any).kind ?? "steady";
-
       let h = 0;
       let y = 0;
       let yStart = 0;
       let yEnd = 0;
       let shape: BarShape = "rect";
 
-      if (kind === "ramp") {
-        const fromH = heightPct((s as any).from, ftp);
-        const toH = heightPct((s as any).to, ftp);
+      if (isRampStep(s)) {
+        const fromH = heightPct(s.from, ftp);
+        const toH = heightPct(s.to, ftp);
         h = Math.max(fromH, toH);
         y = 100 - h;
         yStart = 100 - fromH;
         yEnd = 100 - toH;
         shape = "trapezoid";
       } else {
-        const intH = heightPct((s as any).intensity, ftp);
+        const intH = heightPct(s.intensity, ftp);
         h = intH;
         y = 100 - h;
         yStart = 100 - intH;
@@ -280,11 +275,9 @@ export function WorkoutChart({ steps, ftp }: Props) {
             };
             const clear = () => setActive(null);
             const isActive = active === idx;
-            const kind = (bar.s as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(bar.s as any).from}→${(bar.s as any).to} W`
-                : `${(bar.s as any).intensity} W`;
+            const wattsText = isRampStep(bar.s)
+              ? `ramp ${bar.s.from}→${bar.s.to} W`
+              : `${bar.s.intensity} W`;
             const label = `${bar.s.minutes}' • ${wattsText} — ${bar.s.description}`;
             if (bar.shape === "rect") {
               return (
@@ -349,11 +342,9 @@ export function WorkoutChart({ steps, ftp }: Props) {
         >
           {(() => {
             const step = steps[active];
-            const kind = (step as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(step as any).from}→${(step as any).to} W`
-                : `${(step as any).intensity} W`;
+            const wattsText = isRampStep(step)
+              ? `ramp ${step.from}→${step.to} W`
+              : `${step.intensity} W`;
             return (
               <>
                 <div className="font-semibold">{`${step.minutes}' • ${wattsText}`}</div>

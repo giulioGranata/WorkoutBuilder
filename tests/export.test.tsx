@@ -92,7 +92,9 @@ describe("Export actions", () => {
 
     // Text
     fireEvent.click(screen.getByText("Export Text"));
-    const textParts = blobSpy.mock.calls.find((c: any[]) => c[1]?.type === "text/plain")[0] as any[];
+    const textCall = blobSpy.mock.calls.find((c: any[]) => c[1]?.type === "text/plain");
+    expect(textCall).toBeTruthy();
+    const textParts = (textCall as any[])[0] as any[];
     const textStr = String(textParts[0]);
     expect(textStr).toContain("FTP: 200 W");
     expect(textStr).toContain("Bias: 100%");

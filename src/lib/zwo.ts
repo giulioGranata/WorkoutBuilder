@@ -1,4 +1,5 @@
 import type { Workout } from "./types";
+import { isRampStep } from "./types";
 
 const xmlEscape = (s: string) =>
   s
@@ -30,18 +31,17 @@ export function toZwoXml(
   parts.push(`  <workout>`);
 
   for (const step of workout.steps) {
-    const kind = (step as any).kind ?? "steady";
     const duration = Math.floor(step.minutes * 60);
-    if (kind === "ramp") {
-      const fromRatio = workout.ftp > 0 ? (step as any).from / workout.ftp : 0;
-      const toRatio = workout.ftp > 0 ? (step as any).to / workout.ftp : 0;
+    if (isRampStep(step)) {
+      const fromRatio = workout.ftp > 0 ? step.from / workout.ftp : 0;
+      const toRatio = workout.ftp > 0 ? step.to / workout.ftp : 0;
       const low = clamp(fromRatio, 0.3, 1.6).toFixed(2);
       const high = clamp(toRatio, 0.3, 1.6).toFixed(2);
       parts.push(
         `    <Ramp Duration="${duration}" PowerLow="${low}" PowerHigh="${high}" />`
       );
     } else {
-      const ratioRaw = workout.ftp > 0 ? (step as any).intensity / workout.ftp : 0;
+      const ratioRaw = workout.ftp > 0 ? step.intensity / workout.ftp : 0;
       const ratioClamped = clamp(ratioRaw, 0.3, 1.6);
       const power = ratioClamped.toFixed(2);
       parts.push(`    <SteadyState Duration="${duration}" Power="${power}" />`);

@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
+import { isRampStep } from "@/lib/types";
+import { makeSignature } from "@/lib/signature";
 describe("generateWorkout", () => {
   it("creates workout with warmup, core, cooldown and correct metrics", async () => {
     const { generateWorkout } = await import("@/lib/generator");
@@ -6,9 +8,9 @@ describe("generateWorkout", () => {
     expect(result).not.toBeNull();
     const workout = result!;
     expect(workout.steps[0].phase).toBe("warmup");
-    expect((workout.steps[0] as any).kind).toBe("ramp");
+    expect(isRampStep(workout.steps[0])).toBe(true);
     expect(workout.steps[workout.steps.length - 1].phase).toBe("cooldown");
-    expect((workout.steps[workout.steps.length - 1] as any).kind).toBe("ramp");
+    expect(isRampStep(workout.steps[workout.steps.length - 1])).toBe(true);
     expect(workout.steps.length).toBeGreaterThanOrEqual(3);
 
     const totalMinutes = workout.steps.reduce((sum, s) => sum + s.minutes, 0);
@@ -26,14 +28,14 @@ describe("generateWorkout", () => {
 
     const avgIntensity = Math.round(
       workout.steps.reduce((sum, s) => {
-        const kind = (s as any).kind ?? "steady";
-        if (kind === "ramp") {
-          return sum + ((s as any).from + (s as any).to) / 2 * s.minutes;
+        if (isRampStep(s)) {
+          return sum + ((s.from + s.to) / 2) * s.minutes;
         }
-        return sum + (s as any).intensity * s.minutes;
+        return sum + s.intensity * s.minutes;
       }, 0) / totalMinutes
     );
     expect(workout.avgIntensity).toBe(avgIntensity);
+    expect(workout.signature).toBe(makeSignature(workout.steps));
   });
 
   it("returns null when duration range leaves no room for core", async () => {

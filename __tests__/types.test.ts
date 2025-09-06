@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import type { RampStep, SteadyStep, Step } from "@/lib/types";
+import {
+  type RampStep,
+  type SteadyStep,
+  type Step,
+  isRampStep,
+  isSteadyStep,
+} from "@/lib/types";
 
 describe("Step type definitions", () => {
   it("accepts steady and ramp steps", () => {
@@ -20,5 +26,26 @@ describe("Step type definitions", () => {
     };
     const steps: Step[] = [steady, ramp];
     expect(steps.length).toBe(2);
+  });
+
+  it("type guards discriminate step kinds", () => {
+    const steady: Step = {
+      minutes: 5,
+      intensity: 180,
+      description: "s",
+      phase: "work",
+    };
+    const ramp: Step = {
+      kind: "ramp",
+      minutes: 3,
+      from: 100,
+      to: 150,
+      description: "r",
+      phase: "warmup",
+    };
+    expect(isRampStep(steady)).toBe(false);
+    expect(isSteadyStep(steady)).toBe(true);
+    expect(isRampStep(ramp)).toBe(true);
+    expect(isSteadyStep(ramp)).toBe(false);
   });
 });

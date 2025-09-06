@@ -1,4 +1,4 @@
-import { Step } from "./types";
+import { Step, isRampStep } from "./types";
 
 /**
  * Create a unique runtime signature for a sequence of steps.
@@ -7,15 +7,11 @@ import { Step } from "./types";
  */
 export function makeSignature(steps: Step[]): string {
   return steps
-    .map((s) => {
-      const kind = (s as any).kind ?? "steady";
-      if (kind === "ramp") {
-        const rs = s as any;
-        return `r:${rs.minutes}:${rs.from}:${rs.to}${rs.phase ? `:${rs.phase}` : ""}`;
-      }
-      const ss = s as any;
-      return `s:${ss.minutes}:${ss.intensity}${ss.phase ? `:${ss.phase}` : ""}`;
-    })
+    .map((s) =>
+      isRampStep(s)
+        ? `r:${s.minutes}:${s.from}:${s.to}${s.phase ? `:${s.phase}` : ""}`
+        : `s:${s.minutes}:${s.intensity}${s.phase ? `:${s.phase}` : ""}`
+    )
     .join("|");
 }
 

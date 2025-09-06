@@ -5,6 +5,7 @@ import {
   Step,
   Workout,
   WorkoutFormData,
+  isRampStep,
 } from "./types";
 
 const WARMUP_DURATION = 10;
@@ -43,6 +44,25 @@ export function generateWorkout(
 
   if (coreBudgetMax < 1) return null;
 
+  const warmStep: Step = {
+    kind: "ramp",
+    minutes: WARMUP_DURATION,
+    from: Math.round(ftp * 0.5),
+    to: Math.round(ftp * 0.6),
+    description: "Easy warm-up pace to prepare for main efforts",
+    phase: "warmup",
+  };
+  const coolStep: Step = {
+    kind: "ramp",
+    minutes: COOLDOWN_DURATION,
+    from: Math.round(ftp * 0.6),
+    to: Math.round(ftp * 0.5),
+    description: "Easy cool-down to aid recovery",
+    phase: "cooldown",
+  };
+  const warmSig = makeSignature([warmStep]);
+  const coolSig = makeSignature([coolStep]);
+
   // Choose a pattern variant; if exactly one variant can fit, pick it deterministically
   const variants = PATTERNS[type];
   const withFit = variants
@@ -57,7 +77,7 @@ export function generateWorkout(
       const len = coreSteps.reduce((sum, b) => sum + Math.round(b.minutes), 0);
       const total = WARMUP_DURATION + len + COOLDOWN_DURATION;
       const fits = total >= min && total <= cap;
-      const signature = makeSignature(coreSteps);
+      const signature = [warmSig, makeSignature(coreSteps), coolSig].join("|");
       return { coreSteps, len, total, fits, signature };
     })
     .filter((x) => x.fits);
@@ -77,28 +97,14 @@ export function generateWorkout(
 
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
-  steps.push({
-    kind: "ramp",
-    minutes: WARMUP_DURATION,
-    from: Math.round(ftp * 0.5),
-    to: Math.round(ftp * 0.6),
-    description: "Easy warm-up pace to prepare for main efforts",
-    phase: "warmup",
-  });
+  steps.push(warmStep);
 
   // Single core block (no repetition)
   pick.coreSteps.forEach((block) => {
     steps.push(block);
   });
 
-  steps.push({
-    kind: "ramp",
-    minutes: COOLDOWN_DURATION,
-    from: Math.round(ftp * 0.6),
-    to: Math.round(ftp * 0.5),
-    description: "Easy cool-down to aid recovery",
-    phase: "cooldown",
-  });
+  steps.push(coolStep);
 
   const total = steps.reduce((s, st) => s + st.minutes, 0);
   if (total < min) return null;
@@ -111,13 +117,10 @@ export function generateWorkout(
     .reduce((sum, s) => sum + s.minutes, 0);
   const avgIntensity = Math.round(
     steps.reduce((sum, s) => {
-      const kind = (s as any).kind ?? "steady";
-      if (kind === "ramp") {
-        const rs = s as any;
-        return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+      if (isRampStep(s)) {
+        return sum + ((s.from + s.to) / 2) * s.minutes;
       }
-      const ss = s as any;
-      return sum + ss.intensity * ss.minutes;
+      return sum + s.intensity * s.minutes;
     }, 0) / total
   );
 
@@ -132,7 +135,7 @@ export function generateWorkout(
     workMinutes,
     recoveryMinutes,
     avgIntensity,
-    signature: pick.signature,
+    signature: makeSignature(steps),
   };
 
   return workout;

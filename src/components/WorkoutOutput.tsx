@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Step, Workout } from "@/lib/types";
+import { Step, Workout, isRampStep } from "@/lib/types";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
@@ -75,24 +75,19 @@ export function WorkoutOutput({
   const biasedSteps = useMemo<Step[]>(
     () =>
       workout
-        ? workout.steps.map((s) => {
-            const kind = (s as any).kind ?? "steady";
-            if (kind === "ramp") {
-              const rs = s as any;
-              return {
-                ...rs,
-                kind: "ramp",
-                from: applyBias(rs.from, bias),
-                to: applyBias(rs.to, bias),
-              };
-            }
-            const ss = s as any;
-            return {
-              ...ss,
-              kind: "steady",
-              intensity: applyBias(ss.intensity, bias),
-            };
-          })
+        ? workout.steps.map((s) =>
+            isRampStep(s)
+              ? {
+                  ...s,
+                  from: applyBias(s.from, bias),
+                  to: applyBias(s.to, bias),
+                }
+              : {
+                  ...s,
+                  kind: "steady",
+                  intensity: applyBias(s.intensity, bias),
+                }
+          )
         : [],
     [workout, bias]
   );
@@ -102,13 +97,10 @@ export function WorkoutOutput({
     if (!workout || biasedSteps.length === 0 || !workout.totalMinutes) return 0;
     const weighted =
       biasedSteps.reduce((sum, s) => {
-        const kind = (s as any).kind ?? "steady";
-        if (kind === "ramp") {
-          const rs = s as any;
-          return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+        if (isRampStep(s)) {
+          return sum + ((s.from + s.to) / 2) * s.minutes;
         }
-        const ss = s as any;
-        return sum + ss.intensity * ss.minutes;
+        return sum + s.intensity * s.minutes;
       }, 0) / workout.totalMinutes;
     return Math.round(weighted);
   }, [workout, biasedSteps]);
@@ -121,11 +113,9 @@ export function WorkoutOutput({
     const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n`;
     const body = biasedSteps
       .map((step, index) => {
-        const kind = (step as any).kind ?? "steady";
-        const wattsText =
-          kind === "ramp"
-            ? `ramp ${(step as any).from}→${(step as any).to} W`
-            : `${(step as any).intensity} W`;
+        const wattsText = isRampStep(step)
+          ? `ramp ${step.from}→${step.to} W`
+          : `${step.intensity} W`;
         return `${index + 1}. ${step.minutes}' — ${wattsText} — ${normalizeDescription(step.description)}`;
       })
       .join("\n");
