@@ -75,10 +75,24 @@ export function WorkoutOutput({
   const biasedSteps = useMemo<Step[]>(
     () =>
       workout
-        ? workout.steps.map((s) => ({
-            ...s,
-            intensity: applyBias(s.intensity, bias),
-          }))
+        ? workout.steps.map((s) => {
+            const kind = (s as any).kind ?? "steady";
+            if (kind === "ramp") {
+              const rs = s as any;
+              return {
+                ...rs,
+                kind: "ramp",
+                from: applyBias(rs.from, bias),
+                to: applyBias(rs.to, bias),
+              };
+            }
+            const ss = s as any;
+            return {
+              ...ss,
+              kind: "steady",
+              intensity: applyBias(ss.intensity, bias),
+            };
+          })
         : [],
     [workout, bias]
   );
@@ -87,8 +101,15 @@ export function WorkoutOutput({
   const biasedAvgIntensity = useMemo<number>(() => {
     if (!workout || biasedSteps.length === 0 || !workout.totalMinutes) return 0;
     const weighted =
-      biasedSteps.reduce((sum, s) => sum + s.intensity * s.minutes, 0) /
-      workout.totalMinutes;
+      biasedSteps.reduce((sum, s) => {
+        const kind = (s as any).kind ?? "steady";
+        if (kind === "ramp") {
+          const rs = s as any;
+          return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+        }
+        const ss = s as any;
+        return sum + ss.intensity * ss.minutes;
+      }, 0) / workout.totalMinutes;
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
@@ -99,12 +120,14 @@ export function WorkoutOutput({
     if (!workout) return "";
     const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n`;
     const body = biasedSteps
-      .map(
-        (step, index) =>
-          `${index + 1}. ${step.minutes}' — ${
-            step.intensity
-          } W — ${normalizeDescription(step.description)}`
-      )
+      .map((step, index) => {
+        const kind = (step as any).kind ?? "steady";
+        const wattsText =
+          kind === "ramp"
+            ? `ramp ${(step as any).from}→${(step as any).to} W`
+            : `${(step as any).intensity} W`;
+        return `${index + 1}. ${step.minutes}' — ${wattsText} — ${normalizeDescription(step.description)}`;
+      })
       .join("\n");
     const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
     return header + body + footer;

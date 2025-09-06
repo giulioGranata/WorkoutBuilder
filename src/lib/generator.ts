@@ -1,6 +1,11 @@
 import { PATTERNS } from "./patterns";
 import { makeSignature } from "./signature";
-import { DurationRangeValue, Step, Workout, WorkoutFormData } from "./types";
+import {
+  DurationRangeValue,
+  Step,
+  Workout,
+  WorkoutFormData,
+} from "./types";
 
 const WARMUP_DURATION = 10;
 const COOLDOWN_DURATION = 10;
@@ -43,6 +48,7 @@ export function generateWorkout(
   const withFit = variants
     .map((variant) => {
       const coreSteps: Step[] = variant.map((block) => ({
+        kind: "steady",
         minutes: block.minutes,
         intensity: Math.round(ftp * (block.intensityPct / 100)),
         description: block.description,
@@ -72,8 +78,10 @@ export function generateWorkout(
   // Assemble steps: warm-up + k full cycles + cool-down (no truncation)
   const steps: Step[] = [];
   steps.push({
+    kind: "ramp",
     minutes: WARMUP_DURATION,
-    intensity: Math.round(ftp * 0.6),
+    from: Math.round(ftp * 0.5),
+    to: Math.round(ftp * 0.6),
     description: "Easy warm-up pace to prepare for main efforts",
     phase: "warmup",
   });
@@ -84,8 +92,10 @@ export function generateWorkout(
   });
 
   steps.push({
+    kind: "ramp",
     minutes: COOLDOWN_DURATION,
-    intensity: Math.round(ftp * 0.5),
+    from: Math.round(ftp * 0.6),
+    to: Math.round(ftp * 0.5),
     description: "Easy cool-down to aid recovery",
     phase: "cooldown",
   });
@@ -100,7 +110,15 @@ export function generateWorkout(
     .filter((s) => s.phase === "recovery")
     .reduce((sum, s) => sum + s.minutes, 0);
   const avgIntensity = Math.round(
-    steps.reduce((sum, s) => sum + s.intensity * s.minutes, 0) / total
+    steps.reduce((sum, s) => {
+      const kind = (s as any).kind ?? "steady";
+      if (kind === "ramp") {
+        const rs = s as any;
+        return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+      }
+      const ss = s as any;
+      return sum + ss.intensity * ss.minutes;
+    }, 0) / total
   );
 
   const typeTitle =
