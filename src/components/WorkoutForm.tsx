@@ -25,7 +25,7 @@ import {
 } from "@/lib/types";
 import { getParamInt, setParam } from "@/lib/url";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Play, Settings } from "lucide-react";
+import { Clock, Play, Settings, Target, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -148,7 +148,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-6">
         <Settings className="text-[--accent-solid] mr-3 h-5 w-5" />
-        <h2 className="text-xl font-semibold text-[--text-primary]">
+        <h2 className="text-lg font-semibold text-[--text-primary]">
           Workout Configuration
         </h2>
       </div>
@@ -156,7 +156,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6"
+          className="space-y-8"
           data-testid="workout-form"
         >
           {/* FTP Input */}
@@ -166,7 +166,10 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  FTP (Functional Threshold Power)
+                  <div className="flex flex-row items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" />
+                    FTP (Functional Threshold Power)
+                  </div>
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
@@ -176,7 +179,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                       max={500}
                       required
                       placeholder="250"
-                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
                         form.formState.errors.ftp
                           ? "border-[--error]"
                           : "border-[--border]"
@@ -194,9 +197,6 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                     </div>
                   </div>
                 </FormControl>
-                <p className="text-xs text-[--text-tertiary]">
-                  Your maximum sustainable power for 1 hour
-                </p>
                 <FormMessage className="text-[--error] text-sm mt-1" />{" "}
               </FormItem>
             )}
@@ -209,7 +209,10 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  Duration
+                  <div className="flex flex-row items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    Duration
+                  </div>
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -218,7 +221,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 >
                   <FormControl>
                     <SelectTrigger
-                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
                         form.formState.errors.durationRange
                           ? "border-[--error]"
                           : "border-[--border]"
@@ -232,31 +235,31 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                       value="30-45"
                       className="text-[--text-primary] hover:bg-[--border]"
                     >
-                      30'-45'
+                      30-45 minutes
                     </SelectItem>
                     <SelectItem
                       value="45-60"
                       className="text-[--text-primary] hover:bg-[--border]"
                     >
-                      45'-60'
+                      45-60 minutes
                     </SelectItem>
                     <SelectItem
                       value="60-75"
                       className="text-[--text-primary] hover:bg-[--border]"
                     >
-                      60'-75'
+                      60-75 minutes
                     </SelectItem>
                     <SelectItem
                       value="75-90"
                       className="text-[--text-primary] hover:bg-[--border]"
                     >
-                      75'-90'
+                      75-90 minutes
                     </SelectItem>
                     <SelectItem
                       value="90-plus"
                       className="text-[--text-primary] hover:bg-[--border]"
                     >
-                      90'+
+                      90+ minutes
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -272,7 +275,10 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  Workout Type
+                  <div className="flex flex-row items-center gap-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    Workout Type
+                  </div>
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -281,7 +287,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 >
                   <FormControl>
                     <SelectTrigger
-                      className={`w-full rounded-xl px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
                         form.formState.errors.type
                           ? "border-[--error]"
                           : "border-[--border]"
@@ -338,7 +344,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
           <Button
             type="submit"
             disabled={isGenerating || !form.formState.isValid}
-            className="w-full !mt-10 inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
+            className="w-full !mt-14 inline-flex items-center justify-center rounded-full px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />
