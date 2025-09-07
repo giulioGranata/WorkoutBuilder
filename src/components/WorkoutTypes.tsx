@@ -16,7 +16,7 @@ const ZONE_COLORS: Record<WorkoutType, string> = {
   tempo: "var(--z3)",
   threshold: "var(--z4)",
   vo2max: "var(--z5)",
-  anaerobic: "var(--z5)",
+  anaerobic: "var(--z6)",
 };
 
 export default function WorkoutTypes() {
