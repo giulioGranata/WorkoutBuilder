@@ -1,18 +1,10 @@
-import { Step, WORKOUT_TYPES } from "@/lib/types";
+import { Step } from "@/lib/types";
+import { getZoneByPct, getZoneColor, getZoneLabel } from "@/lib/zones";
 
 interface WorkoutSegmentsProps {
   steps: Step[];
   ftp: number;
 }
-
-const ZONE_COLORS: Record<keyof typeof WORKOUT_TYPES, string> = {
-  recovery: "var(--z1)",
-  endurance: "var(--z2)",
-  tempo: "var(--z3)",
-  threshold: "var(--z4)",
-  vo2max: "var(--z5)",
-  anaerobic: "var(--z5)",
-};
 
 const percent = (watts: number, ftp: number) => Math.round((watts / ftp) * 100);
 
@@ -66,31 +58,22 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
 
   if (mainSteps.length) {
     const minutes = mainSteps.reduce((sum, s) => sum + s.minutes, 0);
-    const zoneCounts: Record<string, number> = {};
-    mainSteps
-      .filter((s) => s.phase === "work")
-      .forEach((s) => {
-        const value =
-          (s as any).kind === "ramp"
-            ? percent(((s as any).from + (s as any).to) / 2, ftp)
-            : percent((s as any).intensity, ftp);
-        const zoneEntry = Object.entries(WORKOUT_TYPES).find(
-          ([, z]) => value >= z.minFtp && value <= z.maxFtp,
-        );
-        if (zoneEntry) {
-          const key = zoneEntry[0];
-          zoneCounts[key] = (zoneCounts[key] || 0) + s.minutes;
-        }
-      });
-    const zoneKey = (Object.entries(zoneCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ||
-      "endurance") as keyof typeof WORKOUT_TYPES;
-    const zone = WORKOUT_TYPES[zoneKey];
-    const zoneLabel = zone.label.split(" (")[0];
-    const note = `${zoneLabel} ${zone.minFtp}–${zone.maxFtp}%`;
+    const total = mainSteps.reduce((sum, s) => {
+      if ((s as any).kind === "ramp") {
+        const rs = s as any;
+        return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+      }
+      const ss = s as any;
+      return sum + ss.intensity * ss.minutes;
+    }, 0);
+    const avgWatts = total / minutes;
+    const pct = Math.round((avgWatts / ftp) * 100);
+    const zone = getZoneByPct(pct);
+    const note = getZoneLabel(pct);
     segments.push({
       title: "Main Set",
       minutes,
-      color: ZONE_COLORS[zoneKey],
+      color: getZoneColor(zone),
       note,
     });
   }
