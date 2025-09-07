@@ -46,7 +46,10 @@ export default function WorkoutTypes() {
                   />
                 </div>
                 <Badge variant="outline">
-                  <span className="rounded-full text-xs font-medium text-[--accent-solid]">
+                  <span
+                    className={`rounded-full text-xs font-medium`}
+                    style={{ color: ZONE_COLORS[key] }}
+                  >
                     {DIFFICULTY[key]}
                   </span>
                 </Badge>
