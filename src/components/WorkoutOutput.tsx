@@ -7,6 +7,7 @@ import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
+  Clock,
   Code,
   FileCog,
   FileText,
@@ -14,9 +15,12 @@ import {
   ListOrdered,
   Minus,
   Plus,
+  Target,
+  Zap,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import WorkoutChart from "./WorkoutChart";
+import WorkoutSegments from "./WorkoutSegments";
 import {
   Tooltip,
   TooltipContent,
@@ -126,7 +130,9 @@ export function WorkoutOutput({
           kind === "ramp"
             ? `ramp ${(step as any).from}→${(step as any).to} W`
             : `${(step as any).intensity} W`;
-        return `${index + 1}. ${step.minutes}' — ${wattsText} — ${normalizeDescription(step.description)}`;
+        return `${index + 1}. ${
+          step.minutes
+        }' — ${wattsText} — ${normalizeDescription(step.description)}`;
       })
       .join("\n");
     const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
@@ -211,7 +217,7 @@ export function WorkoutOutput({
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-5">
         <ListOrdered className="text-[--accent-solid] mr-3 h-5 w-5" />
-        <h2 className="text-xl font-semibold text-[--text-primary]">
+        <h2 className="text-lg font-semibold text-[--text-primary]">
           Generated Workout
         </h2>
       </div>
@@ -291,7 +297,7 @@ export function WorkoutOutput({
           {/* Workout Title */}
           <div className="mb-6">
             <h3
-              className="text-xl font-semibold text-[--text-primary]"
+              className="text-lg font-semibold text-[--text-primary]"
               data-testid="text-workout-title"
             >
               {workout.title}
@@ -301,86 +307,75 @@ export function WorkoutOutput({
           {/* Workout Chart (biased view) */}
           <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
 
-          {/* Workout Summary (avg in biased W) */}
-          <div className="mt-6 pt-6 border-t border-[--border]">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div className="bg-[--muted]/30 rounded-lg p-3">
-                <div
-                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
-                  data-testid="text-total-minutes"
-                >
-                  {workout.totalMinutes}'
-                </div>
-                <div className="text-xs text-[--text-tertiary] uppercase tracking-wider">
-                  Total Time
-                </div>
+          {/* Segments */}
+          <div className="mt-6">
+            <WorkoutSegments steps={biasedSteps} ftp={workout.ftp} />
+          </div>
+
+          {/* Metrics */}
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
+              <div
+                className="text-xl font-semibold text-[--text-primary] tabular-nums"
+                data-testid="text-total-minutes"
+              >
+                <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
+                {workout.totalMinutes}
               </div>
-              <div className="bg-[--muted]/30 rounded-lg p-3">
-                <div
-                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
-                  data-testid="text-work-minutes"
-                >
-                  {workout.workMinutes || 0}'
-                </div>
-                <div className="text-xs text-[--text-tertiary] uppercase tracking-wider">
-                  Work Time
-                </div>
+              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+                Total Time (min)
               </div>
-              <div className="bg-[--muted]/30 rounded-lg p-3">
-                <div
-                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
-                  data-testid="text-recovery-minutes"
-                >
-                  {workout.recoveryMinutes || 0}'
-                </div>
-                <div className="text-xs text-[--text-tertiary] uppercase tracking-wider">
-                  Recovery
-                </div>
+            </div>
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
+              <div
+                className="text-xl font-semibold text-[--text-primary] tabular-nums"
+                data-testid="text-avg-intensity"
+              >
+                <Zap className="h-5 w-5 mx-auto mb-1 text-primary" />
+                {biasedAvgIntensity}
               </div>
-              <div className="bg-[--muted]/30 rounded-lg p-3">
-                <div
-                  className="text-2xl font-bold text-[--text-primary] tabular-nums"
-                  data-testid="text-avg-intensity"
-                >
-                  {biasedAvgIntensity}W
-                </div>
-                <div className="text-xs text-[--text-tertiary] uppercase tracking-wider">
-                  Avg Intensity
-                </div>
+              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+                Avg Power (W)
+              </div>
+            </div>
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
+              <div className="text-xl font-semibold text-[--text-primary] tabular-nums">
+                <Target className="h-5 w-5 mx-auto mb-1 text-primary" />
+                100
+              </div>
+              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+                TSS
               </div>
             </div>
           </div>
 
-          {/* Export (button group, no overlays) */}
           {/* Export Actions */}
-          <div className="mt-6 pt-6 border-t border-[--border]">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <Button
-                onClick={handleExportZWO}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-              >
-                <FileCog className="h-4 w-4" />
-                Export ZWO
-              </Button>
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button
+              onClick={handleExportZWO}
+              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+            >
+              <FileCog className="h-4 w-4" />
+              Export ZWO
+            </Button>
 
-              <Button
-                onClick={handleExportText}
-                variant="outline"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
-              >
-                <FileText className="h-4 w-4" />
-                Export Text
-              </Button>
+            <Button
+              onClick={handleExportText}
+              variant="outline"
+              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+            >
+              <FileText className="h-4 w-4" />
+              Export Text
+            </Button>
 
-              <Button
-                onClick={handleExportJSON}
-                variant="outline"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
-              >
-                <Code className="h-4 w-4" />
-                Export JSON
-              </Button>
-            </div>
+            <Button
+              onClick={handleExportJSON}
+              variant="outline"
+              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+            >
+              <Code className="h-4 w-4" />
+              Export JSON
+            </Button>
           </div>
         </div>
       ) : attempted ? (
