@@ -1,6 +1,5 @@
 "use client";
 
-import { ExportZwoIcon } from "@/components/icons/ExportZwo";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Step, Workout } from "@/lib/types";
@@ -8,14 +7,16 @@ import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
-  Copy,
-  Download,
+  Code,
+  FileCog,
+  FileText,
   Info,
   ListOrdered,
   Minus,
   Plus,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import WorkoutChart from "./WorkoutChart";
 import {
   Tooltip,
   TooltipContent,
@@ -25,6 +26,7 @@ import {
 
 interface WorkoutOutputProps {
   workout: Workout | null;
+  attempted?: boolean;
 }
 
 const BIAS_MIN = 75;
@@ -37,9 +39,12 @@ export const clamp = (v: number, min: number, max: number) =>
 export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
-export function WorkoutOutput({ workout }: WorkoutOutputProps) {
+export function WorkoutOutput({
+  workout,
+  attempted = false,
+}: WorkoutOutputProps) {
   const { toast } = useToast();
-  const [isCopying, setIsCopying] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const biasFromUrlRef = useRef(false);
   const [bias, setBias] = useState<number>(() => {
@@ -70,10 +75,24 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const biasedSteps = useMemo<Step[]>(
     () =>
       workout
-        ? workout.steps.map((s) => ({
-            ...s,
-            intensity: applyBias(s.intensity, bias),
-          }))
+        ? workout.steps.map((s) => {
+            const kind = (s as any).kind ?? "steady";
+            if (kind === "ramp") {
+              const rs = s as any;
+              return {
+                ...rs,
+                kind: "ramp",
+                from: applyBias(rs.from, bias),
+                to: applyBias(rs.to, bias),
+              };
+            }
+            const ss = s as any;
+            return {
+              ...ss,
+              kind: "steady",
+              intensity: applyBias(ss.intensity, bias),
+            };
+          })
         : [],
     [workout, bias]
   );
@@ -82,13 +101,37 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
   const biasedAvgIntensity = useMemo<number>(() => {
     if (!workout || biasedSteps.length === 0 || !workout.totalMinutes) return 0;
     const weighted =
-      biasedSteps.reduce((sum, s) => sum + s.intensity * s.minutes, 0) /
-      workout.totalMinutes;
+      biasedSteps.reduce((sum, s) => {
+        const kind = (s as any).kind ?? "steady";
+        if (kind === "ramp") {
+          const rs = s as any;
+          return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+        }
+        const ss = s as any;
+        return sum + ss.intensity * ss.minutes;
+      }, 0) / workout.totalMinutes;
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
   const normalizeDescription = (text: string) =>
     text.replace(/truncated/gi, "shortened");
+
+  const buildWorkoutText = () => {
+    if (!workout) return "";
+    const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n`;
+    const body = biasedSteps
+      .map((step, index) => {
+        const kind = (step as any).kind ?? "steady";
+        const wattsText =
+          kind === "ramp"
+            ? `ramp ${(step as any).from}→${(step as any).to} W`
+            : `${(step as any).intensity} W`;
+        return `${index + 1}. ${step.minutes}' — ${wattsText} — ${normalizeDescription(step.description)}`;
+      })
+      .join("\n");
+    const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
+    return header + body + footer;
+  };
 
   const handleExportJSON = () => {
     if (!workout) return;
@@ -125,6 +168,21 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     });
   };
 
+  const handleExportText = () => {
+    if (!workout) return;
+    const data = buildWorkoutText();
+    const blob = new Blob([data], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${safeTitle}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleExportZWO = () => {
     if (!workout) return;
     const xml = toZwoXml({ ...workout, biasPct: bias });
@@ -145,65 +203,9 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
     });
   };
 
-  const handleCopyToClipboard = async () => {
-    if (!workout) return;
+  // Copy Text button removed in new UX
 
-    setIsCopying(true);
-
-    const workoutText =
-      `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n` +
-      biasedSteps
-        .map(
-          (step, index) =>
-            `${index + 1}. ${step.minutes}' — ${
-              step.intensity
-            } W — ${normalizeDescription(step.description)}`
-        )
-        .join("\n") +
-      `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
-
-    try {
-      await navigator.clipboard.writeText(workoutText);
-      toast({
-        title: "Copied to clipboard",
-        description: "Workout details copied (with bias).",
-      });
-    } catch {
-      toast({
-        title: "Copy failed",
-        description: "Failed to copy to clipboard",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCopying(false);
-    }
-  };
-
-  const getZoneColors = (watts: number, ftp: number) => {
-    if (ftp <= 0) return { border: "border-l-[--z1]", badge: "bg-[--z1]" };
-    const pct = (watts / ftp) * 100;
-
-    if (pct <= 60) return { border: "border-l-[--z1]", badge: "bg-[--z1]" };
-    if (pct <= 75) return { border: "border-l-[--z2]", badge: "bg-[--z2]" };
-    if (pct <= 90) return { border: "border-l-[--z3]", badge: "bg-[--z3]" };
-    if (pct <= 105) return { border: "border-l-[--z4]", badge: "bg-[--z4]" };
-    return { border: "border-l-[--z5]", badge: "bg-[--z5]" };
-  };
-
-  const getStepBorderColor = (step: Step, ftp: number) => {
-    if (step.phase === "warmup") return "border-l-[--phase-warmup]";
-    if (step.phase === "cooldown") return "border-l-[--phase-cooldown]";
-    return getZoneColors(step.intensity, ftp).border;
-  };
-
-  const getStepBadgeClasses = (step: Step, ftp: number) => {
-    const baseClasses =
-      "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums";
-    if (step.phase === "warmup") return `${baseClasses} bg-[--phase-warmup]`;
-    if (step.phase === "cooldown")
-      return `${baseClasses} bg-[--phase-cooldown]`;
-    return `${baseClasses} ${getZoneColors(step.intensity, ftp).badge}`;
-  };
+  // step list visuals removed in favor of the chart
 
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
@@ -296,36 +298,8 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             </h3>
           </div>
 
-          {/* Workout Steps (biased view) */}
-          <div className="space-y-3" data-testid="workout-steps">
-            {biasedSteps.map((step, index) => (
-              <>
-                <div
-                  key={index}
-                  className={`bg-[--muted]/60 rounded-xl p-4 border border-[--border] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.03)] border-l-4 ${getStepBorderColor(
-                    step,
-                    workout.ftp
-                  )}`}
-                  data-testid={`workout-step-${index}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div className={getStepBadgeClasses(step, workout.ftp)}>
-                      {step.minutes}'
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-[--text-primary] font-bold tabular-nums">
-                        {step.intensity} W
-                      </div>
-                      <div className="text-[--text-secondary] text-sm">
-                        {normalizeDescription(step.description)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="hidden md:block border-t border-[--border]/60 my-4" />
-              </>
-            ))}
-          </div>
+          {/* Workout Chart (biased view) */}
+          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
 
           {/* Workout Summary (avg in biased W) */}
           <div className="mt-6 pt-6 border-t border-[--border]">
@@ -377,40 +351,51 @@ export function WorkoutOutput({ workout }: WorkoutOutputProps) {
             </div>
           </div>
 
+          {/* Export (button group, no overlays) */}
           {/* Export Actions */}
           <div className="mt-6 pt-6 border-t border-[--border]">
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
-              <Button
-                onClick={handleExportJSON}
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-                aria-label="Export workout as JSON"
-                data-testid="button-export-json-full"
-              >
-                <Download className="h-4 w-4" />
-                Export JSON
-              </Button>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <Button
                 onClick={handleExportZWO}
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
-                aria-label="Export workout as ZWO"
-                data-testid="button-export-zwo-full"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover] border-[--text-secondary]"
               >
-                <ExportZwoIcon className="h-4 w-4" />
+                <FileCog className="h-4 w-4" />
                 Export ZWO
               </Button>
+
               <Button
-                onClick={handleCopyToClipboard}
-                disabled={isCopying}
+                onClick={handleExportText}
                 variant="outline"
-                className="w-full sm:flex-1 min-w-0 inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border] border-[--text-secondary]"
-                aria-label="Copy workout details"
-                data-testid="button-copy-text-full"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
               >
-                <Copy className="h-4 w-4" />
-                {isCopying ? "Copying..." : "Copy Text"}
+                <FileText className="h-4 w-4" />
+                Export Text
+              </Button>
+
+              <Button
+                onClick={handleExportJSON}
+                variant="outline"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 text-[--text-secondary]"
+              >
+                <Code className="h-4 w-4" />
+                Export JSON
               </Button>
             </div>
           </div>
+        </div>
+      ) : attempted ? (
+        <div
+          className="empty-state text-center py-12"
+          data-testid="empty-state"
+        >
+          <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
+          <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
+            No workout found
+          </h3>
+          <p className="text-[--text-tertiary]">
+            No pattern fits the selected duration range. Try a longer range or
+            another type.
+          </p>
         </div>
       ) : (
         <div
