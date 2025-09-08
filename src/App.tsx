@@ -59,15 +59,10 @@ function App() {
           {/* Footer */}
           <footer className="border-t border-[--border] bg-[--card] mt-12">
             <div className="max-w-5xl mx-auto px-4 py-6">
-              <div className="flex flex-col sm:flex-row justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-start items-center">
                 <div className="text-[--text-secondary] text-sm mb-4 sm:mb-0">
                   © {new Date().getFullYear()} Workout Generator. Built for
                   cyclists, by cyclists.
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-[--text-tertiary] text-xs">
-                    Powered by science-based training zones
-                  </span>
                 </div>
               </div>
             </div>
