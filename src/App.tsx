@@ -28,7 +28,7 @@ function App() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                 <div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[--accent-solid] rounded-xl flex items-center justify-center">
+                    <div className="w-10 h-10 bg-[--accent] rounded-xl flex items-center justify-center">
                       <Dumbbell className="text-white h-5 w-5" />
                     </div>
                     <h1 className="text-2xl md:text-3xl font-semibold text-[--text-primary]">
@@ -48,7 +48,7 @@ function App() {
 
           {/* Main Content */}
           <main className="max-w-5xl mx-auto px-4 py-8">
-            <div className="grid lg:grid-cols-2 gap-8">
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
               <WorkoutForm onWorkoutGenerated={handleWorkoutGenerated} />
               <WorkoutOutput workout={workout} attempted={attempted} />
             </div>

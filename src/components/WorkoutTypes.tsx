@@ -21,12 +21,12 @@ const ZONE_COLORS: Record<WorkoutType, string> = {
 
 export default function WorkoutTypes() {
   return (
-    <div className="mt-8 rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
+    <div className="mt-6 md:mt-8 rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-4">
-        <div className="w-5 h-5 bg-[--phase-warmup] rounded-full flex items-center justify-center mr-3">
-          <span className="text-white text-xs font-bold">i</span>
+        <div className="w-5 h-5 bg-[--muted] rounded-full flex items-center justify-center mr-3">
+          <span className="text-[--text-primary] text-xs font-bold">i</span>
         </div>
-        <h3 className="text-base md:text-lg font-semibold text-[--text-primary]">
+        <h3 className="text-base md:text-lg font-semibold text-[--text-primary] underline decoration-[--accent]/40">
           Workout Types Explained
         </h3>
       </div>

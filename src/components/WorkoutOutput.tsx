@@ -228,7 +228,7 @@ export function WorkoutOutput({
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] px-4 py-6 sm:px-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-5">
-        <ListOrdered className="text-[--accent-solid] mr-3 h-5 w-5" />
+        <ListOrdered className="text-[--accent] opacity-90 mr-3 h-5 w-5" />
         <h2 className="text-lg font-semibold text-[--text-primary]">
           Generated Workout
         </h2>
@@ -270,7 +270,7 @@ export function WorkoutOutput({
             <Button
               variant="outline"
               size="sm"
-              className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+              className="h-11 w-11 rounded-full inline-flex items-center justify-center transition-colors duration-150 bg-[--muted] text-[--text-secondary] hover:bg-[--border] focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0"
               onClick={() => nudge(-1)}
               aria-label="Decrease bias"
               data-testid="bias-dec"
@@ -285,7 +285,7 @@ export function WorkoutOutput({
               step={1}
               value={bias}
               onChange={(e) => setBias(parseInt(e.target.value, 10))}
-              className="flex-1 h-2 accent-emerald-500"
+              className="flex-1 h-2 accent-[--accent] active:accent-[--accent-pressed] focus:outline-none focus:ring-2 focus:ring-[--ring]"
               aria-label="Bias percentage"
               data-testid="bias-range"
             />
@@ -293,7 +293,7 @@ export function WorkoutOutput({
             <Button
               variant="outline"
               size="sm"
-              className="h-11 w-11 rounded-full inline-flex items-center justify-center rounded-2xl px-2 py-1 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+              className="h-11 w-11 rounded-full inline-flex items-center justify-center transition-colors duration-150 bg-[--muted] text-[--text-secondary] hover:bg-[--border] focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0"
               onClick={() => nudge(1)}
               aria-label="Increase bias"
               data-testid="bias-inc"
@@ -325,7 +325,7 @@ export function WorkoutOutput({
           </div>
 
           {/* Metrics */}
-          <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+          <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
             <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
               <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
               <div
@@ -362,10 +362,11 @@ export function WorkoutOutput({
           </div>
 
           {/* Export Actions */}
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Button
               onClick={handleExportZWO}
-              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+              variant="outline"
+              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
             >
               <FileCog className="h-4 w-4" />
               Export ZWO
@@ -374,7 +375,7 @@ export function WorkoutOutput({
             <Button
               onClick={handleExportText}
               variant="outline"
-              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
             >
               <FileText className="h-4 w-4" />
               Export Text
@@ -383,7 +384,7 @@ export function WorkoutOutput({
             <Button
               onClick={handleExportJSON}
               variant="outline"
-              className="h-12 px-5 flex items-center justify-center gap-2 rounded font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted]"
+              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
             >
               <Code className="h-4 w-4" />
               Export JSON

@@ -14,12 +14,16 @@
   --card-light: #1a1b20;
 
   --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
+  --text-secondary: #a7afb9;
   --text-tertiary: #6b7280;
 
-  --accent-solid: #10b981;
-  --accent-solidHover: #059669;
-  --accent-soft: rgba(16, 185, 129, 0.1);
+  --accent: #0d9488;
+  --accent-hover: #2dd4bf;
+  --accent-pressed: #14b8a6;
+  --accent-light: #5fe9d6;
+  --accent-dark: #1f9e8f;
+  --accent-soft: #5fe9d6;
+  --ring: rgba(45, 212, 191, 0.45);
 
   --phase-warmup: #9ca3af;
   --phase-work: #10b981;
@@ -71,12 +75,16 @@
   --border: #2a2f3a;
 
   --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
+  --text-secondary: #a7afb9;
   --text-tertiary: #6b7280;
 
-  --accent-solid: #10b981;
-  --accent-solidHover: #059669;
-  --accent-soft: rgba(16, 185, 129, 0.1);
+  --accent: #0d9488;
+  --accent-hover: #22c7b3;
+  --accent-pressed: #14b8a6;
+  --accent-light: #5fe9d6;
+  --accent-dark: #1f9e8f;
+  --accent-soft: rgba(45, 212, 191, 0.1);
+  --ring: rgba(45, 212, 191, 0.45);
 }
 
 @layer base {

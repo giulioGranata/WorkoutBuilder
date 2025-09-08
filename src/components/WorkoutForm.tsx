@@ -167,7 +167,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
   return (
     <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-6">
-        <Settings className="text-[--accent-solid] mr-3 h-5 w-5" />
+        <Settings className="text-[--accent] opacity-90 mr-3 h-5 w-5" />
         <h2 className="text-lg font-semibold text-[--text-primary]">
           Workout Configuration
         </h2>
@@ -187,7 +187,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   <div className="flex flex-row items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
+                    <Zap className="h-4 w-4 text-[--accent] opacity-90" />
                     FTP (Functional Threshold Power)
                   </div>
                 </FormLabel>
@@ -203,7 +203,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                         form.formState.errors.ftp
                           ? "border-[--error]"
                           : "border-[--border]"
-                      } focus:border-[--accent-solid]`}
+                      } focus:border-[--accent]`}
                       data-testid="input-ftp"
                       {...field}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -230,7 +230,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   <div className="flex flex-row items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
+                    <Clock className="h-4 w-4 text-[--accent] opacity-90" />
                     Duration
                   </div>
                 </FormLabel>
@@ -245,7 +245,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                         form.formState.errors.durationRange
                           ? "border-[--error]"
                           : "border-[--border]"
-                      } focus:border-[--accent-solid]`}
+                      } focus:border-[--accent]`}
                     >
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
@@ -296,7 +296,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
               <FormItem>
                 <FormLabel className="text-sm font-medium text-[--text-secondary]">
                   <div className="flex flex-row items-center gap-2">
-                    <Target className="h-4 w-4 text-primary" />
+                    <Target className="h-4 w-4 text-[--accent] opacity-90" />
                     Workout Type
                   </div>
                 </FormLabel>
@@ -311,7 +311,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                         form.formState.errors.type
                           ? "border-[--error]"
                           : "border-[--border]"
-                      } focus:border-[--accent-solid]`}
+                      } focus:border-[--accent]`}
                     >
                       <SelectValue placeholder="Select workout type" />
                     </SelectTrigger>
@@ -364,7 +364,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
           <Button
             type="submit"
             disabled={isGenerating || !form.formState.isValid}
-            className="w-full !mt-14 inline-flex items-center justify-center rounded-full px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60 bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]"
+            className="w-full !mt-14 inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0 bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />

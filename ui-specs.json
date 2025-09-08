@@ -9,13 +9,17 @@
       "border": "#2a2f3a",
       "text": {
         "primary": "#e5e7eb",
-        "secondary": "#9ca3af",
+        "secondary": "#a7afb9",
         "tertiary": "#6b7280"
       },
       "accent": {
-        "solid": "#10b981",
-        "solidHover": "#059669",
-        "soft": "rgba(16,185,129,0.1)"
+        "base": "#0d9488",
+        "hover": "#2dd4bf",
+        "pressed": "#14b8a6",
+        "soft": "#5fe9d6",
+        "ring": "rgba(45,212,191,0.45)",
+        "light": "#5fe9d6",
+        "dark": "#1f9e8f"
       },
       "phase": {
         "warmup": "#3b82f6",
@@ -34,19 +38,19 @@
 
   "components": {
     "Button": {
-      "base": "inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-emerald-500/60",
+      "base": "inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring]",
       "variants": {
-        "primary": "bg-[--accent-solid] text-[--text-primary] hover:bg-[--accent-solidHover]",
+        "primary": "bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]",
         "muted": "bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
       },
       "sizes": { "sm": "px-3 py-1.5 text-sm", "md": "px-4 py-2" }
     },
     "Input": {
-      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]",
+      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 border border-[--border] focus:border-[--accent]",
       "number": "appearance-none [field-sizing:content] tabular-nums"
     },
     "Select": {
-      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent-solid]"
+      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent]"
     },
     "Card": {
       "base": "rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]"
@@ -110,7 +114,7 @@
       "biasControls": {
         "wrap": "flex items-center gap-2",
         "minus": "Button.base Button.variants.muted Button.sizes.sm",
-        "range": "w-44 accent-emerald-500",
+        "range": "w-44 accent-[--accent] active:accent-[--accent-pressed]",
         "plus": "Button.base Button.variants.muted Button.sizes.sm",
         "value": "text-sm text-[--text-secondary] tabular-nums"
       },
