@@ -101,6 +101,26 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       });
     }
 
+    // Auto-generate only if ALL three query params are present and valid
+    const validFtp = urlFtp !== null && urlFtp >= 50 && urlFtp <= 500;
+    const validDur = !!(
+      urlDurRange && (allowed as string[]).includes(urlDurRange)
+    );
+    const validType = !!(urlType && urlType in WORKOUT_TYPES);
+    const hasAllQuery = validFtp && validDur && validType;
+    if (hasAllQuery) {
+      const payload: WorkoutFormData = {
+        ftp: urlFtp!,
+        durationRange: urlDurRange as DurationRangeValue,
+        type: urlType as keyof typeof WORKOUT_TYPES,
+      };
+
+      // Defer to ensure form state has applied updates
+      setTimeout(() => {
+        onSubmit(payload);
+      }, 0);
+    }
+
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "wg:ftp") {
         const val = readFtp();
@@ -216,7 +236,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   data-testid="select-duration-range"
                 >
                   <FormControl>
@@ -282,7 +302,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
                 </FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   data-testid="select-workout-type"
                 >
                   <FormControl>
