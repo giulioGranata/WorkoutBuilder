@@ -18,7 +18,7 @@ describe("WorkoutOutput main set zone", () => {
   it("updates main set zone when bias changes", () => {
     render(<WorkoutOutput workout={workout} attempted />);
     const row = screen.getByText("Main Set").closest("li")!;
-    expect(within(row).getByText("Endurance 65–75%"));
+    expect(within(row).getByText("Endurance 60–75%"));
     const dot = row.querySelector("span[style]") as HTMLElement;
     expect(dot.style.backgroundColor).toBe("var(--z2)");
 

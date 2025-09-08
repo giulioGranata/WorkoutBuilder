@@ -1,41 +1,35 @@
 export type ZoneKey = "z1" | "z2" | "z3" | "z4" | "z5" | "z6";
 
-interface ZoneDef {
-  key: ZoneKey;
-  min: number;
-  max: number;
-  color: string;
+export function getZoneByPct(p: number): ZoneKey {
+  if (p < 60) return "z1";
+  if (p <= 75) return "z2";
+  if (p <= 90) return "z3";
+  if (p <= 110) return "z4";
+  if (p <= 120) return "z5";
+  return "z6";
 }
 
-const ZONES: ZoneDef[] = [
-  { key: "z1", min: 0, max: 59, color: "var(--z1)" },
-  { key: "z2", min: 60, max: 75, color: "var(--z2)" },
-  { key: "z3", min: 76, max: 90, color: "var(--z3)" },
-  { key: "z4", min: 91, max: 110, color: "var(--z4)" },
-  { key: "z5", min: 111, max: 120, color: "var(--z5)" },
-  { key: "z6", min: 121, max: Infinity, color: "var(--z6)" },
-];
-
-export function getZoneByPct(pct: number): ZoneKey {
-  const z = ZONES.find((zone) => pct >= zone.min && pct <= zone.max);
-  return z ? z.key : "z1";
+export function zoneColor(zone: ZoneKey): string {
+  const colors: Record<ZoneKey, string> = {
+    z1: "var(--z1)",
+    z2: "var(--z2)",
+    z3: "var(--z3)",
+    z4: "var(--z4)",
+    z5: "var(--z5)",
+    z6: "var(--z6)",
+  };
+  return colors[zone] ?? colors.z1;
 }
 
-export function getZoneColor(zone: ZoneKey): string {
-  const z = ZONES.find((z) => z.key === zone);
-  return z ? z.color : "var(--z1)";
-}
-
-export function getZoneLabel(pct: number): string {
-  if (pct < 60) return "Recovery <60%";
-  if (pct <= 75) return "Endurance 65–75%";
-  if (pct <= 90) return "Tempo 76–90%";
-  if (pct <= 110) {
-    if (pct >= 95 && pct <= 105) return "Threshold 95–105%";
-    return "Sweet Spot/Threshold";
-  }
-  if (pct <= 120) return "VO2max 110–120%";
-  if (pct <= 150) return "Anaerobic 125–150%";
-  return "Neuromuscular >150%";
+export function zoneLabel(zone: ZoneKey): string {
+  const labels: Record<ZoneKey, string> = {
+    z1: "Recovery <60%",
+    z2: "Endurance 60–75%",
+    z3: "Tempo 76–90%",
+    z4: "Threshold 95–105%",
+    z5: "VO2max 110–120%",
+    z6: "Anaerobic 125–150%",
+  };
+  return labels[zone] ?? labels.z1;
 }
 

@@ -47,16 +47,16 @@ const workout: Workout = {
 
 describe("toZwoXml", () => {
   it("emits well-formed XML with correct header and nodes", () => {
-    const xml = toZwoXml({ ...workout, biasPct: 100 });
+    const xml = toZwoXml({ ...workout, biasPct: 100, tss: 0 });
     expect(xml).toContain('<?xml version="1.0" encoding="UTF-8"?>');
     expect(xml).toContain('<workout_file>');
     expect(xml).toContain('<author>Workout Generator 2.0</author>');
     expect(xml).toContain('<name>Zwift Export &amp;lt;Test&amp;gt;</name>'.replace(/&amp;lt;/g, '&lt;').replace(/&amp;gt;/g, '&gt;'));
-    expect(xml).toContain('<description>FTP 250W • Bias 100%</description>');
+    expect(xml).toContain('<description>FTP 250W • Bias 100% • TSS 0</description>');
   });
 
   it("creates one SteadyState per step with floored duration and clamped 2-decimal power", () => {
-    const xml = toZwoXml({ ...workout, biasPct: 100 });
+    const xml = toZwoXml({ ...workout, biasPct: 100, tss: 0 });
 
     // 4 steps -> 2 SteadyState + 2 Ramp
     const steadyMatches = xml.match(/<SteadyState\s/g) || [];

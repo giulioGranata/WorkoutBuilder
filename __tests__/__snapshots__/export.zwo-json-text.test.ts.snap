@@ -1,7 +1,7 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`export formats > produces consistent ZWO, JSON and Text outputs > json 1`] = `
-"// Export Sample • FTP: 200 W • Bias: 110%
+"// Export Sample • FTP: 200 W • Bias: 110% • TSS 10
 {
   "title": "Export Sample",
   "ftp": 200,
@@ -27,18 +27,20 @@ exports[`export formats > produces consistent ZWO, JSON and Text outputs > json 
   "recoveryMinutes": 0,
   "avgIntensity": 149,
   "signature": "sig",
-  "biasPct": 110
+  "biasPct": 110,
+  "tss": 10
 }"
 `;
 
 exports[`export formats > produces consistent ZWO, JSON and Text outputs > text 1`] = `
-"Export Sample • FTP: 200 W • Bias: 110%
+"Export Sample • FTP: 200 W • Bias: 110% • TSS: 10
 
 1. 5' — 165 W — steady
 2. 5' — ramp 110→154 W — ramp
 
 Total: 10'
-Avg: 149 W"
+Avg: 149 W
+TSS: 10"
 `;
 
 exports[`export formats > produces consistent ZWO, JSON and Text outputs > zwo 1`] = `
@@ -46,7 +48,7 @@ exports[`export formats > produces consistent ZWO, JSON and Text outputs > zwo 1
 <workout_file>
   <author>Workout Generator 2.0</author>
   <name>Export Sample</name>
-  <description>FTP 200W • Bias 110%</description>
+  <description>FTP 200W • Bias 110% • TSS 10</description>
   <workout>
     <SteadyState Duration="300" Power="0.75" />
     <Ramp Duration="300" PowerLow="0.50" PowerHigh="0.70" />

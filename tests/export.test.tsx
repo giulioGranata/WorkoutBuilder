@@ -85,6 +85,7 @@ describe("Export actions", () => {
     const jsonParts = blobSpy.mock.calls[0][0] as any[];
     const jsonStr = String(jsonParts[0]);
     expect(jsonStr).toContain("\"biasPct\": 100");
+    expect(jsonStr).toContain("\"tss\":");
     expect(jsonStr).toContain('"kind": "ramp"');
     expect(jsonStr).toContain('"from": 100');
     expect(jsonStr).toContain('"to": 120');
@@ -96,6 +97,7 @@ describe("Export actions", () => {
     const textStr = String(textParts[0]);
     expect(textStr).toContain("FTP: 200 W");
     expect(textStr).toContain("Bias: 100%");
+    expect(textStr).toContain("TSS:");
     expect(textStr).toContain("ramp 100→120 W");
     expect(clickedDownloads).toContain("Test_Workout.txt");
 

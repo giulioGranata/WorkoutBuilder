@@ -1,5 +1,5 @@
 import { Step } from "@/lib/types";
-import { getZoneByPct, getZoneColor, getZoneLabel } from "@/lib/zones";
+import { getZoneByPct, zoneColor, zoneLabel } from "@/lib/zones";
 
 interface WorkoutSegmentsProps {
   steps: Step[];
@@ -58,23 +58,34 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
 
   if (mainSteps.length) {
     const minutes = mainSteps.reduce((sum, s) => sum + s.minutes, 0);
-    const total = mainSteps.reduce((sum, s) => {
-      if ((s as any).kind === "ramp") {
-        const rs = s as any;
-        return sum + ((rs.from + rs.to) / 2) * rs.minutes;
+    const workSteps = mainSteps.filter((s) => s.phase === "work");
+    const zoneMinutes: Record<string, number> = {};
+    workSteps.forEach((s) => {
+      const kind = (s as any).kind ?? "steady";
+      const watts =
+        kind === "ramp"
+          ? ((s as any).from + (s as any).to) / 2
+          : (s as any).intensity;
+      const pct = Math.round((watts / ftp) * 100);
+      const zone = getZoneByPct(pct);
+      zoneMinutes[zone] = (zoneMinutes[zone] ?? 0) + s.minutes;
+    });
+    let predominant: string | null = null;
+    Object.entries(zoneMinutes).forEach(([z, mins]) => {
+      if (
+        !predominant ||
+        mins > (zoneMinutes[predominant] ?? 0) ||
+        (mins === zoneMinutes[predominant] && z > predominant)
+      ) {
+        predominant = z;
       }
-      const ss = s as any;
-      return sum + ss.intensity * ss.minutes;
-    }, 0);
-    const avgWatts = total / minutes;
-    const pct = Math.round((avgWatts / ftp) * 100);
-    const zone = getZoneByPct(pct);
-    const note = getZoneLabel(pct);
+    });
+    const zone = predominant ? (predominant as any) : getZoneByPct(0);
     segments.push({
       title: "Main Set",
       minutes,
-      color: getZoneColor(zone),
-      note,
+      color: zoneColor(zone),
+      note: zoneLabel(zone),
     });
   }
 

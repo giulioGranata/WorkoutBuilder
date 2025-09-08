@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Step, Workout } from "@/lib/types";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
+import { computeNP, computeTSS } from "@/lib/metrics";
 import {
   Bike,
   Clock,
@@ -117,12 +118,22 @@ export function WorkoutOutput({
     return Math.round(weighted);
   }, [workout, biasedSteps]);
 
+  const np = useMemo(() => {
+    if (!workout) return 0;
+    return computeNP(biasedSteps, workout.ftp);
+  }, [biasedSteps, workout]);
+
+  const tss = useMemo(() => {
+    if (!workout) return 0;
+    return computeTSS(workout.totalMinutes, np, workout.ftp);
+  }, [workout, np]);
+
   const normalizeDescription = (text: string) =>
     text.replace(/truncated/gi, "shortened");
 
   const buildWorkoutText = () => {
     if (!workout) return "";
-    const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n\n`;
+    const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}% • TSS: ${tss}\n\n`;
     const body = biasedSteps
       .map((step, index) => {
         const kind = (step as any).kind ?? "steady";
@@ -135,7 +146,7 @@ export function WorkoutOutput({
         }' — ${wattsText} — ${normalizeDescription(step.description)}`;
       })
       .join("\n");
-    const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W`;
+    const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W\nTSS: ${tss}`;
     return header + body + footer;
   };
 
@@ -152,9 +163,10 @@ export function WorkoutOutput({
       steps: sanitizedSteps, // export with current bias applied
       avgIntensity: biasedAvgIntensity,
       biasPct: bias, // include bias metadata (non-breaking)
+      tss,
     };
 
-    const header = `// ${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}%\n`;
+    const header = `// ${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}% • TSS ${tss}\n`;
     const dataStr = header + JSON.stringify(payload, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
@@ -191,7 +203,7 @@ export function WorkoutOutput({
 
   const handleExportZWO = () => {
     if (!workout) return;
-    const xml = toZwoXml({ ...workout, biasPct: bias });
+    const xml = toZwoXml({ ...workout, biasPct: bias, tss });
     const blob = new Blob([xml], { type: "text/xml" });
     const url = URL.createObjectURL(blob);
     const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
@@ -341,7 +353,7 @@ export function WorkoutOutput({
             <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
               <div className="text-xl font-semibold text-[--text-primary] tabular-nums">
                 <Target className="h-5 w-5 mx-auto mb-1 text-primary" />
-                100
+                <span data-testid="text-tss">{tss}</span>
               </div>
               <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
                 TSS

@@ -15,11 +15,13 @@ const clamp = (n: number, min: number, max: number) =>
 // Power is a fraction of FTP with 2 decimals, clamped to [0.30, 1.60].
 // Duration is floor(minutes * 60) seconds.
 export function toZwoXml(
-  workout: Workout & { ftp: number; biasPct?: number }
+  workout: Workout & { ftp: number; biasPct?: number; tss?: number }
 ): string {
   const bias = workout.biasPct ?? 100;
   const title = xmlEscape(workout.title);
-  const description = xmlEscape(`FTP ${workout.ftp}W • Bias ${bias}%`);
+  const description = xmlEscape(
+    `FTP ${workout.ftp}W • Bias ${bias}% • TSS ${workout.tss ?? 0}`
+  );
 
   const parts: string[] = [];
   parts.push(`<?xml version="1.0" encoding="UTF-8"?>`);
