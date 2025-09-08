@@ -37,11 +37,13 @@ export default function WorkoutTypes() {
             "px-4 py-4 space-y-1",
             idx > 0 ? "border-t hairline border-white/10 md:border-t-0" : "",
             idx % 2 === 1 ? "md:border-l hairline border-white/10" : "",
-            idx % 3 !== 0 ? "lg:border-l hairline border-white/10" : "lg:border-l-0",
+            idx % 3 !== 0
+              ? "lg:border-l hairline border-white/10"
+              : "lg:border-l-0",
           ].join(" ");
           return (
             <div key={key} className={classes}>
-              <div className="flex flex-col items-start gap-1">
+              <div className="flex flex-col items-start space-y-2">
                 <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
                   <div className="font-medium text-[--text-primary]">
                     {type.label}
