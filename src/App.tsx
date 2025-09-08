@@ -21,7 +21,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-[--bg] text-[--text-primary] font-sans">
+        <div className="min-h-screen flex flex-col bg-[--bg] text-[--text-primary] font-sans">
           {/* Header */}
           <header className="bg-[--card] border-b border-[--border]">
             <div className="max-w-5xl mx-auto py-5 px-6">
@@ -47,7 +47,7 @@ function App() {
           </header>
 
           {/* Main Content */}
-          <main className="max-w-5xl mx-auto px-4 py-8">
+          <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
               <WorkoutForm onWorkoutGenerated={handleWorkoutGenerated} />
               <WorkoutOutput workout={workout} attempted={attempted} />
