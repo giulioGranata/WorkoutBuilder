@@ -24,6 +24,7 @@ describe("zone colors", () => {
     expect(colorForStep(makeSteady(170), FTP)).toBe("var(--z3)"); // 85%
     expect(colorForStep(makeSteady(200), FTP)).toBe("var(--z4)"); // 100%
     expect(colorForStep(makeSteady(230), FTP)).toBe("var(--z5)"); // 115%
+    expect(colorForStep(makeSteady(260), FTP)).toBe("var(--z6)"); // 130%
 
     const ramp = makeRamp(100, 160);
     const biasedRamp = {

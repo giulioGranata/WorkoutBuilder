@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { toZwoXml } from "@/lib/zwo";
 import { applyBias } from "@/components/WorkoutOutput";
+import { computeNP, computeTSS } from "@/lib/metrics";
 import type { Workout, Step } from "@/lib/types";
 
 const workout: Workout = {
@@ -35,8 +36,10 @@ function buildJson(w: Workout, bias: number) {
       return sum + s.intensity * s.minutes;
     }, 0) / w.totalMinutes
   );
-  const payload = { ...w, steps, avgIntensity: avg, biasPct: bias };
-  const header = `// ${w.title} • FTP: ${w.ftp} W • Bias: ${bias}%\n`;
+  const np = computeNP(steps as any, w.ftp);
+  const tss = computeTSS(w.totalMinutes, np, w.ftp);
+  const payload = { ...w, steps, avgIntensity: avg, biasPct: bias, tss };
+  const header = `// ${w.title} • FTP: ${w.ftp} W • Bias: ${bias}% • TSS ${tss}\n`;
   return header + JSON.stringify(payload, null, 2);
 }
 
@@ -58,7 +61,9 @@ function buildText(w: Workout, bias: number) {
       return sum + s.intensity * s.minutes;
     }, 0) / w.totalMinutes
   );
-  const header = `${w.title} • FTP: ${w.ftp} W • Bias: ${bias}%\n\n`;
+  const np = computeNP(steps as any, w.ftp);
+  const tss = computeTSS(w.totalMinutes, np, w.ftp);
+  const header = `${w.title} • FTP: ${w.ftp} W • Bias: ${bias}% • TSS: ${tss}\n\n`;
   const body = steps
     .map((step, i) => {
       const kind = step.kind;
@@ -69,14 +74,31 @@ function buildText(w: Workout, bias: number) {
       return `${i + 1}. ${step.minutes}' — ${wattsText} — ${step.description}`;
     })
     .join("\n");
-  const footer = `\n\nTotal: ${w.totalMinutes}'\nAvg: ${avg} W`;
+  const footer = `\n\nTotal: ${w.totalMinutes}'\nAvg: ${avg} W\nTSS: ${tss}`;
   return header + body + footer;
 }
 
 describe("export formats", () => {
   it("produces consistent ZWO, JSON and Text outputs", () => {
     const bias = 110;
-    const xml = toZwoXml({ ...workout, biasPct: bias });
+    const stepsBiased: Step[] = workout.steps.map((s: any) => {
+      if ((s.kind ?? "steady") === "ramp") {
+        return {
+          ...s,
+          from: applyBias(s.from, bias),
+          to: applyBias(s.to, bias),
+          kind: "ramp",
+        };
+      }
+      return {
+        ...s,
+        intensity: applyBias(s.intensity, bias),
+        kind: "steady",
+      };
+    });
+    const np = computeNP(stepsBiased as any, workout.ftp);
+    const tss = computeTSS(workout.totalMinutes, np, workout.ftp);
+    const xml = toZwoXml({ ...workout, biasPct: bias, tss });
     const json = buildJson(workout, bias);
     const text = buildText(workout, bias);
 

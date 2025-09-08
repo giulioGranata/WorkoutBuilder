@@ -16,4 +16,15 @@ describe("WorkoutChart", () => {
     const path = screen.getByLabelText("5' • ramp 80→120 W — ramp");
     expect(path.tagName.toLowerCase()).toBe("path");
   });
+
+  it("clamps high intensity bars and applies zone 6 color", () => {
+    const steps: Step[] = [
+      { kind: "steady", minutes: 5, intensity: 260, description: "anaerobic", phase: "work" },
+    ];
+    render(<WorkoutChart steps={steps} ftp={200} />);
+    const rect = screen.getByLabelText("5' • 260 W — anaerobic");
+    const height = parseFloat(rect.getAttribute("height") || "0");
+    expect(height).toBeCloseTo(81.25, 2);
+    expect(rect.getAttribute("style")).toContain("var(--z6)");
+  });
 });
