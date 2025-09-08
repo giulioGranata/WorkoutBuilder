@@ -36,6 +36,17 @@ describe("generateWorkout", () => {
     expect(workout.avgIntensity).toBe(avgIntensity);
   });
 
+  it("scales pattern intensities based on FTP", async () => {
+    const { generateWorkout } = await import("@/lib/generator");
+    const workout = generateWorkout({ ftp: 250, type: "tempo", durationRange: "45-60" })!;
+    const workSteps = workout.steps.filter((s) => s.phase === "work");
+    workSteps.forEach((s: any) => {
+      const intensity = s.kind === "ramp" ? (s.from + s.to) / 2 : s.intensity;
+      expect(intensity).toBeGreaterThanOrEqual(250 * 0.76);
+      expect(intensity).toBeLessThanOrEqual(250 * 0.9);
+    });
+  });
+
   it("returns null when duration range leaves no room for core", async () => {
     vi.resetModules();
     vi.doMock("@/lib/generator", async () => {

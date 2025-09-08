@@ -1,4 +1,4 @@
-export type ZoneKey = "z1" | "z2" | "z3" | "z4" | "z5";
+export type ZoneKey = "z1" | "z2" | "z3" | "z4" | "z5" | "z6";
 
 interface ZoneDef {
   key: ZoneKey;
@@ -12,7 +12,8 @@ const ZONES: ZoneDef[] = [
   { key: "z2", min: 60, max: 75, color: "var(--z2)" },
   { key: "z3", min: 76, max: 90, color: "var(--z3)" },
   { key: "z4", min: 91, max: 110, color: "var(--z4)" },
-  { key: "z5", min: 111, max: Infinity, color: "var(--z5)" },
+  { key: "z5", min: 111, max: 120, color: "var(--z5)" },
+  { key: "z6", min: 121, max: Infinity, color: "var(--z6)" },
 ];
 
 export function getZoneByPct(pct: number): ZoneKey {
@@ -34,6 +35,7 @@ export function getZoneLabel(pct: number): string {
     return "Sweet Spot/Threshold";
   }
   if (pct <= 120) return "VO2max 110–120%";
-  return "Anaerobic 125–150%";
+  if (pct <= 150) return "Anaerobic 125–150%";
+  return "Neuromuscular >150%";
 }
 

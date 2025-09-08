@@ -28,8 +28,9 @@ export function colorForStep(step: Step, ftp: number) {
   if (pct <= 60) return "var(--z1)";
   if (pct <= 75) return "var(--z2)";
   if (pct <= 90) return "var(--z3)";
-  if (pct <= 105) return "var(--z4)";
-  return "var(--z5)";
+  if (pct <= 110) return "var(--z4)";
+  if (pct <= 120) return "var(--z5)";
+  return "var(--z6)";
 }
 
 type BarShape = "rect" | "trapezoid";

@@ -7,6 +7,17 @@ const COOLDOWN_DURATION = 10;
 
 const MAX_CAP = 240;
 
+function scaleStep(step: Step, ftp: number): Step {
+  if ("intensity" in step) {
+    return { ...step, intensity: Math.round((step.intensity / 100) * ftp) };
+  }
+  return {
+    ...step,
+    from: Math.round((step.from / 100) * ftp),
+    to: Math.round((step.to / 100) * ftp),
+  };
+}
+
 export function rangeToBounds(r: DurationRangeValue): {
   min: number;
   max?: number;
@@ -76,7 +87,7 @@ export function generateWorkout(
 
   // Single core block (no repetition)
   pick.coreSteps.forEach((block) => {
-    steps.push(block);
+    steps.push(scaleStep(block, ftp));
   });
 
   steps.push({

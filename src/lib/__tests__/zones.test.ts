@@ -18,6 +18,10 @@ describe("zones utils", () => {
     expect(getZoneByPct(118)).toBe("z5");
     expect(getZoneColor("z5")).toBe("var(--z5)");
     expect(getZoneLabel(118)).toBe("VO2max 110–120%");
+
+    expect(getZoneByPct(130)).toBe("z6");
+    expect(getZoneColor("z6")).toBe("var(--z6)");
+    expect(getZoneLabel(130)).toBe("Anaerobic 125–150%");
   });
 });
 
