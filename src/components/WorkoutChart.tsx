@@ -254,7 +254,7 @@ export function WorkoutChart({ steps, ftp }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-40 sm:h-48 select-none py-4 sm:py-6"
+      className="relative w-full h-40 sm:h-48 select-none py-4 sm:py-6 mb-8"
     >
       <svg
         className="w-full h-full"

@@ -95,3 +95,9 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer utilities {
+  .hairline {
+    border-width: 0.5px;
+  }
+}

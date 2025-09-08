@@ -30,32 +30,33 @@ export default function WorkoutTypes() {
           Workout Types Explained
         </h3>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-        {(Object.keys(WORKOUT_TYPES) as WorkoutType[]).map((key) => {
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 text-sm">
+        {(Object.keys(WORKOUT_TYPES) as WorkoutType[]).map((key, idx) => {
           const type = WORKOUT_TYPES[key];
+          const classes = [
+            "px-4 py-4 space-y-1",
+            idx > 0 ? "border-t hairline border-white/10 md:border-t-0" : "",
+            idx % 2 === 1 ? "md:border-l hairline border-white/10" : "",
+            idx % 3 !== 0 ? "lg:border-l hairline border-white/10" : "lg:border-l-0",
+          ].join(" ");
           return (
-            <div key={key} className="bg-[--muted]/30 rounded-lg p-4 space-y-2">
-              <div className="flex flex-col items-start">
-                <div className="flex items-center mb-2 gap-2 flex-wrap md:flex-nowrap">
-                  <div className="font-medium text-[--text-primary] ">
+            <div key={key} className={classes}>
+              <div className="flex flex-col items-start gap-1">
+                <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
+                  <div className="font-medium text-[--text-primary]">
                     {type.label}
                   </div>
                   <span
-                    className="w-2.5 h-2.5 rounded-full"
+                    className="w-2 h-2 rounded-full ring-1 ring-inset ring-white/20"
                     style={{ backgroundColor: ZONE_COLORS[key] }}
                   />
                 </div>
                 <Badge
-                  variant="outline"
-                  style={{
-                    backgroundColor: ZONE_COLORS[key],
-                    color: "white",
-                    borderColor: "transparent",
-                  }}
+                  variant="difficulty"
+                  className="opacity-90 text-white"
+                  style={{ backgroundColor: ZONE_COLORS[key] }}
                 >
-                  <span className="rounded-full text-xs font-medium">
-                    {DIFFICULTY[key]}
-                  </span>
+                  {DIFFICULTY[key]}
                 </Badge>
               </div>
               <div className="text-[--text-secondary]">{type.description}</div>

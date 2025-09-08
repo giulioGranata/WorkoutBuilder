@@ -104,7 +104,7 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
         <li key={seg.title} className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3">
             <span
-              className="w-2.5 h-2.5 rounded-full"
+              className="w-2 h-2 rounded-full ring-1 ring-inset ring-white/20"
               style={{ backgroundColor: seg.color }}
             />
             <div>
@@ -112,7 +112,7 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
               <p className="text-xs text-[--text-tertiary]">{seg.note}</p>
             </div>
           </div>
-          <span className="text-sm text-[--text-secondary] tabular-nums">
+          <span className="text-sm text-[--text-secondary] tabular-nums text-right">
             {seg.minutes}'
           </span>
         </li>

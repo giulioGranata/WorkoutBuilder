@@ -32,7 +32,7 @@ describe("WorkoutOutput main set zone", () => {
     const dot = screen
       .getByText("Main Set")
       .closest("li")!
-      .querySelector("span.w-2\\.5")!;
+      .querySelector("span.w-2")!;
     expect(dot.getAttribute("style")).toContain("var(--z2)");
   });
 
@@ -44,7 +44,7 @@ describe("WorkoutOutput main set zone", () => {
     const dot = screen
       .getByText("Main Set")
       .closest("li")!
-      .querySelector("span.w-2\\.5")!;
+      .querySelector("span.w-2")!;
     expect(dot.getAttribute("style")).toContain("var(--z3)");
   });
 

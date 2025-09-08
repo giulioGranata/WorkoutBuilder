@@ -226,7 +226,7 @@ export function WorkoutOutput({
   // step list visuals removed in favor of the chart
 
   return (
-    <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
+    <div className="rounded-2xl bg-[--card] border border-[--border] px-4 py-6 sm:px-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-5">
         <ListOrdered className="text-[--accent-solid] mr-3 h-5 w-5" />
         <h2 className="text-lg font-semibold text-[--text-primary]">
@@ -307,9 +307,9 @@ export function WorkoutOutput({
       {workout ? (
         <div className="workout-content" data-testid="workout-display">
           {/* Workout Title */}
-          <div className="mb-6">
+          <div className="mb-8">
             <h3
-              className="text-lg font-semibold text-[--text-primary]"
+              className="text-lg font-semibold text-[--text-primary] leading-tight"
               data-testid="text-workout-title"
             >
               {workout.title}
@@ -320,42 +320,42 @@ export function WorkoutOutput({
           <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
 
           {/* Segments */}
-          <div className="mt-6">
+          <div>
             <WorkoutSegments steps={biasedSteps} ftp={workout.ftp} />
           </div>
 
           {/* Metrics */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
+          <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
+              <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
               <div
-                className="text-xl font-semibold text-[--text-primary] tabular-nums"
+                className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none"
                 data-testid="text-total-minutes"
               >
-                <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
                 {workout.totalMinutes}
               </div>
-              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
                 Total Time (min)
               </div>
             </div>
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
+              <Zap className="h-5 w-5 mx-auto mb-1 text-primary" />
               <div
-                className="text-xl font-semibold text-[--text-primary] tabular-nums"
+                className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none"
                 data-testid="text-avg-intensity"
               >
-                <Zap className="h-5 w-5 mx-auto mb-1 text-primary" />
                 {biasedAvgIntensity}
               </div>
-              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
                 Avg Power (W)
               </div>
             </div>
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6">
-              <div className="text-xl font-semibold text-[--text-primary] tabular-nums">
-                <Target className="h-5 w-5 mx-auto mb-1 text-primary" />
+            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
+              <Target className="h-5 w-5 mx-auto mb-1 text-primary" />
+              <div className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none">
                 <span data-testid="text-tss">{tss}</span>
               </div>
-              <div className="text-xs text-[--text-tertiary] tracking-wider mt-2 leading-tight">
+              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
                 TSS
               </div>
             </div>
