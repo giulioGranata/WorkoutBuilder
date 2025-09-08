@@ -37,7 +37,7 @@ export default function WorkoutTypes() {
             <div key={key} className="bg-[--muted]/30 rounded-lg p-4 space-y-2">
               <div className="flex flex-col items-start">
                 <div className="flex items-center mb-2 gap-2 flex-wrap md:flex-nowrap">
-                  <div className="font-medium text-[--text-primary]">
+                  <div className="font-medium text-[--text-primary] ">
                     {type.label}
                   </div>
                   <span
@@ -45,11 +45,15 @@ export default function WorkoutTypes() {
                     style={{ backgroundColor: ZONE_COLORS[key] }}
                   />
                 </div>
-                <Badge variant="outline">
-                  <span
-                    className={`rounded-full text-xs font-medium`}
-                    style={{ color: ZONE_COLORS[key] }}
-                  >
+                <Badge
+                  variant="outline"
+                  style={{
+                    backgroundColor: ZONE_COLORS[key],
+                    color: "white",
+                    borderColor: "transparent",
+                  }}
+                >
+                  <span className="rounded-full text-xs font-medium">
                     {DIFFICULTY[key]}
                   </span>
                 </Badge>
