@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { computeNP, computeTSS } from "@/lib/metrics";
 import { Step, Workout } from "@/lib/types";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
-import { computeNP, computeTSS } from "@/lib/metrics";
 import {
   Bike,
   Clock,
