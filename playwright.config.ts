@@ -4,6 +4,7 @@ const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  testMatch: '**/*.e2e.ts',
   timeout: 30_000,
   expect: {
     timeout: 10_000,
