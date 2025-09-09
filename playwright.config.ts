@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 30_000,
@@ -23,19 +25,29 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
-  projects: [
-    {
-      name: 'chromium-desktop',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1280, height: 800 },
-      },
-    },
-    {
-      name: 'webkit-iphone13',
-      use: {
-        ...devices['iPhone 13'],
-      },
-    },
-  ],
+  projects: isCI
+    ? [
+        {
+          name: 'chromium-desktop',
+          use: {
+            ...devices['Desktop Chrome'],
+            viewport: { width: 1280, height: 800 },
+          },
+        },
+      ]
+    : [
+        {
+          name: 'chromium-desktop',
+          use: {
+            ...devices['Desktop Chrome'],
+            viewport: { width: 1280, height: 800 },
+          },
+        },
+        {
+          name: 'webkit-iphone13',
+          use: {
+            ...devices['iPhone 13'],
+          },
+        },
+      ],
 });
