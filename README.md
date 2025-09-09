@@ -33,6 +33,19 @@ L'applicazione si aprirà automaticamente su `http://localhost:3000`
 - `npm run check` - Controlla i tipi TypeScript
 - `npm run clean` - Pulisce le cartelle di build
 
+## 🧪 E2E/Visual Testing (Playwright)
+
+È inclusa una suite Playwright separata dai test Vitest. Viene avviato automaticamente un dev server Vite su `http://localhost:5173` durante i test.
+
+- `npm run test:e2e` – Esegue i test E2E/visual e genera i baseline al primo run.
+- `npm run test:e2e:update` – Aggiorna i baseline visuali dopo modifiche intenzionali allo stile.
+- `npm run test:e2e:ui` – Avvia il runner UI di Playwright.
+
+Note:
+- I baseline sono committati sotto `tests/e2e/__screenshots__/` e sono per-progetto (desktop/mobile).
+- I risultati temporanei sono ignorati (`test-results/`, `playwright-report/`).
+- Le animazioni sono disattivate durante i test per stabilità degli snapshot.
+
 ## 🏗️ Struttura del Progetto
 
 ```
