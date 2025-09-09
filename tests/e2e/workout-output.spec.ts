@@ -2,6 +2,23 @@ import { test, expect } from '@playwright/test';
 
 // Disable animations globally for visual stability
 test.beforeEach(async ({ page }) => {
+  // Seed Math.random for deterministic workout selection
+  await page.addInitScript(() => {
+    // Mulberry32 PRNG
+    function mulberry32(a: number) {
+      return function () {
+        let t = (a += 0x6D2B79F5);
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    // @ts-ignore
+    const rand = mulberry32(1);
+    // @ts-ignore
+    Math.random = rand;
+  });
+
   await page.addStyleTag({
     content: `
       *, *::before, *::after { 
@@ -50,4 +67,3 @@ test.describe('Workout Output - visual', () => {
     });
   });
 });
-
