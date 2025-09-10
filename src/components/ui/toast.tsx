@@ -27,7 +27,8 @@ const toastVariants = cva(
   {
     variants: {
       variant: {
-        default: "border bg-background text-foreground",
+        // Use app tokens to avoid transparent backgrounds
+        default: "border-[--border] bg-[--card] text-[--text-primary]",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
       },
