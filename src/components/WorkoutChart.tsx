@@ -1,12 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { Step } from "@/lib/types";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 interface Props {
   steps: Step[];
   ftp: number;
+  showFtpLine?: boolean; // default true
 }
 
-const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+const clamp = (v: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, v));
 
 // Visual/geometry constants
 const MAX_PERC = 1.6; // 160% FTP = full height
@@ -22,7 +24,7 @@ export function colorForStep(step: Step, ftp: number) {
   const kind = (step as any).kind ?? "steady";
   const watts =
     kind === "ramp"
-      ? (((step as any).from + (step as any).to) / 2)
+      ? ((step as any).from + (step as any).to) / 2
       : (step as any).intensity;
   const pct = (watts / ftp) * 100;
   if (pct <= 60) return "var(--z1)";
@@ -128,7 +130,7 @@ function roundedTrapezoidPath(
   ].join(" ");
 }
 
-export function WorkoutChart({ steps, ftp }: Props) {
+export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -218,6 +220,25 @@ export function WorkoutChart({ steps, ftp }: Props) {
   // Visual vertical padding inside the SVG drawing area (in % of viewBox)
   const vPad = V_PAD; // equal top/bottom space to keep chart visually centered
   const scaleY = (100 - 2 * V_PAD) / 100;
+  // Position helpers (in px) for overlays aligned to SVG Y space
+  const ftpYPx = useMemo(() => {
+    if (!ftp || ftp <= 0) return null;
+    // Y position (in chart viewBox units, before padding/scale) for FTP level
+    const yFtpPct = 100 - heightPct(ftp, ftp); // same scale used for bars
+    const innerPct = V_PAD + yFtpPct * scaleY; // account for vertical padding/scale
+    return (innerPct / 100) * containerSize.height;
+  }, [ftp, containerSize.height, scaleY]);
+
+  const clampedFtpLabelTop = useMemo(() => {
+    if (ftpYPx == null) return null;
+    // Keep label within 10px from top/bottom
+    const labelH = 20; // approx pill height
+    return clamp(
+      ftpYPx - 12,
+      10,
+      Math.max(10, containerSize.height - labelH - 10)
+    );
+  }, [ftpYPx, containerSize.height]);
 
   const updateTooltipForIndex = (index: number | null) => {
     if (index === null) return;
@@ -225,16 +246,24 @@ export function WorkoutChart({ steps, ftp }: Props) {
     if (!bar || !containerRef.current) return;
 
     const { width, height } = containerSize;
-    const centerX = (bar.x + bar.w / 2) / 100 * width;
+    const centerX = ((bar.x + bar.w / 2) / 100) * width;
     const tooltipEl = tooltipRef.current;
     const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
     const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
 
-    const left = clamp(centerX - tooltipW / 2, 4, Math.max(4, width - tooltipW - 4));
+    const left = clamp(
+      centerX - tooltipW / 2,
+      4,
+      Math.max(4, width - tooltipW - 4)
+    );
     // Account for internal SVG vertical padding and scale to position tooltip correctly
-    const barTopPct = vPad + ((bar.topY ?? bar.y) * scaleY);
+    const barTopPct = vPad + (bar.topY ?? bar.y) * scaleY;
     const barTop = (barTopPct / 100) * height; // px from top
-    const top = clamp(barTop - tooltipH - 8, 4, Math.max(4, height - tooltipH - 4));
+    const top = clamp(
+      barTop - tooltipH - 8,
+      4,
+      Math.max(4, height - tooltipH - 4)
+    );
     setTooltipPos({ left, top });
   };
 
@@ -332,8 +361,39 @@ export function WorkoutChart({ steps, ftp }: Props) {
               />
             );
           })}
+          {showFtpLine && ftp > 0 && (
+            <>
+              {/* FTP reference line above bars */}
+              <line
+                x1={0}
+                x2={100}
+                y1={100 - heightPct(ftp, ftp)}
+                y2={100 - heightPct(ftp, ftp)}
+                stroke="var(--accent-soft)"
+                strokeWidth={2}
+                strokeDasharray="6 4"
+                vectorEffect="non-scaling-stroke"
+                aria-label="FTP reference line"
+              />
+            </>
+          )}
         </g>
       </svg>
+
+      {/* Right-side pill label aligned with the FTP line */}
+      {showFtpLine && ftp > 0 && clampedFtpLabelTop != null && (
+        <div
+          className="absolute left-0 z-10 rounded-md p-1 border text-[9px] tabular-nums"
+          style={{
+            top: `${clampedFtpLabelTop}px`,
+            background: "transparent",
+            color: "var(--text-secondary)",
+            borderColor: "transparent",
+          }}
+        >
+          {`FTP (${ftp}W)`}
+        </div>
+      )}
 
       {active !== null && (
         <div
@@ -351,7 +411,9 @@ export function WorkoutChart({ steps, ftp }: Props) {
             return (
               <>
                 <div className="font-semibold">{`${step.minutes}' • ${wattsText}`}</div>
-                <div className="text-[--text-secondary]">{step.description}</div>
+                <div className="text-[--text-secondary]">
+                  {step.description}
+                </div>
               </>
             );
           })()}

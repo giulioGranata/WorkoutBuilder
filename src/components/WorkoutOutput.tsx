@@ -317,7 +317,7 @@ export function WorkoutOutput({
           </div>
 
           {/* Workout Chart (biased view) */}
-          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
+          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} showFtpLine />
 
           {/* Segments */}
           <div>
