@@ -46,6 +46,23 @@ Note:
 - I risultati temporanei sono ignorati (`test-results/`, `playwright-report/`).
 - Le animazioni sono disattivate durante i test per stabilità degli snapshot.
 
+## 🔥 Smoke test
+
+Esegue una verifica rapida su generazione, bias, esportazioni e metriche.
+
+```bash
+npm run smoke
+```
+
+Lo script controlla combinazioni di tipo/durata e bias, assicurando che:
+- la durata totale rientri nel range e nessuno step sia invalido;
+- il TSS aumenti con bias 75/100/125;
+- export JSON/TXT/ZWO non siano vuoti e abbiano la forma attesa;
+- la zona prevalente del Main Set sia coerente con la logica dell'app.
+
+In caso di errore termina con un messaggio `[SMOKE][tipo range @ bias] ...`.
+Si consiglia di eseguirlo prima di aprire una PR su `main`.
+
 ## 🏗️ Struttura del Progetto
 
 ```
