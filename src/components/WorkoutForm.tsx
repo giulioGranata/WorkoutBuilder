@@ -48,9 +48,13 @@ const formSchema = z.object({
 
 interface WorkoutFormProps {
   onWorkoutGenerated: (workout: Workout | null) => void;
+  hasWorkout: boolean;
 }
 
-export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
+export function WorkoutForm({
+  onWorkoutGenerated,
+  hasWorkout,
+}: WorkoutFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSignature, setLastSignature] = useState<string | undefined>();
 
@@ -153,6 +157,7 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
       }
       onWorkoutGenerated(workout);
       setLastSignature(workout?.signature);
+      form.reset(data);
     } catch (error) {
       console.error("Error generating workout:", error);
     } finally {
@@ -363,7 +368,11 @@ export function WorkoutForm({ onWorkoutGenerated }: WorkoutFormProps) {
           {/* Generate Button */}
           <Button
             type="submit"
-            disabled={isGenerating || !form.formState.isValid}
+            disabled={
+              isGenerating ||
+              !form.formState.isValid ||
+              (hasWorkout && !form.formState.isDirty)
+            }
             className="w-full !mt-14 inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0 bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
             data-testid="button-generate"
           >
