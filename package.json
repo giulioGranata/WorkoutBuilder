@@ -15,7 +15,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:update": "playwright test --update-snapshots",
     "smoke": "tsx scripts/smoke.ts",
-    "smoke:ts-node": "ts-node --transpile-only scripts/smoke.ts"
+    "smoke:ts-node": "ts-node --transpile-only scripts/smoke.ts",
+    "check:exports": "node --loader ts-node/esm --experimental-specifier-resolution=node scripts/check-exports.ts"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -53,6 +54,7 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
+    "fast-xml-parser": "^4.5.0",
     "husky": "^9.1.7",
     "jsdom": "^26.1.0",
     "lint-staged": "^16.1.5",

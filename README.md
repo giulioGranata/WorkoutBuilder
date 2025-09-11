@@ -63,6 +63,25 @@ Lo script controlla combinazioni di tipo/durata e bias, assicurando che:
 In caso di errore termina con un messaggio `[SMOKE][tipo range @ bias] ...`.
 Si consiglia di eseguirlo prima di aprire una PR su `main`.
 
+## ✅ Export check
+
+Valida automaticamente coerenza degli export (JSON/TXT/ZWO), bias, ramp, zone e forma XML.
+
+```bash
+npm run check:exports
+```
+
+Lo script:
+- genera workout per più scenari (tipo, range, bias);
+- applica il bias ai watt come da UI;
+- calcola la zona predominante del main set (z1–z6);
+- costruisce export JSON/TXT/ZWO e valida:
+  - JSON: campi `title`, `steps[]`, `totalMinutes`, `avgIntensity`, `biasPct`;
+  - TXT: righe step coerenti e nessun “NaN”;
+  - ZWO: XML parseable, root `<workout_file>` con `<workout>` e tag/attributi attesi.
+
+Stampa una tabella: `type | range | bias | total | avgW | predominantZone | zwoOk` e termina con exit code 1 se una validazione fallisce.
+
 ## 🏗️ Struttura del Progetto
 
 ```
