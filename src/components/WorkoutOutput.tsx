@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { computeNP, computeTSS } from "@/lib/metrics";
-import { Step, Workout } from "@/lib/types";
+import { Step, Workout, DurationRangeValue, WorkoutType } from "@/lib/types";
+import { generateWorkout } from "@/lib/generator";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
@@ -15,6 +16,7 @@ import {
   Info,
   ListOrdered,
   Minus,
+  RefreshCw,
   Plus,
   Target,
   Zap,
@@ -45,11 +47,16 @@ export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
 export function WorkoutOutput({
-  workout,
+  workout: initialWorkout,
   attempted = false,
 }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const [workout, setWorkout] = useState<Workout | null>(initialWorkout);
+  useEffect(() => {
+    setWorkout(initialWorkout);
+  }, [initialWorkout]);
 
   const biasFromUrlRef = useRef(false);
   const [bias, setBias] = useState<number>(() => {
@@ -78,6 +85,21 @@ export function WorkoutOutput({
     }, 300);
     return () => window.clearTimeout(id);
   }, [bias]);
+
+  const handleNextWorkout = () => {
+    if (!workout || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const ftp = getParamInt(url, "ftp");
+    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const type = url.searchParams.get("type") as WorkoutType | null;
+    if (ftp !== null && durationRange && type) {
+      const next = generateWorkout(
+        { ftp, durationRange, type },
+        workout.signature
+      );
+      setWorkout(next);
+    }
+  };
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
@@ -310,13 +332,21 @@ export function WorkoutOutput({
       {workout ? (
         <div className="workout-content" data-testid="workout-display">
           {/* Workout Title */}
-          <div className="mb-8">
+          <div className="mb-8 flex items-center justify-between">
             <h3
               className="text-lg font-semibold text-[--text-primary] leading-tight"
               data-testid="text-workout-title"
             >
               {workout.title}
             </h3>
+            <Button
+              onClick={handleNextWorkout}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+              data-testid="button-next-workout"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Next Workout
+            </Button>
           </div>
 
           {/* Workout Chart (biased view) */}
