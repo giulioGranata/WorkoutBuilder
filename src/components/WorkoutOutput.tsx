@@ -72,8 +72,11 @@ export function WorkoutOutput({
     if (typeof window === "undefined") return;
     if (!biasFromUrlRef.current && bias === 100) return;
     const url = new URL(window.location.href);
-    setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
-    biasFromUrlRef.current = true;
+    const id = window.setTimeout(() => {
+      setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
+      biasFromUrlRef.current = true;
+    }, 300);
+    return () => window.clearTimeout(id);
   }, [bias]);
 
   // Compute a biased view of the workout (steps only)
