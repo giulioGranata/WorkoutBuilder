@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { computeNP, computeTSS } from "@/lib/metrics";
 import { Step, Workout, DurationRangeValue, WorkoutType } from "@/lib/types";
-import { generateWorkout } from "@/lib/generator";
+import { generateWorkout, rangeToBounds } from "@/lib/generator";
+import { PATTERNS } from "@/lib/patterns";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
@@ -100,6 +101,26 @@ export function WorkoutOutput({
       setWorkout(next);
     }
   };
+
+  const canShowNext = useMemo(() => {
+    if (!workout) return false;
+    if (typeof window === "undefined") return false;
+    const url = new URL(window.location.href);
+    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const type = url.searchParams.get("type") as WorkoutType | null;
+    if (!durationRange || !type) return true; // if params are missing, default to showing
+    const { min, max } = rangeToBounds(durationRange);
+    const cap = typeof max === "number" ? max : 240;
+    const variants = PATTERNS[type];
+    const WU = 10;
+    const CD = 10;
+    const fitCount = variants.filter((variant) => {
+      const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
+      const total = WU + len + CD;
+      return total >= min && total <= cap;
+    }).length;
+    return fitCount > 1;
+  }, [workout]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
@@ -339,14 +360,16 @@ export function WorkoutOutput({
             >
               {workout.title}
             </h3>
-            <Button
-              onClick={handleNextWorkout}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
-              data-testid="button-next-workout"
-            >
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />
-              Next Workout
-            </Button>
+            {canShowNext && (
+              <Button
+                onClick={handleNextWorkout}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+                data-testid="button-next-workout"
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Next Workout
+              </Button>
+            )}
           </div>
 
           {/* Workout Chart (biased view) */}

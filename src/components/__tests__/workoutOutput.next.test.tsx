@@ -38,4 +38,21 @@ describe("WorkoutOutput next workout", () => {
     expect(titleAfter).not.toBe(titleBefore);
     spy.mockRestore();
   });
+
+  it("hides Next Workout when only one variant fits", () => {
+    const params: WorkoutFormData = {
+      ftp: 250,
+      type: "vo2max",
+      durationRange: "30-45", // only one variant (C) fits this window
+    };
+    window.history.replaceState(
+      {},
+      "",
+      `?ftp=${params.ftp}&durRange=${params.durationRange}&type=${params.type}`
+    );
+
+    const only = generateWorkout(params)!;
+    render(<WorkoutOutput workout={only} attempted={true} />);
+    expect(screen.queryByTestId("button-next-workout")).toBeNull();
+  });
 });
