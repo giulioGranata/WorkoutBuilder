@@ -3,7 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { computeNP, computeTSS } from "@/lib/metrics";
-import { Step, Workout } from "@/lib/types";
+import { Step, Workout, DurationRangeValue, WorkoutType } from "@/lib/types";
+import { generateWorkout, rangeToBounds } from "@/lib/generator";
+import { PATTERNS } from "@/lib/patterns";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
@@ -15,6 +17,7 @@ import {
   Info,
   ListOrdered,
   Minus,
+  RefreshCw,
   Plus,
   Target,
   Zap,
@@ -45,11 +48,16 @@ export const applyBias = (watts: number, biasPct: number) =>
   Math.max(0, Math.round(watts * (biasPct / 100)));
 
 export function WorkoutOutput({
-  workout,
+  workout: initialWorkout,
   attempted = false,
 }: WorkoutOutputProps) {
   const { toast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const [workout, setWorkout] = useState<Workout | null>(initialWorkout);
+  useEffect(() => {
+    setWorkout(initialWorkout);
+  }, [initialWorkout]);
 
   const biasFromUrlRef = useRef(false);
   const [bias, setBias] = useState<number>(() => {
@@ -72,9 +80,47 @@ export function WorkoutOutput({
     if (typeof window === "undefined") return;
     if (!biasFromUrlRef.current && bias === 100) return;
     const url = new URL(window.location.href);
-    setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
-    biasFromUrlRef.current = true;
+    const id = window.setTimeout(() => {
+      setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
+      biasFromUrlRef.current = true;
+    }, 300);
+    return () => window.clearTimeout(id);
   }, [bias]);
+
+  const handleNextWorkout = () => {
+    if (!workout || typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    const ftp = getParamInt(url, "ftp");
+    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const type = url.searchParams.get("type") as WorkoutType | null;
+    if (ftp !== null && durationRange && type) {
+      const next = generateWorkout(
+        { ftp, durationRange, type },
+        workout.signature
+      );
+      setWorkout(next);
+    }
+  };
+
+  const canShowNext = useMemo(() => {
+    if (!workout) return false;
+    if (typeof window === "undefined") return false;
+    const url = new URL(window.location.href);
+    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const type = url.searchParams.get("type") as WorkoutType | null;
+    if (!durationRange || !type) return true; // if params are missing, default to showing
+    const { min, max } = rangeToBounds(durationRange);
+    const cap = typeof max === "number" ? max : 240;
+    const variants = PATTERNS[type];
+    const WU = 10;
+    const CD = 10;
+    const fitCount = variants.filter((variant) => {
+      const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);
+      const total = WU + len + CD;
+      return total >= min && total <= cap;
+    }).length;
+    return fitCount > 1;
+  }, [workout]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
@@ -307,17 +353,27 @@ export function WorkoutOutput({
       {workout ? (
         <div className="workout-content" data-testid="workout-display">
           {/* Workout Title */}
-          <div className="mb-8">
+          <div className="mb-8 flex items-center justify-between">
             <h3
               className="text-lg font-semibold text-[--text-primary] leading-tight"
               data-testid="text-workout-title"
             >
               {workout.title}
             </h3>
+            {canShowNext && (
+              <Button
+                onClick={handleNextWorkout}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+                data-testid="button-next-workout"
+              >
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                Next Workout
+              </Button>
+            )}
           </div>
 
           {/* Workout Chart (biased view) */}
-          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} />
+          <WorkoutChart steps={biasedSteps} ftp={workout.ftp} showFtpLine />
 
           {/* Segments */}
           <div>

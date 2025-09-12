@@ -10,8 +10,10 @@ describe("zones utils", () => {
       [76, "z3"],
       [90, "z3"],
       [91, "z4"],
-      [110, "z4"],
-      [111, "z5"],
+      [105, "z4"],
+      [106, "z5"],
+      [120, "z5"],
+      [121, "z6"],
     ];
     cases.forEach(([pct, zone]) => expect(getZoneByPct(pct)).toBe(zone));
   });
@@ -21,4 +23,3 @@ describe("zones utils", () => {
     expect(zoneLabel("z3")).toBe("Tempo 76–90%");
   });
 });
-
