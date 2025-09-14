@@ -1,0 +1,12 @@
+Tempo — 60' • FTP: 200 W • Bias: 100% • TSS: 56
+
+1. 10' — ramp 100→120 W — Easy warm-up pace to prepare for main efforts
+2. 15' — 170 W — Tempo block 1
+3. 5' — 120 W — Recovery
+4. 15' — 170 W — Tempo block 2
+5. 5' — 120 W — Recovery
+6. 10' — ramp 120→100 W — Easy cool-down to aid recovery
+
+Total: 60'
+Avg: 142 W
+TSS: 56

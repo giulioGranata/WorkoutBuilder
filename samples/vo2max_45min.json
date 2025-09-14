@@ -1,0 +1,100 @@
+// VO2max — 45' • FTP: 200 W • Bias: 100% • TSS 60
+{
+  "title": "VO2max — 45'",
+  "ftp": 200,
+  "steps": [
+    {
+      "kind": "ramp",
+      "minutes": 10,
+      "from": 100,
+      "to": 120,
+      "description": "Easy warm-up pace to prepare for main efforts",
+      "phase": "warmup"
+    },
+    {
+      "kind": "steady",
+      "minutes": 3,
+      "intensity": 230,
+      "description": "VO2 interval 1",
+      "phase": "work"
+    },
+    {
+      "kind": "steady",
+      "minutes": 2,
+      "intensity": 110,
+      "description": "Recovery",
+      "phase": "recovery"
+    },
+    {
+      "kind": "steady",
+      "minutes": 3,
+      "intensity": 230,
+      "description": "VO2 interval 2",
+      "phase": "work"
+    },
+    {
+      "kind": "steady",
+      "minutes": 2,
+      "intensity": 110,
+      "description": "Recovery",
+      "phase": "recovery"
+    },
+    {
+      "kind": "steady",
+      "minutes": 3,
+      "intensity": 230,
+      "description": "VO2 interval 3",
+      "phase": "work"
+    },
+    {
+      "kind": "steady",
+      "minutes": 2,
+      "intensity": 110,
+      "description": "Recovery",
+      "phase": "recovery"
+    },
+    {
+      "kind": "steady",
+      "minutes": 3,
+      "intensity": 230,
+      "description": "VO2 interval 4",
+      "phase": "work"
+    },
+    {
+      "kind": "steady",
+      "minutes": 2,
+      "intensity": 110,
+      "description": "Recovery",
+      "phase": "recovery"
+    },
+    {
+      "kind": "steady",
+      "minutes": 3,
+      "intensity": 230,
+      "description": "VO2 interval 5",
+      "phase": "work"
+    },
+    {
+      "kind": "steady",
+      "minutes": 2,
+      "intensity": 110,
+      "description": "Recovery",
+      "phase": "recovery"
+    },
+    {
+      "kind": "ramp",
+      "minutes": 10,
+      "from": 120,
+      "to": 100,
+      "description": "Easy cool-down to aid recovery",
+      "phase": "cooldown"
+    }
+  ],
+  "totalMinutes": 45,
+  "workMinutes": 15,
+  "recoveryMinutes": 10,
+  "avgIntensity": 150,
+  "signature": "sample-vo2",
+  "biasPct": 100,
+  "tss": 60
+}
