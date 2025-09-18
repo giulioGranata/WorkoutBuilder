@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { screen, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { Workout } from "@/lib/types";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
+import { renderWithPatternLibrary } from "./testUtils";
 
 describe("WorkoutOutput main set zone", () => {
   const workout: Workout = {
@@ -16,7 +17,7 @@ describe("WorkoutOutput main set zone", () => {
   } as any;
 
   it("updates main set zone when bias changes", () => {
-    render(<WorkoutOutput workout={workout} attempted />);
+    renderWithPatternLibrary(<WorkoutOutput workout={workout} attempted />);
     const row = screen.getByText("Main Set").closest("li")!;
     expect(within(row).getByText("Endurance 60–75%"));
     const dot = row.querySelector("span[style]") as HTMLElement;

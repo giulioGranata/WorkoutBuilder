@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { WorkoutOutput } from "../WorkoutOutput";
 import { generateWorkout } from "@/lib/generator";
 import type { WorkoutFormData } from "@/lib/types";
+import { renderWithPatternLibrary } from "../../../tests/testUtils";
 
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
@@ -13,7 +14,7 @@ describe("WorkoutOutput next workout", () => {
   afterEach(() => cleanup());
 
   it("hides Next Workout button when no workout", () => {
-    render(<WorkoutOutput workout={null} attempted={false} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={null} attempted={false} />);
     expect(screen.queryByTestId("button-next-workout")).toBeNull();
   });
 
@@ -30,7 +31,7 @@ describe("WorkoutOutput next workout", () => {
     );
     const spy = vi.spyOn(Math, "random").mockReturnValue(0);
     const first = generateWorkout(params)!;
-    render(<WorkoutOutput workout={first} attempted={true} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={first} attempted={true} />);
     const button = screen.getByTestId("button-next-workout");
     const titleBefore = screen.getByTestId("text-workout-title").textContent;
     fireEvent.click(button);
@@ -52,7 +53,7 @@ describe("WorkoutOutput next workout", () => {
     );
 
     const only = generateWorkout(params)!;
-    render(<WorkoutOutput workout={only} attempted={true} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={only} attempted={true} />);
     expect(screen.queryByTestId("button-next-workout")).toBeNull();
   });
 });

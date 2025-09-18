@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import type { Workout } from "@/lib/types";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
+import { renderWithPatternLibrary } from "./testUtils";
 
 const toastMock = vi.fn();
 vi.mock("@/hooks/use-toast", () => ({
@@ -52,7 +53,7 @@ afterEach(() => {
 
 describe("Export actions", () => {
   it("renders three export buttons", () => {
-    render(<WorkoutOutput workout={sampleWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={sampleWorkout} />);
     expect(screen.getByText("Export ZWO")).toBeTruthy();
     expect(screen.getByText("Export Text")).toBeTruthy();
     expect(screen.getByText("Export JSON")).toBeTruthy();
@@ -77,7 +78,7 @@ describe("Export actions", () => {
       clickedDownloads.push((this as HTMLAnchorElement).download);
     };
 
-    render(<WorkoutOutput workout={sampleWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={sampleWorkout} />);
 
     // JSON
     fireEvent.click(screen.getByText("Export JSON"));
@@ -112,7 +113,7 @@ describe("Export actions", () => {
   // Keyboard navigation via dropdown removed in new UX; buttons remain clickable
 
   it("does not show Copy Text button anymore", () => {
-    render(<WorkoutOutput workout={sampleWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={sampleWorkout} />);
     expect(screen.queryByTestId("button-copy-text-full")).toBeNull();
   });
 });

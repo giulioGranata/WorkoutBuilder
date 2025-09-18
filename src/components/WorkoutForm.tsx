@@ -24,6 +24,7 @@ import {
   WorkoutFormData,
 } from "@/lib/types";
 import { getParamInt, setParam } from "@/lib/url";
+import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, Play, Settings, Target, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -57,6 +58,7 @@ export function WorkoutForm({
 }: WorkoutFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSignature, setLastSignature] = useState<string | undefined>();
+  const { patterns } = usePatternLibrary();
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(formSchema),
@@ -148,7 +150,7 @@ export function WorkoutForm({
   const onSubmit = async (data: WorkoutFormData) => {
     setIsGenerating(true);
     try {
-      const workout = generateWorkout(data, lastSignature);
+      const workout = generateWorkout(data, lastSignature, patterns);
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         setParam(url, "ftp", data.ftp);

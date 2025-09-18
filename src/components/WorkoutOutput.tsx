@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { computeNP, computeTSS } from "@/lib/metrics";
 import { Step, Workout, DurationRangeValue, WorkoutType } from "@/lib/types";
 import { generateWorkout, rangeToBounds } from "@/lib/generator";
-import { PATTERNS } from "@/lib/patterns";
+import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { getParamInt, setParam } from "@/lib/url";
 import { toZwoXml } from "@/lib/zwo";
 import {
@@ -52,6 +52,7 @@ export function WorkoutOutput({
   attempted = false,
 }: WorkoutOutputProps) {
   const { toast } = useToast();
+  const { patterns } = usePatternLibrary();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout);
@@ -96,7 +97,8 @@ export function WorkoutOutput({
     if (ftp !== null && durationRange && type) {
       const next = generateWorkout(
         { ftp, durationRange, type },
-        workout.signature
+        workout.signature,
+        patterns
       );
       setWorkout(next);
     }
@@ -111,7 +113,7 @@ export function WorkoutOutput({
     if (!durationRange || !type) return true; // if params are missing, default to showing
     const { min, max } = rangeToBounds(durationRange);
     const cap = typeof max === "number" ? max : 240;
-    const variants = PATTERNS[type];
+    const variants = patterns[type];
     const WU = 10;
     const CD = 10;
     const fitCount = variants.filter((variant) => {
@@ -120,7 +122,7 @@ export function WorkoutOutput({
       return total >= min && total <= cap;
     }).length;
     return fitCount > 1;
-  }, [workout]);
+  }, [workout, patterns]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(

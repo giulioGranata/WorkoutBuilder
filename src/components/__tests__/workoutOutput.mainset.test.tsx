@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { WorkoutOutput } from "../WorkoutOutput";
 import type { Workout } from "@/lib/types";
+import { renderWithPatternLibrary } from "../../../tests/testUtils";
 
 declare const global: any;
 
@@ -27,7 +28,7 @@ const baseWorkout: Workout = {
 describe("WorkoutOutput main set zone", () => {
   afterEach(() => cleanup());
   it("shows predominant zone without bias", () => {
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     expect(screen.getByText("Endurance 60–75%"));
     const dot = screen
       .getByText("Main Set")
@@ -37,7 +38,7 @@ describe("WorkoutOutput main set zone", () => {
   });
 
   it("updates predominant zone with bias", () => {
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     const range = screen.getAllByTestId("bias-range")[0];
     fireEvent.change(range, { target: { value: 115 } });
     expect(screen.getByText("Tempo 76–90%"));
@@ -66,7 +67,7 @@ describe("WorkoutOutput main set zone", () => {
     const origClick = (HTMLAnchorElement.prototype as any).click;
     (HTMLAnchorElement.prototype as any).click = vi.fn();
 
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     const tssVal = screen.getByTestId("text-tss").textContent || "";
     expect(tssVal).toMatch(/^\d+$/);
 
