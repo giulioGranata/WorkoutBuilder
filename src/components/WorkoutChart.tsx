@@ -134,7 +134,8 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const [active, setActive] = useState<null | number>(null);
+  type ActiveState = { index: number; source: "pointer" | "focus" } | null;
+  const [active, setActive] = useState<ActiveState>(null);
   const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
 
   // Resize observer for responsive tooltip positioning
@@ -267,10 +268,12 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     setTooltipPos({ left, top });
   };
 
+  const activeIndex = active?.index ?? null;
+
   useEffect(() => {
-    if (active !== null) updateTooltipForIndex(active);
+    if (activeIndex !== null) updateTooltipForIndex(activeIndex);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, containerSize.width, containerSize.height]);
+  }, [activeIndex, containerSize.width, containerSize.height]);
 
   if (!steps || steps.length === 0 || totalMinutes === 0) {
     return (
@@ -297,12 +300,19 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
           {bars.map((bar, idx) => {
             const fill = colorForStep(bar.s, ftp);
-            const activate = () => {
-              setActive(idx);
+            const activatePointer = () => {
+              setActive({ index: idx, source: "pointer" });
               updateTooltipForIndex(idx);
             };
-            const clear = () => setActive(null);
-            const isActive = active === idx;
+            const activateFocus = () => {
+              setActive({ index: idx, source: "focus" });
+              updateTooltipForIndex(idx);
+            };
+            const clear = () => setActive((prev) =>
+              prev?.index === idx ? null : prev
+            );
+            const isFocusActive =
+              active?.index === idx && active.source === "focus";
             const kind = (bar.s as any).kind ?? "steady";
             const wattsText =
               kind === "ramp"
@@ -319,15 +329,18 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                     height={bar.h}
                     rx={CORNER_RADIUS}
                     style={{ fill }}
-                    stroke={isActive ? "var(--ring)" : "transparent"}
-                    strokeWidth={isActive ? 1.5 : 0}
+                    stroke={isFocusActive ? "var(--ring)" : "transparent"}
+                    strokeWidth={isFocusActive ? 1.5 : 0}
                     role="button"
                     tabIndex={0}
                     aria-label={label}
-                    onFocus={activate}
+                    onFocus={activateFocus}
                     onBlur={clear}
-                    onMouseEnter={activate}
+                    onMouseEnter={activatePointer}
                     onMouseLeave={clear}
+                    onTouchStart={activatePointer}
+                    onTouchEnd={clear}
+                    onPointerLeave={clear}
                   />
                 </g>
               );
@@ -349,15 +362,18 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                 key={idx}
                 d={d}
                 style={{ fill }}
-                stroke={isActive ? "var(--ring)" : "transparent"}
-                strokeWidth={isActive ? 1.5 : 0}
+                stroke={isFocusActive ? "var(--ring)" : "transparent"}
+                strokeWidth={isFocusActive ? 1.5 : 0}
                 role="button"
                 tabIndex={0}
                 aria-label={label}
-                onFocus={activate}
+                onFocus={activateFocus}
                 onBlur={clear}
-                onMouseEnter={activate}
+                onMouseEnter={activatePointer}
                 onMouseLeave={clear}
+                onTouchStart={activatePointer}
+                onTouchEnd={clear}
+                onPointerLeave={clear}
               />
             );
           })}
@@ -395,14 +411,14 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         </div>
       )}
 
-      {active !== null && (
+      {activeIndex !== null && (
         <div
           ref={tooltipRef}
           className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-sm rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
           style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
         >
           {(() => {
-            const step = steps[active];
+            const step = steps[activeIndex];
             const kind = (step as any).kind ?? "steady";
             const wattsText =
               kind === "ramp"
