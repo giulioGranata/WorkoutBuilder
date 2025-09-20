@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { clamp, applyBias } from "./WorkoutOutput";
+import { clamp, applyBias } from "@/lib/workoutSteps";
 
 describe("bias helpers", () => {
   it("clamps values to the [75,125] range", () => {

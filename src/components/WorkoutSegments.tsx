@@ -1,4 +1,9 @@
 import { Step } from "@/lib/types";
+import {
+  getStepAverageWatts,
+  getStepBounds,
+  sumStepMinutes,
+} from "@/lib/workoutSteps";
 import { getZoneByPct, zoneColor, zoneLabel } from "@/lib/zones";
 
 interface WorkoutSegmentsProps {
@@ -31,41 +36,34 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
   const segments: Segment[] = [];
 
   const rangeFor = (segmentSteps: Step[]) => {
-    const values: number[] = [];
-    segmentSteps.forEach((s) => {
-      if ((s as any).kind === "ramp") {
-        const rs = s as any;
-        values.push(percent(rs.from, ftp));
-        values.push(percent(rs.to, ftp));
-      } else {
-        const ss = s as any;
-        values.push(percent(ss.intensity, ftp));
-      }
+    if (!segmentSteps.length) {
+      return "0–0% FTP";
+    }
+    let minPct = Number.POSITIVE_INFINITY;
+    let maxPct = Number.NEGATIVE_INFINITY;
+    segmentSteps.forEach((step) => {
+      const [from, to] = getStepBounds(step);
+      minPct = Math.min(minPct, percent(from, ftp));
+      maxPct = Math.max(maxPct, percent(to, ftp));
     });
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    return `${min}–${max}% FTP`;
+    return `${minPct}–${maxPct}% FTP`;
   };
 
   if (warmupSteps.length) {
     segments.push({
       title: "Warm-up",
-      minutes: warmupSteps.reduce((sum, s) => sum + s.minutes, 0),
+      minutes: sumStepMinutes(warmupSteps),
       color: "var(--phase-warmup)",
       note: rangeFor(warmupSteps),
     });
   }
 
   if (mainSteps.length) {
-    const minutes = mainSteps.reduce((sum, s) => sum + s.minutes, 0);
+    const minutes = sumStepMinutes(mainSteps);
     const workSteps = mainSteps.filter((s) => s.phase === "work");
     const zoneMinutes: Record<string, number> = {};
     workSteps.forEach((s) => {
-      const kind = (s as any).kind ?? "steady";
-      const watts =
-        kind === "ramp"
-          ? ((s as any).from + (s as any).to) / 2
-          : (s as any).intensity;
+      const watts = getStepAverageWatts(s);
       const pct = Math.round((watts / ftp) * 100);
       const zone = getZoneByPct(pct);
       zoneMinutes[zone] = (zoneMinutes[zone] ?? 0) + s.minutes;
@@ -92,7 +90,7 @@ export function WorkoutSegments({ steps, ftp }: WorkoutSegmentsProps) {
   if (cooldownSteps.length) {
     segments.push({
       title: "Cool-down",
-      minutes: cooldownSteps.reduce((sum, s) => sum + s.minutes, 0),
+      minutes: sumStepMinutes(cooldownSteps),
       color: "var(--phase-cooldown)",
       note: rangeFor(cooldownSteps),
     });

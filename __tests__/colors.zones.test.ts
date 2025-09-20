@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { colorForStep } from "@/components/WorkoutChart";
-import { applyBias } from "@/components/WorkoutOutput";
+import { applyBias } from "@/lib/workoutSteps";
 import type { Step } from "@/lib/types";
 
 const FTP = 200;

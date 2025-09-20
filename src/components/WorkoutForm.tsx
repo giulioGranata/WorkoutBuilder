@@ -23,7 +23,7 @@ import {
   WORKOUT_TYPES,
   WorkoutFormData,
 } from "@/lib/types";
-import { getParamInt, setParam } from "@/lib/url";
+import { getCurrentUrl, getParamInt, setParam } from "@/lib/url";
 import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, Play, Settings, Target, Zap } from "lucide-react";
@@ -71,9 +71,8 @@ export function WorkoutForm({
 
   // Load persisted/URL params on mount and sync FTP changes across tabs
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const url = new URL(window.location.href);
+    const url = getCurrentUrl();
+    if (!url) return;
 
     const urlFtp = getParamInt(url, "ftp");
     const urlDurRange = url.searchParams.get(
@@ -151,8 +150,8 @@ export function WorkoutForm({
     setIsGenerating(true);
     try {
       const workout = generateWorkout(data, lastSignature, patterns);
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
+      const url = getCurrentUrl();
+      if (url) {
         setParam(url, "ftp", data.ftp);
         setParam(url, "durRange", data.durationRange);
         setParam(url, "type", data.type);
