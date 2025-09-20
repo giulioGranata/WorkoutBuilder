@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
-import { screen, fireEvent, cleanup } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { WorkoutOutput } from "../WorkoutOutput";
 import type { Workout } from "@/lib/types";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithPatternLibrary } from "../../../tests/testUtils";
+import { WorkoutOutput } from "../WorkoutOutput";
 
 declare const global: any;
 
@@ -15,8 +15,18 @@ const baseWorkout: Workout = {
   title: "Predominant Zone",
   ftp: 200,
   steps: [
-    { minutes: 20, intensity: Math.round(200 * 0.7), phase: "work", description: "z2" },
-    { minutes: 10, intensity: Math.round(200 * 0.85), phase: "work", description: "z3" },
+    {
+      minutes: 20,
+      intensity: Math.round(200 * 0.7),
+      phase: "work",
+      description: "z2",
+    },
+    {
+      minutes: 10,
+      intensity: Math.round(200 * 0.85),
+      phase: "work",
+      description: "z3",
+    },
   ],
   totalMinutes: 30,
   workMinutes: 30,
@@ -50,7 +60,7 @@ describe("WorkoutOutput main set zone", () => {
   });
 
   it("shows integer TSS and exports JSON with tss field", async () => {
-    const createUrl = vi.fn((b: any) => "blob:123");
+    const createUrl = vi.fn((_b: any) => "blob:123");
     const revokeUrl = vi.fn();
     global.URL.createObjectURL = createUrl;
     global.URL.revokeObjectURL = revokeUrl;
@@ -79,4 +89,3 @@ describe("WorkoutOutput main set zone", () => {
     (HTMLAnchorElement.prototype as any).click = origClick;
   });
 });
-

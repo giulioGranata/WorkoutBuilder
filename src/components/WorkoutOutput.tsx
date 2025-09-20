@@ -2,17 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { computeNP, computeTSS } from "@/lib/metrics";
-import {
-  Step,
-  Workout,
-  DurationRangeValue,
-  WorkoutType,
-} from "@/lib/types";
-import { generateWorkout, rangeToBounds } from "@/lib/generator";
 import { usePatternLibrary } from "@/hooks/usePatternLibrary";
+import { sanitizeFilename, triggerDownload } from "@/lib/download";
+import { generateWorkout, rangeToBounds } from "@/lib/generator";
+import { computeNP, computeTSS } from "@/lib/metrics";
+import { DurationRangeValue, Step, Workout, WorkoutType } from "@/lib/types";
 import { getCurrentUrl, getParamInt, setParam } from "@/lib/url";
-import { toZwoXml } from "@/lib/zwo";
 import {
   applyBiasToStep,
   clamp,
@@ -20,7 +15,7 @@ import {
   isRampStep,
   toSteadyStep,
 } from "@/lib/workoutSteps";
-import { sanitizeFilename, triggerDownload } from "@/lib/download";
+import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
   Clock,
@@ -30,8 +25,8 @@ import {
   Info,
   ListOrdered,
   Minus,
-  RefreshCw,
   Plus,
+  RefreshCw,
   Target,
   Zap,
 } from "lucide-react";
@@ -59,7 +54,6 @@ export function WorkoutOutput({
 }: WorkoutOutputProps) {
   const { toast } = useToast();
   const { patterns } = usePatternLibrary();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout);
   useEffect(() => {
@@ -99,7 +93,9 @@ export function WorkoutOutput({
     const url = getCurrentUrl();
     if (!url) return;
     const ftp = getParamInt(url, "ftp");
-    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const durationRange = url.searchParams.get(
+      "durRange"
+    ) as DurationRangeValue | null;
     const type = url.searchParams.get("type") as WorkoutType | null;
     if (ftp !== null && durationRange && type) {
       const next = generateWorkout(
@@ -115,7 +111,9 @@ export function WorkoutOutput({
     if (!workout) return false;
     const url = getCurrentUrl();
     if (!url) return false;
-    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const durationRange = url.searchParams.get(
+      "durRange"
+    ) as DurationRangeValue | null;
     const type = url.searchParams.get("type") as WorkoutType | null;
     if (!durationRange || !type) return true; // if params are missing, default to showing
     const { min, max } = rangeToBounds(durationRange);
@@ -176,10 +174,14 @@ export function WorkoutOutput({
     const body = sanitizedSteps
       .map((step, index) => {
         if (isRampStep(step)) {
-          return `${index + 1}. ${step.minutes}' — ramp ${step.from}→${step.to} W — ${step.description}`;
+          return `${index + 1}. ${step.minutes}' — ramp ${step.from}→${
+            step.to
+          } W — ${step.description}`;
         }
         const steady = toSteadyStep(step);
-        return `${index + 1}. ${step.minutes}' — ${steady.intensity} W — ${step.description}`;
+        return `${index + 1}. ${step.minutes}' — ${steady.intensity} W — ${
+          step.description
+        }`;
       })
       .join("\n");
     const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W\nTSS: ${tss}`;
