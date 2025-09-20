@@ -26,13 +26,13 @@
           "ring": "rgba(37, 99, 235, 0.35)"
         },
         "phase": {
-          "warmup": "#38BDF8",
+          "warmup": "#9CA3AF",
           "work": "#22C55E",
           "recovery": "#F97316",
-          "cooldown": "#A855F7"
+          "cooldown": "#9CA3AF"
         },
         "zones": {
-          "z1": "#BAE6FD",
+          "z1": "#9CA3AF",
           "z2": "#7DD3FC",
           "z3": "#34D399",
           "z4": "#FACC15",
@@ -62,13 +62,13 @@
           "ring": "rgba(96, 165, 250, 0.45)"
         },
         "phase": {
-          "warmup": "#0EA5E9",
+          "warmup": "#9CA3AF",
           "work": "#10B981",
           "recovery": "#FB923C",
-          "cooldown": "#C084FC"
+          "cooldown": "#9CA3AF"
         },
         "zones": {
-          "z1": "#1D4ED8",
+          "z1": "#9CA3AF",
           "z2": "#0EA5E9",
           "z3": "#22C55E",
           "z4": "#FACC15",

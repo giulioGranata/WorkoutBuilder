@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
 import WorkoutTypes from "@/components/WorkoutTypes";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Workout } from "@/lib/types";
 import { queryClient } from "./lib/queryClient";
 import { PatternLibraryProvider } from "@/hooks/usePatternLibrary";
@@ -27,7 +28,7 @@ function App() {
             {/* Header */}
             <header className="bg-[--card] border-b border-[--border]">
               <div className="max-w-5xl mx-auto py-5 px-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[--accent] rounded-xl flex items-center justify-center">
@@ -41,9 +42,12 @@ function App() {
                       Generate personalized cycling workouts
                     </p>
                   </div>
-                  <span className="text-[--text-tertiary] text-xs mt-4 sm:mt-0 sm:text-right">
-                    Powered by science-based training zones
-                  </span>
+                  <div className="flex items-center justify-end gap-3 sm:self-auto">
+                    <ThemeToggle />
+                    <span className="text-[--text-tertiary] text-xs sm:text-right">
+                      Powered by science-based training zones
+                    </span>
+                  </div>
                 </div>
               </div>
             </header>
