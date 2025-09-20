@@ -60,7 +60,10 @@ describe("WorkoutOutput main set zone", () => {
   });
 
   it("shows integer TSS and exports JSON with tss field", async () => {
-    const createUrl = vi.fn((_b: any) => "blob:123");
+    const createUrl = vi.fn((blob: any) => {
+      void blob; // let TypeScript know the argument is intentionally unused
+      return "blob:123";
+    });
     const revokeUrl = vi.fn();
     global.URL.createObjectURL = createUrl;
     global.URL.revokeObjectURL = revokeUrl;
