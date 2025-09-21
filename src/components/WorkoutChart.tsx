@@ -23,6 +23,28 @@ const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
 const CORNER_RADIUS = 2; // rounded corners radius for bars
 const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
 
+const isRampStep = (step: Step): step is Step & { from: number; to: number } =>
+  "from" in step && "to" in step;
+
+const isSteadyStep = (
+  step: Step
+): step is Step & { intensity: number } => "intensity" in step;
+
+const formatWattsText = (step: Step): string => {
+  if (isRampStep(step)) {
+    return `ramp ${step.from}→${step.to} W`;
+  }
+  if (isSteadyStep(step)) {
+    return `${step.intensity} W`;
+  }
+  return "";
+};
+
+const formatStepLabel = (step: Step): string => {
+  const wattsText = formatWattsText(step);
+  return `${step.minutes}' • ${wattsText} — ${step.description}`;
+};
+
 export function colorForStep(step: Step, ftp: number) {
   if (step.phase === "warmup") return "var(--phase-warmup)";
   if (step.phase === "cooldown") return "var(--phase-cooldown)";
@@ -174,12 +196,7 @@ function useBarInteractions({
   return useMemo<BarInteraction[]>(() => {
     return bars.map((bar, index) => {
       const step = bar.s;
-      const kind = (step as any).kind ?? "steady";
-      const wattsText =
-        kind === "ramp"
-          ? `ramp ${(step as any).from}→${(step as any).to} W`
-          : `${(step as any).intensity} W`;
-      const ariaLabel = `${step.minutes}' • ${wattsText} — ${step.description}`;
+      const ariaLabel = formatStepLabel(step);
 
       const activatePointer = () => {
         setActive({ index, source: "pointer" });
@@ -536,22 +553,20 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         <div
           ref={tooltipRef}
           className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-sm rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
+          role="tooltip"
           style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
         >
           {(() => {
             const step = steps[activeIndex];
-            const kind = (step as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(step as any).from}→${(step as any).to} W`
-                : `${(step as any).intensity} W`;
+            const label = formatStepLabel(step);
+            const wattsText = formatWattsText(step);
             return (
-              <>
-                <div className="font-semibold">{`${step.minutes}' • ${wattsText}`}</div>
-                <div className="text-[--text-secondary]">
-                  {step.description}
-                </div>
-              </>
+              <div data-step-label={label}>
+                <span className="font-semibold">{`${step.minutes}' • ${wattsText}`}</span>
+                <span className="block font-normal text-[--text-secondary]">
+                  {` — ${step.description}`}
+                </span>
+              </div>
             );
           })()}
         </div>

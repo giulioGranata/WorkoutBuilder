@@ -1,14 +1,27 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
 import WorkoutChart from "@/components/WorkoutChart";
 import type { Step } from "@/lib/types";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
 describe("WorkoutChart", () => {
   it("renders steady rectangles and ramp trapezoids", () => {
     const steps: Step[] = [
-      { kind: "steady", minutes: 5, intensity: 100, description: "steady", phase: "work" },
-      { kind: "ramp", minutes: 5, from: 80, to: 120, description: "ramp", phase: "warmup" },
+      {
+        kind: "steady",
+        minutes: 5,
+        intensity: 100,
+        description: "steady",
+        phase: "work",
+      },
+      {
+        kind: "ramp",
+        minutes: 5,
+        from: 80,
+        to: 120,
+        description: "ramp",
+        phase: "warmup",
+      },
     ];
     render(<WorkoutChart steps={steps} ftp={200} />);
     const rect = screen.getByLabelText("5' • 100 W — steady");
@@ -19,7 +32,13 @@ describe("WorkoutChart", () => {
 
   it("clamps high intensity bars and applies zone 6 color", () => {
     const steps: Step[] = [
-      { kind: "steady", minutes: 5, intensity: 260, description: "anaerobic", phase: "work" },
+      {
+        kind: "steady",
+        minutes: 5,
+        intensity: 260,
+        description: "anaerobic",
+        phase: "work",
+      },
     ];
     render(<WorkoutChart steps={steps} ftp={200} />);
     const rect = screen.getByLabelText("5' • 260 W — anaerobic");
@@ -30,43 +49,51 @@ describe("WorkoutChart", () => {
 
   it("keeps focus and pointer interactions in sync across bar shapes", async () => {
     const steps: Step[] = [
-      { kind: "steady", minutes: 5, intensity: 100, description: "steady", phase: "work" },
-      { kind: "ramp", minutes: 5, from: 80, to: 120, description: "ramp", phase: "warmup" },
+      {
+        kind: "steady",
+        minutes: 5,
+        intensity: 100,
+        description: "steady",
+        phase: "work",
+      },
+      {
+        kind: "ramp",
+        minutes: 5,
+        from: 80,
+        to: 120,
+        description: "ramp",
+        phase: "warmup",
+      },
     ];
-    const { getAllByLabelText, getByText, queryByText } = render(
+    const { getAllByLabelText } = render(
       <WorkoutChart steps={steps} ftp={200} />
     );
 
     const cases = [
-      {
-        element: getAllByLabelText("5' • 100 W — steady")[0],
-        title: "5' • 100 W",
-        description: "steady",
-      },
-      {
-        element: getAllByLabelText("5' • ramp 80→120 W — ramp")[0],
-        title: "5' • ramp 80→120 W",
-        description: "ramp",
-      },
+      getAllByLabelText("5' • 100 W — steady")[0],
+      getAllByLabelText("5' • ramp 80→120 W — ramp")[0],
     ];
 
-    for (const { element, title, description } of cases) {
+    for (const element of cases) {
+      const ariaLabel = element.getAttribute("aria-label");
+      expect(ariaLabel).not.toBeNull();
+      const label = ariaLabel!;
       fireEvent.pointerDown(element, { pointerId: 1, pointerType: "mouse" });
-      expect(getByText(title)).toBeDefined();
-      expect(getByText(description)).toBeDefined();
+      const tooltip = await screen.findByRole("tooltip");
+      expect(tooltip.textContent).toBe(label);
 
       fireEvent.pointerLeave(element);
       await waitFor(() => {
-        expect(queryByText(title)).toBeNull();
+        expect(screen.queryByRole("tooltip")).toBeNull();
       });
 
       fireEvent.focus(element);
-      expect(getByText(title)).toBeDefined();
-      expect(getByText(description)).toBeDefined();
+      const tooltipFromFocus = await screen.findByRole("tooltip");
+      expect(tooltipFromFocus.textContent).toBe(label);
 
       fireEvent.blur(element);
       await waitFor(() => {
-        expect(queryByText(title)).toBeNull();
+        expect(screen.queryByRole("tooltip")).toBeNull();
       });
     }
   });
