@@ -1,5 +1,6 @@
 import type { Step } from "@/lib/types";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { FocusEvent, PointerEvent } from "react";
 
 interface Props {
   steps: Step[];
@@ -137,6 +138,7 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
   type ActiveState = { index: number; source: "pointer" | "focus" } | null;
   const [active, setActive] = useState<ActiveState>(null);
   const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
+  const pointerIntentRef = useRef<null | "mouse" | "pen" | "touch">(null);
 
   // Resize observer for responsive tooltip positioning
   useEffect(() => {
@@ -304,13 +306,56 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
               setActive({ index: idx, source: "pointer" });
               updateTooltipForIndex(idx);
             };
-            const activateFocus = () => {
+            const activateFocus = (event: FocusEvent<SVGElement>) => {
+              if (pointerIntentRef.current) {
+                const target = event.currentTarget as unknown as {
+                  blur?: () => void;
+                };
+                target.blur?.();
+                pointerIntentRef.current = null;
+                return;
+              }
               setActive({ index: idx, source: "focus" });
               updateTooltipForIndex(idx);
             };
-            const clear = () => setActive((prev) =>
-              prev?.index === idx ? null : prev
-            );
+            const clear = () => {
+              pointerIntentRef.current = null;
+              setActive((prev) => (prev?.index === idx ? null : prev));
+            };
+            const schedulePointerReset = () => {
+              if (typeof window !== "undefined") {
+                window.setTimeout(() => {
+                  pointerIntentRef.current = null;
+                }, 0);
+              } else {
+                pointerIntentRef.current = null;
+              }
+            };
+            const handlePointerDown = (event: PointerEvent<SVGElement>) => {
+              const pointerType = event.pointerType || "mouse";
+              if (pointerType === "touch") return;
+              pointerIntentRef.current = pointerType as "mouse" | "pen";
+              activatePointer();
+            };
+            const handlePointerUp = () => {
+              schedulePointerReset();
+            };
+            const handlePointerLeave = () => {
+              clear();
+              schedulePointerReset();
+            };
+            const handlePointerCancel = () => {
+              clear();
+              schedulePointerReset();
+            };
+            const handleTouchStart = () => {
+              pointerIntentRef.current = "touch";
+              activatePointer();
+            };
+            const handleTouchEnd = () => {
+              clear();
+              schedulePointerReset();
+            };
             const isFocusActive =
               active?.index === idx && active.source === "focus";
             const kind = (bar.s as any).kind ?? "steady";
@@ -328,7 +373,7 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                     width={Math.max(0.001, bar.w)}
                     height={bar.h}
                     rx={CORNER_RADIUS}
-                    style={{ fill }}
+                    style={{ fill, outline: "none" }}
                     stroke={isFocusActive ? "var(--ring)" : "transparent"}
                     strokeWidth={isFocusActive ? 1.5 : 0}
                     role="button"
@@ -337,10 +382,13 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                     onFocus={activateFocus}
                     onBlur={clear}
                     onMouseEnter={activatePointer}
-                    onMouseLeave={clear}
-                    onTouchStart={activatePointer}
-                    onTouchEnd={clear}
-                    onPointerLeave={clear}
+                    onMouseLeave={handlePointerLeave}
+                    onPointerDown={handlePointerDown}
+                    onPointerUp={handlePointerUp}
+                    onPointerCancel={handlePointerCancel}
+                    onPointerLeave={handlePointerLeave}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
                   />
                 </g>
               );
@@ -361,7 +409,7 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
               <path
                 key={idx}
                 d={d}
-                style={{ fill }}
+                style={{ fill, outline: "none" }}
                 stroke={isFocusActive ? "var(--ring)" : "transparent"}
                 strokeWidth={isFocusActive ? 1.5 : 0}
                 role="button"
@@ -370,10 +418,13 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                 onFocus={activateFocus}
                 onBlur={clear}
                 onMouseEnter={activatePointer}
-                onMouseLeave={clear}
-                onTouchStart={activatePointer}
-                onTouchEnd={clear}
-                onPointerLeave={clear}
+                onMouseLeave={handlePointerLeave}
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                onPointerLeave={handlePointerLeave}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               />
             );
           })}
