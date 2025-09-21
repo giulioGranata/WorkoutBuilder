@@ -1,6 +1,12 @@
 import type { Step } from "@/lib/types";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { FocusEvent, PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type {
+  Dispatch,
+  FocusEvent,
+  MutableRefObject,
+  PointerEvent,
+  SetStateAction,
+} from "react";
 
 interface Props {
   steps: Step[];
@@ -131,14 +137,140 @@ function roundedTrapezoidPath(
   ].join(" ");
 }
 
+type PointerIntent = null | "mouse" | "pen" | "touch";
+type ActiveState = { index: number; source: "pointer" | "focus" } | null;
+
+type BarInteractionHandlers = {
+  onFocus: (event: FocusEvent<SVGElement>) => void;
+  onBlur: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+  onPointerDown: (event: PointerEvent<SVGElement>) => void;
+  onPointerUp: () => void;
+  onPointerCancel: () => void;
+  onPointerLeave: () => void;
+  onTouchStart: () => void;
+  onTouchEnd: () => void;
+};
+
+type BarInteraction = {
+  ariaLabel: string;
+  interactionProps: BarInteractionHandlers;
+};
+
+type UseBarInteractionsArgs = {
+  bars: BarGeom[];
+  pointerIntentRef: MutableRefObject<PointerIntent>;
+  setActive: Dispatch<SetStateAction<ActiveState>>;
+  updateTooltipForIndex: (index: number) => void;
+};
+
+function useBarInteractions({
+  bars,
+  pointerIntentRef,
+  setActive,
+  updateTooltipForIndex,
+}: UseBarInteractionsArgs) {
+  return useMemo<BarInteraction[]>(() => {
+    return bars.map((bar, index) => {
+      const step = bar.s;
+      const kind = (step as any).kind ?? "steady";
+      const wattsText =
+        kind === "ramp"
+          ? `ramp ${(step as any).from}→${(step as any).to} W`
+          : `${(step as any).intensity} W`;
+      const ariaLabel = `${step.minutes}' • ${wattsText} — ${step.description}`;
+
+      const activatePointer = () => {
+        setActive({ index, source: "pointer" });
+        updateTooltipForIndex(index);
+      };
+
+      const clear = () => {
+        pointerIntentRef.current = null;
+        setActive((prev) => (prev?.index === index ? null : prev));
+      };
+
+      const schedulePointerReset = () => {
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => {
+            pointerIntentRef.current = null;
+          }, 0);
+        } else {
+          pointerIntentRef.current = null;
+        }
+      };
+
+      const handlePointerDown = (event: PointerEvent<SVGElement>) => {
+        const pointerType = event.pointerType || "mouse";
+        if (pointerType === "touch") return;
+        pointerIntentRef.current = pointerType as "mouse" | "pen";
+        activatePointer();
+      };
+
+      const handlePointerUp = () => {
+        schedulePointerReset();
+      };
+
+      const handlePointerLeave = () => {
+        clear();
+        schedulePointerReset();
+      };
+
+      const handlePointerCancel = () => {
+        clear();
+        schedulePointerReset();
+      };
+
+      const handleTouchStart = () => {
+        pointerIntentRef.current = "touch";
+        activatePointer();
+      };
+
+      const handleTouchEnd = () => {
+        clear();
+        schedulePointerReset();
+      };
+
+      const handleFocus = (event: FocusEvent<SVGElement>) => {
+        if (pointerIntentRef.current) {
+          const target = event.currentTarget as unknown as {
+            blur?: () => void;
+          };
+          target.blur?.();
+          pointerIntentRef.current = null;
+          return;
+        }
+        setActive({ index, source: "focus" });
+        updateTooltipForIndex(index);
+      };
+
+      return {
+        ariaLabel,
+        interactionProps: {
+          onFocus: handleFocus,
+          onBlur: clear,
+          onMouseEnter: activatePointer,
+          onMouseLeave: handlePointerLeave,
+          onPointerDown: handlePointerDown,
+          onPointerUp: handlePointerUp,
+          onPointerCancel: handlePointerCancel,
+          onPointerLeave: handlePointerLeave,
+          onTouchStart: handleTouchStart,
+          onTouchEnd: handleTouchEnd,
+        },
+      };
+    });
+  }, [bars, pointerIntentRef, setActive, updateTooltipForIndex]);
+}
+
 export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  type ActiveState = { index: number; source: "pointer" | "focus" } | null;
   const [active, setActive] = useState<ActiveState>(null);
   const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
-  const pointerIntentRef = useRef<null | "mouse" | "pen" | "touch">(null);
+  const pointerIntentRef = useRef<PointerIntent>(null);
 
   // Resize observer for responsive tooltip positioning
   useEffect(() => {
@@ -243,39 +375,53 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     );
   }, [ftpYPx, containerSize.height]);
 
-  const updateTooltipForIndex = (index: number | null) => {
-    if (index === null) return;
-    const bar = bars[index];
-    if (!bar || !containerRef.current) return;
+  const updateTooltipForIndex = useCallback(
+    (index: number | null) => {
+      if (index === null) return;
+      const bar = bars[index];
+      if (!bar || !containerRef.current) return;
 
-    const { width, height } = containerSize;
-    const centerX = ((bar.x + bar.w / 2) / 100) * width;
-    const tooltipEl = tooltipRef.current;
-    const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
-    const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
+      const { width, height } = containerSize;
+      const centerX = ((bar.x + bar.w / 2) / 100) * width;
+      const tooltipEl = tooltipRef.current;
+      const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
+      const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
 
-    const left = clamp(
-      centerX - tooltipW / 2,
-      4,
-      Math.max(4, width - tooltipW - 4)
-    );
-    // Account for internal SVG vertical padding and scale to position tooltip correctly
-    const barTopPct = vPad + (bar.topY ?? bar.y) * scaleY;
-    const barTop = (barTopPct / 100) * height; // px from top
-    const top = clamp(
-      barTop - tooltipH - 8,
-      4,
-      Math.max(4, height - tooltipH - 4)
-    );
-    setTooltipPos({ left, top });
-  };
+      const left = clamp(
+        centerX - tooltipW / 2,
+        4,
+        Math.max(4, width - tooltipW - 4)
+      );
+      // Account for internal SVG vertical padding and scale to position tooltip correctly
+      const barTopPct = vPad + (bar.topY ?? bar.y) * scaleY;
+      const barTop = (barTopPct / 100) * height; // px from top
+      const top = clamp(
+        barTop - tooltipH - 8,
+        4,
+        Math.max(4, height - tooltipH - 4)
+      );
+      setTooltipPos({ left, top });
+    },
+    [bars, containerSize, scaleY, vPad]
+  );
 
   const activeIndex = active?.index ?? null;
 
   useEffect(() => {
     if (activeIndex !== null) updateTooltipForIndex(activeIndex);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIndex, containerSize.width, containerSize.height]);
+  }, [activeIndex, updateTooltipForIndex]);
+
+  const updateTooltipForBar = useCallback(
+    (index: number) => updateTooltipForIndex(index),
+    [updateTooltipForIndex]
+  );
+
+  const barInteractions = useBarInteractions({
+    bars,
+    pointerIntentRef,
+    setActive,
+    updateTooltipForIndex: updateTooltipForBar,
+  });
 
   if (!steps || steps.length === 0 || totalMinutes === 0) {
     return (
@@ -302,68 +448,10 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
           {bars.map((bar, idx) => {
             const fill = colorForStep(bar.s, ftp);
-            const activatePointer = () => {
-              setActive({ index: idx, source: "pointer" });
-              updateTooltipForIndex(idx);
-            };
-            const activateFocus = (event: FocusEvent<SVGElement>) => {
-              if (pointerIntentRef.current) {
-                const target = event.currentTarget as unknown as {
-                  blur?: () => void;
-                };
-                target.blur?.();
-                pointerIntentRef.current = null;
-                return;
-              }
-              setActive({ index: idx, source: "focus" });
-              updateTooltipForIndex(idx);
-            };
-            const clear = () => {
-              pointerIntentRef.current = null;
-              setActive((prev) => (prev?.index === idx ? null : prev));
-            };
-            const schedulePointerReset = () => {
-              if (typeof window !== "undefined") {
-                window.setTimeout(() => {
-                  pointerIntentRef.current = null;
-                }, 0);
-              } else {
-                pointerIntentRef.current = null;
-              }
-            };
-            const handlePointerDown = (event: PointerEvent<SVGElement>) => {
-              const pointerType = event.pointerType || "mouse";
-              if (pointerType === "touch") return;
-              pointerIntentRef.current = pointerType as "mouse" | "pen";
-              activatePointer();
-            };
-            const handlePointerUp = () => {
-              schedulePointerReset();
-            };
-            const handlePointerLeave = () => {
-              clear();
-              schedulePointerReset();
-            };
-            const handlePointerCancel = () => {
-              clear();
-              schedulePointerReset();
-            };
-            const handleTouchStart = () => {
-              pointerIntentRef.current = "touch";
-              activatePointer();
-            };
-            const handleTouchEnd = () => {
-              clear();
-              schedulePointerReset();
-            };
             const isFocusActive =
               active?.index === idx && active.source === "focus";
-            const kind = (bar.s as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(bar.s as any).from}→${(bar.s as any).to} W`
-                : `${(bar.s as any).intensity} W`;
-            const label = `${bar.s.minutes}' • ${wattsText} — ${bar.s.description}`;
+            const interaction = barInteractions[idx]!;
+            const { ariaLabel: label, interactionProps } = interaction;
             if (bar.shape === "rect") {
               return (
                 <g key={idx}>
@@ -379,16 +467,7 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                     role="button"
                     tabIndex={0}
                     aria-label={label}
-                    onFocus={activateFocus}
-                    onBlur={clear}
-                    onMouseEnter={activatePointer}
-                    onMouseLeave={handlePointerLeave}
-                    onPointerDown={handlePointerDown}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerCancel}
-                    onPointerLeave={handlePointerLeave}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
+                    {...interactionProps}
                   />
                 </g>
               );
@@ -415,16 +494,7 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                 role="button"
                 tabIndex={0}
                 aria-label={label}
-                onFocus={activateFocus}
-                onBlur={clear}
-                onMouseEnter={activatePointer}
-                onMouseLeave={handlePointerLeave}
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerCancel}
-                onPointerLeave={handlePointerLeave}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
+                {...interactionProps}
               />
             );
           })}
