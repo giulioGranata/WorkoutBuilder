@@ -1,12 +1,24 @@
 import type { Step } from "@/lib/types";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type {
   Dispatch,
-  FocusEvent,
+  FocusEventHandler,
   MutableRefObject,
-  PointerEvent,
+  PointerEventHandler,
   SetStateAction,
 } from "react";
+import {
+  computeWorkoutGeometry,
+  heightPct,
+  roundedTrapezoidPath,
+} from "./workoutChartGeometry";
+import type { BarGeom } from "./workoutChartGeometry";
 
 interface Props {
   steps: Step[];
@@ -17,18 +29,14 @@ interface Props {
 const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, v));
 
-// Visual/geometry constants
-const MAX_PERC = 1.6; // 160% FTP = full height
-const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
 const CORNER_RADIUS = 2; // rounded corners radius for bars
 const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
 
 const isRampStep = (step: Step): step is Step & { from: number; to: number } =>
   "from" in step && "to" in step;
 
-const isSteadyStep = (
-  step: Step
-): step is Step & { intensity: number } => "intensity" in step;
+const isSteadyStep = (step: Step): step is Step & { intensity: number } =>
+  "intensity" in step;
 
 const formatWattsText = (step: Step): string => {
   if (isRampStep(step)) {
@@ -42,8 +50,118 @@ const formatWattsText = (step: Step): string => {
 
 const formatStepLabel = (step: Step): string => {
   const wattsText = formatWattsText(step);
-  return `${step.minutes}' • ${wattsText} — ${step.description}`;
+  const minutes = step.minutes ?? 0;
+  const wattsPart = wattsText ? ` • ${wattsText}` : "";
+  const descriptionPart = step.description ? ` — ${step.description}` : "";
+  return `${minutes}'${wattsPart}${descriptionPart}`;
 };
+
+type ActiveSource = "pointer" | "focus";
+type ActiveState = { index: number; source: ActiveSource } | null;
+
+type PointerIntent =
+  | { kind: "hover"; pointerType: string }
+  | { kind: "pointer"; pointerType: string; pointerId?: number }
+  | null;
+
+type InteractionHandlers = {
+  onPointerEnter: PointerEventHandler<SVGGraphicsElement>;
+  onPointerLeave: PointerEventHandler<SVGGraphicsElement>;
+  onPointerDown: PointerEventHandler<SVGGraphicsElement>;
+  onPointerUp: PointerEventHandler<SVGGraphicsElement>;
+  onPointerCancel: PointerEventHandler<SVGGraphicsElement>;
+  onFocus: FocusEventHandler<SVGGraphicsElement>;
+  onBlur: FocusEventHandler<SVGGraphicsElement>;
+};
+
+type BarInteraction = {
+  ariaLabel: string;
+  interactionProps: InteractionHandlers;
+};
+
+interface UseBarInteractionsArgs {
+  bars: BarGeom[];
+  pointerIntentRef: MutableRefObject<PointerIntent>;
+  setActive: Dispatch<SetStateAction<ActiveState>>;
+  updateTooltipForIndex: (index: number | null) => void;
+}
+
+function useBarInteractions({
+  bars,
+  pointerIntentRef,
+  setActive,
+  updateTooltipForIndex,
+}: UseBarInteractionsArgs): BarInteraction[] {
+  return useMemo(() => {
+    return bars.map((bar, index) => {
+      const ariaLabel = formatStepLabel(bar.s);
+
+      const activateFromPointer = () => {
+        updateTooltipForIndex(index);
+        setActive({ index, source: "pointer" });
+      };
+
+      const activateFromFocus = () => {
+        updateTooltipForIndex(index);
+        setActive({ index, source: "focus" });
+      };
+
+      const clearPointerActive = () => {
+        pointerIntentRef.current = null;
+        setActive((prev) =>
+          prev && prev.source === "pointer" && prev.index === index
+            ? null
+            : prev
+        );
+      };
+
+      const clearFocusActive = () => {
+        setActive((prev) =>
+          prev && prev.source === "focus" && prev.index === index ? null : prev
+        );
+      };
+
+      const interactionProps: InteractionHandlers = {
+        onPointerEnter: (event) => {
+          pointerIntentRef.current = {
+            kind: "hover",
+            pointerType: event.pointerType,
+          };
+          activateFromPointer();
+        },
+        onPointerLeave: () => {
+          clearPointerActive();
+          updateTooltipForIndex(null);
+        },
+        onPointerDown: (event) => {
+          pointerIntentRef.current = {
+            kind: "pointer",
+            pointerType: event.pointerType,
+            pointerId: event.pointerId,
+          };
+          activateFromPointer();
+        },
+        onPointerUp: () => {
+          pointerIntentRef.current = null;
+        },
+        onPointerCancel: () => {
+          clearPointerActive();
+          updateTooltipForIndex(null);
+        },
+        onFocus: () => {
+          pointerIntentRef.current = null;
+          activateFromFocus();
+        },
+        onBlur: () => {
+          clearFocusActive();
+          updateTooltipForIndex(null);
+        },
+      };
+
+      return { ariaLabel, interactionProps };
+    });
+  }, [bars, pointerIntentRef, setActive, updateTooltipForIndex]);
+}
 
 export function colorForStep(step: Step, ftp: number) {
   if (step.phase === "warmup") return "var(--phase-warmup)";
@@ -62,223 +180,6 @@ export function colorForStep(step: Step, ftp: number) {
   if (pct <= 110) return "var(--z4)";
   if (pct <= 120) return "var(--z5)";
   return "var(--z6)";
-}
-
-type BarShape = "rect" | "trapezoid";
-type BarGeom = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  s: Step;
-  shape: BarShape;
-  topY: number;
-  yStart: number;
-  yEnd: number;
-};
-
-const heightPct = (watts: number, ftp: number): number => {
-  if (ftp <= 0) return 0;
-  const ratio = clamp(watts / ftp, 0, MAX_PERC) / MAX_PERC;
-  return ratio * 100;
-};
-
-// Build a rounded right-angled trapezoid path.
-// Corners order (clockwise): BL -> BR -> TR -> TL.
-function roundedTrapezoidPath(
-  x0: number,
-  x1: number,
-  yBase: number,
-  yStart: number, // top-left Y
-  yEnd: number, // top-right Y
-  rBase: number = 2
-): string {
-  const w = Math.max(0, x1 - x0);
-  if (w === 0) return `M ${x0} ${yBase} Z`;
-
-  // Top edge vector and length
-  const dx = x1 - x0;
-  const dy = yEnd - yStart;
-  const L = Math.hypot(dx, dy);
-
-  // Limit radius so it fits all sides
-  const hl = Math.max(0, yBase - yStart);
-  const hr = Math.max(0, yBase - yEnd);
-  const r = Math.max(
-    0,
-    Math.min(rBase, w / 2, hl / 2, hr / 2, L > 0 ? L / 2 : rBase)
-  );
-  if (r === 0) {
-    // Sharp path fallback
-    return `M ${x0} ${yBase} L ${x1} ${yBase} L ${x1} ${yEnd} L ${x0} ${yStart} Z`;
-  }
-
-  if (L === 0) {
-    // Degenerate to a rounded rectangle (top is flat)
-    const yTop = yStart;
-    return [
-      `M ${x0 + r} ${yBase}`,
-      `L ${x1 - r} ${yBase}`,
-      `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
-      `L ${x1} ${yTop + r}`,
-      `Q ${x1} ${yTop} ${x1 - r} ${yTop}`,
-      `L ${x0 + r} ${yTop}`,
-      `Q ${x0} ${yTop} ${x0} ${yTop + r}`,
-      `L ${x0} ${yBase - r}`,
-      `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
-      "Z",
-    ].join(" ");
-  }
-
-  const t = r / L; // param along the top edge for rounding
-  const pTLx = x0 + dx * t;
-  const pTLy = yStart + dy * t;
-  const pTRx = x0 + dx * (1 - t);
-  const pTRy = yStart + dy * (1 - t);
-
-  // Build path clockwise with 4 rounded corners
-  return [
-    // bottom edge to just before BR corner
-    `M ${x0 + r} ${yBase}`,
-    `L ${x1 - r} ${yBase}`,
-    // round BR
-    `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
-    // right edge up to just before TR corner
-    `L ${x1} ${yEnd + r}`,
-    // round TR to top edge point
-    `Q ${x1} ${yEnd} ${pTRx} ${pTRy}`,
-    // along top edge to just after TL corner
-    `L ${pTLx} ${pTLy}`,
-    // round TL
-    `Q ${x0} ${yStart} ${x0} ${yStart + r}`,
-    // left edge down to just before BL corner
-    `L ${x0} ${yBase - r}`,
-    // round BL back to start
-    `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
-    "Z",
-  ].join(" ");
-}
-
-type PointerIntent = null | "mouse" | "pen" | "touch";
-type ActiveState = { index: number; source: "pointer" | "focus" } | null;
-
-type BarInteractionHandlers = {
-  onFocus: (event: FocusEvent<SVGElement>) => void;
-  onBlur: () => void;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
-  onPointerDown: (event: PointerEvent<SVGElement>) => void;
-  onPointerUp: () => void;
-  onPointerCancel: () => void;
-  onPointerLeave: () => void;
-  onTouchStart: () => void;
-  onTouchEnd: () => void;
-};
-
-type BarInteraction = {
-  ariaLabel: string;
-  interactionProps: BarInteractionHandlers;
-};
-
-type UseBarInteractionsArgs = {
-  bars: BarGeom[];
-  pointerIntentRef: MutableRefObject<PointerIntent>;
-  setActive: Dispatch<SetStateAction<ActiveState>>;
-  updateTooltipForIndex: (index: number) => void;
-};
-
-function useBarInteractions({
-  bars,
-  pointerIntentRef,
-  setActive,
-  updateTooltipForIndex,
-}: UseBarInteractionsArgs) {
-  return useMemo<BarInteraction[]>(() => {
-    return bars.map((bar, index) => {
-      const step = bar.s;
-      const ariaLabel = formatStepLabel(step);
-
-      const activatePointer = () => {
-        setActive({ index, source: "pointer" });
-        updateTooltipForIndex(index);
-      };
-
-      const clear = () => {
-        pointerIntentRef.current = null;
-        setActive((prev) => (prev?.index === index ? null : prev));
-      };
-
-      const schedulePointerReset = () => {
-        if (typeof window !== "undefined") {
-          window.setTimeout(() => {
-            pointerIntentRef.current = null;
-          }, 0);
-        } else {
-          pointerIntentRef.current = null;
-        }
-      };
-
-      const handlePointerDown = (event: PointerEvent<SVGElement>) => {
-        const pointerType = event.pointerType || "mouse";
-        if (pointerType === "touch") return;
-        pointerIntentRef.current = pointerType as "mouse" | "pen";
-        activatePointer();
-      };
-
-      const handlePointerUp = () => {
-        schedulePointerReset();
-      };
-
-      const handlePointerLeave = () => {
-        clear();
-        schedulePointerReset();
-      };
-
-      const handlePointerCancel = () => {
-        clear();
-        schedulePointerReset();
-      };
-
-      const handleTouchStart = () => {
-        pointerIntentRef.current = "touch";
-        activatePointer();
-      };
-
-      const handleTouchEnd = () => {
-        clear();
-        schedulePointerReset();
-      };
-
-      const handleFocus = (event: FocusEvent<SVGElement>) => {
-        if (pointerIntentRef.current) {
-          const target = event.currentTarget as unknown as {
-            blur?: () => void;
-          };
-          target.blur?.();
-          pointerIntentRef.current = null;
-          return;
-        }
-        setActive({ index, source: "focus" });
-        updateTooltipForIndex(index);
-      };
-
-      return {
-        ariaLabel,
-        interactionProps: {
-          onFocus: handleFocus,
-          onBlur: clear,
-          onMouseEnter: activatePointer,
-          onMouseLeave: handlePointerLeave,
-          onPointerDown: handlePointerDown,
-          onPointerUp: handlePointerUp,
-          onPointerCancel: handlePointerCancel,
-          onPointerLeave: handlePointerLeave,
-          onTouchStart: handleTouchStart,
-          onTouchEnd: handleTouchEnd,
-        },
-      };
-    });
-  }, [bars, pointerIntentRef, setActive, updateTooltipForIndex]);
 }
 
 export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
@@ -317,57 +218,10 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const totalMinutes = useMemo(
-    () => steps.reduce((acc, s) => acc + (s.minutes || 0), 0),
-    [steps]
+  const { totalMinutes, bars } = useMemo(
+    () => computeWorkoutGeometry(steps, ftp),
+    [steps, ftp]
   );
-
-  const bars = useMemo<BarGeom[]>(() => {
-    // Precompute available width after gaps
-    const count = steps.length;
-    const gapsTotal = Math.max(0, count - 1) * GAP_PCT;
-    const available = Math.max(0, 100 - gapsTotal);
-
-    let xCursor = 0; // percentage of chart width
-    const out: BarGeom[] = [];
-
-    for (let i = 0; i < steps.length; i++) {
-      const s = steps[i];
-      const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const kind = (s as any).kind ?? "steady";
-
-      let h = 0;
-      let y = 0;
-      let yStart = 0;
-      let yEnd = 0;
-      let shape: BarShape = "rect";
-
-      if (kind === "ramp") {
-        const fromH = heightPct((s as any).from, ftp);
-        const toH = heightPct((s as any).to, ftp);
-        h = Math.max(fromH, toH);
-        y = 100 - h;
-        yStart = 100 - fromH;
-        yEnd = 100 - toH;
-        shape = "trapezoid";
-      } else {
-        const intH = heightPct((s as any).intensity, ftp);
-        h = intH;
-        y = 100 - h;
-        yStart = 100 - intH;
-        yEnd = 100 - intH;
-        shape = "rect";
-      }
-
-      const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
-      out.push({ x: xCursor, y, w, h, s, shape, topY, yStart, yEnd });
-
-      // advance cursor; add gap after every bar except the last
-      xCursor += w + (i < steps.length - 1 ? GAP_PCT : 0);
-    }
-
-    return out;
-  }, [steps, ftp, totalMinutes]);
 
   // Visual vertical padding inside the SVG drawing area (in % of viewBox)
   const vPad = V_PAD; // equal top/bottom space to keep chart visually centered
@@ -428,16 +282,11 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     if (activeIndex !== null) updateTooltipForIndex(activeIndex);
   }, [activeIndex, updateTooltipForIndex]);
 
-  const updateTooltipForBar = useCallback(
-    (index: number) => updateTooltipForIndex(index),
-    [updateTooltipForIndex]
-  );
-
   const barInteractions = useBarInteractions({
     bars,
     pointerIntentRef,
     setActive,
-    updateTooltipForIndex: updateTooltipForBar,
+    updateTooltipForIndex,
   });
 
   if (!steps || steps.length === 0 || totalMinutes === 0) {
@@ -560,12 +409,19 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
             const step = steps[activeIndex];
             const label = formatStepLabel(step);
             const wattsText = formatWattsText(step);
+            const minutes = step.minutes ?? 0;
+            const hasWatts = wattsText.length > 0;
+            const description = step.description ?? "";
             return (
               <div data-step-label={label}>
-                <span className="font-semibold">{`${step.minutes}' • ${wattsText}`}</span>
-                <span className="block font-normal text-[--text-secondary]">
-                  {` — ${step.description}`}
+                <span className="font-semibold">
+                  {hasWatts ? `${minutes}' • ${wattsText}` : `${minutes}'`}
                 </span>
+                {description ? (
+                  <span className="block font-normal text-[--text-secondary]">
+                    {` — ${description}`}
+                  </span>
+                ) : null}
               </div>
             );
           })()}
