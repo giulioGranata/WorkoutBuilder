@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyBias } from "@/components/WorkoutOutput";
+import { applyBias } from "@/lib/workoutSteps";
 import { toZwoXml } from "@/lib/zwo";
 import type { Workout, Step } from "@/lib/types";
 

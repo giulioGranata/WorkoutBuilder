@@ -1,4 +1,4 @@
-import { PATTERNS } from "./patterns";
+import { FALLBACK_PATTERNS, type PatternSet } from "./patterns";
 import { makeSignature } from "./signature";
 import { DurationRangeValue, Step, Workout, WorkoutFormData } from "./types";
 
@@ -38,7 +38,8 @@ export function rangeToBounds(r: DurationRangeValue): {
 
 export function generateWorkout(
   { ftp, type, durationRange }: WorkoutFormData,
-  prevSignature?: string
+  prevSignature?: string,
+  patternSet: PatternSet = FALLBACK_PATTERNS,
 ): Workout | null {
   const { min, max } = rangeToBounds(durationRange);
 
@@ -50,7 +51,7 @@ export function generateWorkout(
   if (coreBudgetMax < 1) return null;
 
   // Choose a pattern variant; if exactly one variant can fit, pick it deterministically
-  const variants = PATTERNS[type];
+  const variants = patternSet[type];
   const withFit = variants
     .map((variant) => {
       const len = variant.reduce((sum, b) => sum + Math.round(b.minutes), 0);

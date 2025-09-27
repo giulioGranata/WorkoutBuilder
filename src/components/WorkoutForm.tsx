@@ -23,7 +23,8 @@ import {
   WORKOUT_TYPES,
   WorkoutFormData,
 } from "@/lib/types";
-import { getParamInt, setParam } from "@/lib/url";
+import { getCurrentUrl, getParamInt, setParam } from "@/lib/url";
+import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, Play, Settings, Target, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -57,6 +58,7 @@ export function WorkoutForm({
 }: WorkoutFormProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastSignature, setLastSignature] = useState<string | undefined>();
+  const { patterns } = usePatternLibrary();
 
   const form = useForm<WorkoutFormData>({
     resolver: zodResolver(formSchema),
@@ -69,9 +71,8 @@ export function WorkoutForm({
 
   // Load persisted/URL params on mount and sync FTP changes across tabs
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const url = new URL(window.location.href);
+    const url = getCurrentUrl();
+    if (!url) return;
 
     const urlFtp = getParamInt(url, "ftp");
     const urlDurRange = url.searchParams.get(
@@ -148,9 +149,9 @@ export function WorkoutForm({
   const onSubmit = async (data: WorkoutFormData) => {
     setIsGenerating(true);
     try {
-      const workout = generateWorkout(data, lastSignature);
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
+      const workout = generateWorkout(data, lastSignature, patterns);
+      const url = getCurrentUrl();
+      if (url) {
         setParam(url, "ftp", data.ftp);
         setParam(url, "durRange", data.durationRange);
         setParam(url, "type", data.type);
@@ -373,7 +374,7 @@ export function WorkoutForm({
               !form.formState.isValid ||
               (hasWorkout && !form.formState.isDirty)
             }
-            className="w-full !mt-14 inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0 bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+            className="w-full !mt-14 inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0 bg-[--accent] text-[--accent-foreground] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />

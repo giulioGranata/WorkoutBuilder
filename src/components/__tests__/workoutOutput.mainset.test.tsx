@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { WorkoutOutput } from "../WorkoutOutput";
 import type { Workout } from "@/lib/types";
+import { cleanup, fireEvent, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderWithPatternLibrary } from "../../../tests/testUtils";
+import { WorkoutOutput } from "../WorkoutOutput";
 
 declare const global: any;
 
@@ -14,8 +15,18 @@ const baseWorkout: Workout = {
   title: "Predominant Zone",
   ftp: 200,
   steps: [
-    { minutes: 20, intensity: Math.round(200 * 0.7), phase: "work", description: "z2" },
-    { minutes: 10, intensity: Math.round(200 * 0.85), phase: "work", description: "z3" },
+    {
+      minutes: 20,
+      intensity: Math.round(200 * 0.7),
+      phase: "work",
+      description: "z2",
+    },
+    {
+      minutes: 10,
+      intensity: Math.round(200 * 0.85),
+      phase: "work",
+      description: "z3",
+    },
   ],
   totalMinutes: 30,
   workMinutes: 30,
@@ -27,7 +38,7 @@ const baseWorkout: Workout = {
 describe("WorkoutOutput main set zone", () => {
   afterEach(() => cleanup());
   it("shows predominant zone without bias", () => {
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     expect(screen.getByText("Endurance 60–75%"));
     const dot = screen
       .getByText("Main Set")
@@ -37,7 +48,7 @@ describe("WorkoutOutput main set zone", () => {
   });
 
   it("updates predominant zone with bias", () => {
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     const range = screen.getAllByTestId("bias-range")[0];
     fireEvent.change(range, { target: { value: 115 } });
     expect(screen.getByText("Tempo 76–90%"));
@@ -49,7 +60,10 @@ describe("WorkoutOutput main set zone", () => {
   });
 
   it("shows integer TSS and exports JSON with tss field", async () => {
-    const createUrl = vi.fn((b: any) => "blob:123");
+    const createUrl = vi.fn((blob: any) => {
+      void blob; // let TypeScript know the argument is intentionally unused
+      return "blob:123";
+    });
     const revokeUrl = vi.fn();
     global.URL.createObjectURL = createUrl;
     global.URL.revokeObjectURL = revokeUrl;
@@ -66,7 +80,7 @@ describe("WorkoutOutput main set zone", () => {
     const origClick = (HTMLAnchorElement.prototype as any).click;
     (HTMLAnchorElement.prototype as any).click = vi.fn();
 
-    render(<WorkoutOutput workout={baseWorkout} />);
+    renderWithPatternLibrary(<WorkoutOutput workout={baseWorkout} />);
     const tssVal = screen.getByTestId("text-tss").textContent || "";
     expect(tssVal).toMatch(/^\d+$/);
 
@@ -78,4 +92,3 @@ describe("WorkoutOutput main set zone", () => {
     (HTMLAnchorElement.prototype as any).click = origClick;
   });
 });
-

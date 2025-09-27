@@ -1,136 +1,214 @@
 {
-  "meta": { "name": "Workout Generator 2.0 – Design Spec", "version": "1.1.0" },
-
-  "tokens": {
-    "color": {
-      "bg": "#0a0a0a",
-      "card": "#111317",
-      "muted": "#1c1f26",
-      "border": "#2a2f3a",
-      "text": {
-        "primary": "#e5e7eb",
-        "secondary": "#a7afb9",
-        "tertiary": "#6b7280"
-      },
-      "accent": {
-        "base": "#0d9488",
-        "hover": "#2dd4bf",
-        "pressed": "#14b8a6",
-        "soft": "#5fe9d6",
-        "ring": "rgba(45,212,191,0.45)",
-        "light": "#5fe9d6",
-        "dark": "#1f9e8f"
-      },
-      "phase": {
-        "warmup": "#3b82f6",
-        "work": "#10b981",
-        "recovery": "#f59e0b",
-        "cooldown": "#a78bfa"
+  "meta": {
+    "name": "Workout Builder 3.0 – Theme Spec",
+    "version": "2.0.0",
+    "updated": "2024-11-25"
+  },
+  "themes": {
+    "light": {
+      "color": {
+        "bg": "#F6F7FB",
+        "surface": "#FFFFFF",
+        "surfaceMuted": "#EEF1F8",
+        "surfaceRaised": "#FFFFFF",
+        "border": "#D5DAE1",
+        "borderStrong": "#B8C0CC",
+        "text": {
+          "primary": "#0F172A",
+          "secondary": "#334155",
+          "tertiary": "#64748B"
+        },
+        "accent": {
+          "base": "#2563EB",
+          "hover": "#1D4ED8",
+          "pressed": "#1E40AF",
+          "soft": "#DBEAFE",
+          "ring": "rgba(37, 99, 235, 0.35)"
+        },
+        "phase": {
+          "warmup": "#9CA3AF",
+          "work": "#22C55E",
+          "recovery": "#F97316",
+          "cooldown": "#9CA3AF"
+        },
+        "zones": {
+          "z1": "#9CA3AF",
+          "z2": "#3B82F6",
+          "z3": "#28A745",
+          "z4": "#FACC15",
+          "z5": "#F97316",
+          "z6": "#F43F5E"
+        }
       }
     },
-    "radius": { "md": "0.75rem", "xl": "1.25rem" },
-    "shadow": { "card": "0 8px 30px rgba(0,0,0,0.25)" },
-    "font": {
-      "family": "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto",
-      "size": { "sm": "0.875rem", "base": "1rem", "xl": "1.25rem" }
+    "dark": {
+      "color": {
+        "bg": "#05070F",
+        "surface": "#0B1020",
+        "surfaceMuted": "#151B2E",
+        "surfaceRaised": "#11182B",
+        "border": "#202B3D",
+        "borderStrong": "#2E3B54",
+        "text": {
+          "primary": "#F8FAFC",
+          "secondary": "#A9B4D0",
+          "tertiary": "#7C8AA5"
+        },
+        "accent": {
+          "base": "#60A5FA",
+          "hover": "#3B82F6",
+          "pressed": "#2563EB",
+          "soft": "#1E3A8A",
+          "ring": "rgba(96, 165, 250, 0.45)"
+        },
+        "phase": {
+          "warmup": "#9CA3AF",
+          "work": "#10B981",
+          "recovery": "#FB923C",
+          "cooldown": "#9CA3AF"
+        },
+        "zones": {
+          "z1": "#9CA3AF",
+          "z2": "#3B82F6",
+          "z3": "#28A745",
+          "z4": "#FACC15",
+          "z5": "#FB923C",
+          "z6": "#F97316"
+        }
+      }
     }
   },
-
+  "tokens": {
+    "space": {
+      "2": "0.5rem",
+      "3": "0.75rem",
+      "4": "1rem",
+      "6": "1.5rem",
+      "8": "2rem"
+    },
+    "radius": {
+      "sm": "0.5rem",
+      "md": "0.75rem",
+      "lg": "1.25rem"
+    },
+    "shadow": {
+      "card": {
+        "light": "0 18px 40px rgba(15, 23, 42, 0.08)",
+        "dark": "0 20px 48px rgba(8, 15, 31, 0.45)"
+      }
+    }
+  },
+  "typography": {
+    "family": "Inter, 'Segoe UI', system-ui, -apple-system, sans-serif",
+    "scale": {
+      "display": {
+        "size": "2.25rem",
+        "lineHeight": "1.2",
+        "weight": 600
+      },
+      "h1": {
+        "size": "1.75rem",
+        "lineHeight": "1.25",
+        "weight": 600
+      },
+      "h2": {
+        "size": "1.5rem",
+        "lineHeight": "1.3",
+        "weight": 600
+      },
+      "h3": {
+        "size": "1.25rem",
+        "lineHeight": "1.35",
+        "weight": 500
+      },
+      "body": {
+        "size": "1rem",
+        "lineHeight": "1.5",
+        "weight": 400
+      },
+      "bodySm": {
+        "size": "0.875rem",
+        "lineHeight": "1.45",
+        "weight": 400
+      },
+      "mono": {
+        "size": "0.875rem",
+        "lineHeight": "1.45",
+        "weight": 500
+      }
+    }
+  },
+  "themeSwitch": {
+    "attribute": "data-theme",
+    "fallback": "prefers-color-scheme",
+    "persist": "localStorage",
+    "script": "const user = localStorage.getItem('theme'); const sys = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; document.documentElement.dataset.theme = user ?? sys;"
+  },
   "components": {
     "Button": {
-      "base": "inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring]",
+      "base": "inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50",
       "variants": {
-        "primary": "bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]",
-        "muted": "bg-[--muted] text-[--text-secondary] hover:bg-[--border]"
+        "default": "bg-[--color-accent] text-[--color-surface] hover:bg-[--color-accent-hover] active:bg-[--color-accent-pressed] focus-visible:ring-[--color-accent]",
+        "secondary": "bg-[--color-surface-muted] text-[--color-text-primary] hover:bg-[--color-surface] border border-[--color-border]",
+        "outline": "border border-[--color-border] text-[--color-text-primary] hover:bg-[--color-surface-muted]",
+        "ghost": "text-[--color-text-primary] hover:bg-[color-mix(in srgb, var(--color-text-primary) 10%, transparent)]",
+        "link": "text-[--color-accent] underline-offset-4 hover:underline"
       },
-      "sizes": { "sm": "px-3 py-1.5 text-sm", "md": "px-4 py-2" }
-    },
-    "Input": {
-      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] placeholder-[--text-tertiary] px-3 py-2 border border-[--border] focus:border-[--accent]",
-      "number": "appearance-none [field-sizing:content] tabular-nums"
-    },
-    "Select": {
-      "base": "w-full rounded-xl bg-[--muted] text-[--text-primary] px-3 py-2 border border-[--border] focus:border-[--accent]"
+      "sizes": {
+        "sm": "h-9 px-3 rounded-[--radius-sm] text-sm",
+        "md": "h-10 px-4 rounded-[--radius-md] text-sm",
+        "lg": "h-11 px-6 rounded-[--radius-md] text-base",
+        "icon": "h-10 w-10 rounded-full"
+      }
     },
     "Card": {
-      "base": "rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]"
-    },
-    "Badge": {
-      "base": "text-white text-xs font-bold rounded px-2 py-1 min-w-[3rem] text-center tabular-nums",
-      "byPhase": {
-        "warmup": "bg-[--phase-warmup]",
-        "work": "bg-[--phase-work]",
-        "recovery": "bg-[--phase-recovery]",
-        "cooldown": "bg-[--phase-cooldown]"
+      "surface": "bg-[--color-surface] border border-[--color-border] rounded-[--radius-lg] shadow-[--shadow-card]",
+      "padding": {
+        "default": "p-6",
+        "compact": "p-4"
       }
-    }
-  },
-
-  "pages": {
-    "Home": {
-      "container": "mx-auto max-w-3xl px-4 py-6 md:py-10",
-      "header": {
-        "title": "text-2xl md:text-3xl font-semibold text-[--text-primary]"
-      },
-      "grid": {
-        "layout": "grid gap-4 md:gap-6",
-        "cols": "grid-cols-1 md:grid-cols-2"
-      }
-    }
-  },
-
-  "blueprints": {
-    "WorkoutForm": {
-      "section": "Card.base",
-      "fields": [
-        {
-          "type": "number",
-          "label": "FTP (W)",
-          "input": "Input.base Input.number"
-        },
-        {
-          "type": "number",
-          "label": "Duration (min)",
-          "input": "Input.base Input.number"
-        },
-        { "type": "select", "label": "Workout Type", "input": "Select.base" }
-      ],
-      "actions": [
-        {
-          "kind": "primary",
-          "label": "Generate workout",
-          "class": "Button.base Button.variants.primary Button.sizes.md"
-        }
-      ]
     },
-
     "WorkoutOutput": {
-      "section": "Card.base",
+      "layout": {
+        "gap": "var(--space-6)",
+        "padding": "var(--space-6)"
+      },
       "header": {
-        "title": "text-xl font-semibold text-[--text-primary]",
-        "meta": "text-sm text-[--text-secondary]"
+        "title": "text-[length:--font-h1] font-semibold text-[--color-text-primary]",
+        "meta": "flex flex-wrap gap-2 text-[--color-text-tertiary] text-[length:--font-body-sm]"
       },
-
-      "biasControls": {
-        "wrap": "flex items-center gap-2",
-        "minus": "Button.base Button.variants.muted Button.sizes.sm",
-        "range": "w-44 accent-[--accent] active:accent-[--accent-pressed]",
-        "plus": "Button.base Button.variants.muted Button.sizes.sm",
-        "value": "text-sm text-[--text-secondary] tabular-nums"
+      "metrics": {
+        "grid": "grid gap-4 md:grid-cols-3",
+        "item": "bg-[--color-surface-muted] rounded-[--radius-sm] p-4",
+        "label": "text-[length:--font-body-sm] text-[--color-text-secondary]",
+        "value": "text-[length:--font-h3] font-medium text-[--color-text-primary] tabular-nums"
       },
-
-      "stepCard": {
-        "wrap": "bg-[--muted]/60 rounded-xl p-4 border-l-4",
-        "leftBorderByPhase": {
-          "warmup": "border-l-[--phase-warmup]",
-          "work": "border-l-[--phase-work]",
-          "recovery": "border-l-[--phase-recovery]",
-          "cooldown": "border-l-[--phase-cooldown]"
-        },
-        "leftBadge": "Badge.base",
-        "title": "text-[--text-primary] font-medium tabular-nums",
-        "desc": "text-[--text-secondary] text-sm"
+      "bias": {
+        "wrapper": "flex flex-col gap-3 md:flex-row md:items-center",
+        "buttons": "Button.variants.ghost",
+        "slider": "w-full accent-[--color-accent]"
+      },
+      "actions": {
+        "wrapper": "flex flex-col gap-3 sm:flex-row sm:justify-end"
       }
+    },
+    "WorkoutSegments": {
+      "card": "Card.surface Card.padding.compact flex flex-col gap-4",
+      "title": "text-[length:--font-h2] font-semibold text-[--color-text-primary]",
+      "list": {
+        "item": "flex items-center justify-between py-2 border-b border-[--color-border] last:border-none",
+        "bullet": "h-2.5 w-2.5 rounded-full shadow-[0_0_0_2px_rgba(15,23,42,0.08)] dark:shadow-[0_0_0_2px_rgba(255,255,255,0.2)]",
+        "label": "text-[length:--font-body] text-[--color-text-primary]",
+        "note": "text-[length:--font-body-sm] text-[--color-text-tertiary]",
+        "minutes": "text-[length:--font-mono] text-[--color-text-secondary] tabular-nums"
+      }
+    },
+    "WorkoutChart": {
+      "shell": "Card.surface Card.padding.default flex flex-col gap-4",
+      "header": "flex flex-wrap items-center justify-between gap-3",
+      "legend": "flex items-center gap-3 text-[length:--font-body-sm] text-[--color-text-tertiary]",
+      "canvas": "relative overflow-hidden rounded-[--radius-md] bg-gradient-to-b from-[--color-surface] to-[--color-surface-muted]",
+      "tooltip": "bg-[--color-surface-raised] border border-[--color-border] rounded-[--radius-sm] p-3 shadow-[--shadow-card] text-[length:--font-mono]"
     }
   }
 }

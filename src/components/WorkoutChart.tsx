@@ -1,5 +1,24 @@
 import type { Step } from "@/lib/types";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type {
+  Dispatch,
+  FocusEventHandler,
+  MutableRefObject,
+  PointerEventHandler,
+  SetStateAction,
+} from "react";
+import {
+  computeWorkoutGeometry,
+  heightPct,
+  roundedTrapezoidPath,
+} from "./workoutChartGeometry";
+import type { BarGeom } from "./workoutChartGeometry";
 
 interface Props {
   steps: Step[];
@@ -10,11 +29,139 @@ interface Props {
 const clamp = (v: number, min: number, max: number) =>
   Math.max(min, Math.min(max, v));
 
-// Visual/geometry constants
-const MAX_PERC = 1.6; // 160% FTP = full height
-const GAP_PCT = 0.6; // horizontal gap between bars (percentage of total width)
 const CORNER_RADIUS = 2; // rounded corners radius for bars
 const V_PAD = 6; // vertical padding inside SVG (percentage of viewBox height)
+
+const isRampStep = (step: Step): step is Step & { from: number; to: number } =>
+  "from" in step && "to" in step;
+
+const isSteadyStep = (step: Step): step is Step & { intensity: number } =>
+  "intensity" in step;
+
+const formatWattsText = (step: Step): string => {
+  if (isRampStep(step)) {
+    return `ramp ${step.from}→${step.to} W`;
+  }
+  if (isSteadyStep(step)) {
+    return `${step.intensity} W`;
+  }
+  return "";
+};
+
+const formatStepLabel = (step: Step): string => {
+  const wattsText = formatWattsText(step);
+  const minutes = step.minutes ?? 0;
+  const wattsPart = wattsText ? ` • ${wattsText}` : "";
+  const descriptionPart = step.description ? ` — ${step.description}` : "";
+  return `${minutes}'${wattsPart}${descriptionPart}`;
+};
+
+type ActiveSource = "pointer" | "focus";
+type ActiveState = { index: number; source: ActiveSource } | null;
+
+type PointerIntent =
+  | { kind: "hover"; pointerType: string }
+  | { kind: "pointer"; pointerType: string; pointerId?: number }
+  | null;
+
+type InteractionHandlers = {
+  onPointerEnter: PointerEventHandler<SVGGraphicsElement>;
+  onPointerLeave: PointerEventHandler<SVGGraphicsElement>;
+  onPointerDown: PointerEventHandler<SVGGraphicsElement>;
+  onPointerUp: PointerEventHandler<SVGGraphicsElement>;
+  onPointerCancel: PointerEventHandler<SVGGraphicsElement>;
+  onFocus: FocusEventHandler<SVGGraphicsElement>;
+  onBlur: FocusEventHandler<SVGGraphicsElement>;
+};
+
+type BarInteraction = {
+  ariaLabel: string;
+  interactionProps: InteractionHandlers;
+};
+
+interface UseBarInteractionsArgs {
+  bars: BarGeom[];
+  pointerIntentRef: MutableRefObject<PointerIntent>;
+  setActive: Dispatch<SetStateAction<ActiveState>>;
+  updateTooltipForIndex: (index: number | null) => void;
+}
+
+function useBarInteractions({
+  bars,
+  pointerIntentRef,
+  setActive,
+  updateTooltipForIndex,
+}: UseBarInteractionsArgs): BarInteraction[] {
+  return useMemo(() => {
+    return bars.map((bar, index) => {
+      const ariaLabel = formatStepLabel(bar.s);
+
+      const activateFromPointer = () => {
+        updateTooltipForIndex(index);
+        setActive({ index, source: "pointer" });
+      };
+
+      const activateFromFocus = () => {
+        updateTooltipForIndex(index);
+        setActive({ index, source: "focus" });
+      };
+
+      const clearPointerActive = () => {
+        pointerIntentRef.current = null;
+        setActive((prev) =>
+          prev && prev.source === "pointer" && prev.index === index
+            ? null
+            : prev
+        );
+      };
+
+      const clearFocusActive = () => {
+        setActive((prev) =>
+          prev && prev.source === "focus" && prev.index === index ? null : prev
+        );
+      };
+
+      const interactionProps: InteractionHandlers = {
+        onPointerEnter: (event) => {
+          pointerIntentRef.current = {
+            kind: "hover",
+            pointerType: event.pointerType,
+          };
+          activateFromPointer();
+        },
+        onPointerLeave: () => {
+          clearPointerActive();
+          updateTooltipForIndex(null);
+        },
+        onPointerDown: (event) => {
+          pointerIntentRef.current = {
+            kind: "pointer",
+            pointerType: event.pointerType,
+            pointerId: event.pointerId,
+          };
+          activateFromPointer();
+        },
+        onPointerUp: () => {
+          pointerIntentRef.current = null;
+        },
+        onPointerCancel: () => {
+          clearPointerActive();
+          updateTooltipForIndex(null);
+        },
+        onFocus: () => {
+          pointerIntentRef.current = null;
+          activateFromFocus();
+        },
+        onBlur: () => {
+          clearFocusActive();
+          updateTooltipForIndex(null);
+        },
+      };
+
+      return { ariaLabel, interactionProps };
+    });
+  }, [bars, pointerIntentRef, setActive, updateTooltipForIndex]);
+}
 
 export function colorForStep(step: Step, ftp: number) {
   if (step.phase === "warmup") return "var(--phase-warmup)";
@@ -35,107 +182,13 @@ export function colorForStep(step: Step, ftp: number) {
   return "var(--z6)";
 }
 
-type BarShape = "rect" | "trapezoid";
-type BarGeom = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  s: Step;
-  shape: BarShape;
-  topY: number;
-  yStart: number;
-  yEnd: number;
-};
-
-const heightPct = (watts: number, ftp: number): number => {
-  if (ftp <= 0) return 0;
-  const ratio = clamp(watts / ftp, 0, MAX_PERC) / MAX_PERC;
-  return ratio * 100;
-};
-
-// Build a rounded right-angled trapezoid path.
-// Corners order (clockwise): BL -> BR -> TR -> TL.
-function roundedTrapezoidPath(
-  x0: number,
-  x1: number,
-  yBase: number,
-  yStart: number, // top-left Y
-  yEnd: number, // top-right Y
-  rBase: number = 2
-): string {
-  const w = Math.max(0, x1 - x0);
-  if (w === 0) return `M ${x0} ${yBase} Z`;
-
-  // Top edge vector and length
-  const dx = x1 - x0;
-  const dy = yEnd - yStart;
-  const L = Math.hypot(dx, dy);
-
-  // Limit radius so it fits all sides
-  const hl = Math.max(0, yBase - yStart);
-  const hr = Math.max(0, yBase - yEnd);
-  const r = Math.max(
-    0,
-    Math.min(rBase, w / 2, hl / 2, hr / 2, L > 0 ? L / 2 : rBase)
-  );
-  if (r === 0) {
-    // Sharp path fallback
-    return `M ${x0} ${yBase} L ${x1} ${yBase} L ${x1} ${yEnd} L ${x0} ${yStart} Z`;
-  }
-
-  if (L === 0) {
-    // Degenerate to a rounded rectangle (top is flat)
-    const yTop = yStart;
-    return [
-      `M ${x0 + r} ${yBase}`,
-      `L ${x1 - r} ${yBase}`,
-      `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
-      `L ${x1} ${yTop + r}`,
-      `Q ${x1} ${yTop} ${x1 - r} ${yTop}`,
-      `L ${x0 + r} ${yTop}`,
-      `Q ${x0} ${yTop} ${x0} ${yTop + r}`,
-      `L ${x0} ${yBase - r}`,
-      `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
-      "Z",
-    ].join(" ");
-  }
-
-  const t = r / L; // param along the top edge for rounding
-  const pTLx = x0 + dx * t;
-  const pTLy = yStart + dy * t;
-  const pTRx = x0 + dx * (1 - t);
-  const pTRy = yStart + dy * (1 - t);
-
-  // Build path clockwise with 4 rounded corners
-  return [
-    // bottom edge to just before BR corner
-    `M ${x0 + r} ${yBase}`,
-    `L ${x1 - r} ${yBase}`,
-    // round BR
-    `Q ${x1} ${yBase} ${x1} ${yBase - r}`,
-    // right edge up to just before TR corner
-    `L ${x1} ${yEnd + r}`,
-    // round TR to top edge point
-    `Q ${x1} ${yEnd} ${pTRx} ${pTRy}`,
-    // along top edge to just after TL corner
-    `L ${pTLx} ${pTLy}`,
-    // round TL
-    `Q ${x0} ${yStart} ${x0} ${yStart + r}`,
-    // left edge down to just before BL corner
-    `L ${x0} ${yBase - r}`,
-    // round BL back to start
-    `Q ${x0} ${yBase} ${x0 + r} ${yBase}`,
-    "Z",
-  ].join(" ");
-}
-
 export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-  const [active, setActive] = useState<null | number>(null);
+  const [active, setActive] = useState<ActiveState>(null);
   const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 });
+  const pointerIntentRef = useRef<PointerIntent>(null);
 
   // Resize observer for responsive tooltip positioning
   useEffect(() => {
@@ -165,57 +218,10 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const totalMinutes = useMemo(
-    () => steps.reduce((acc, s) => acc + (s.minutes || 0), 0),
-    [steps]
+  const { totalMinutes, bars } = useMemo(
+    () => computeWorkoutGeometry(steps, ftp),
+    [steps, ftp]
   );
-
-  const bars = useMemo<BarGeom[]>(() => {
-    // Precompute available width after gaps
-    const count = steps.length;
-    const gapsTotal = Math.max(0, count - 1) * GAP_PCT;
-    const available = Math.max(0, 100 - gapsTotal);
-
-    let xCursor = 0; // percentage of chart width
-    const out: BarGeom[] = [];
-
-    for (let i = 0; i < steps.length; i++) {
-      const s = steps[i];
-      const w = totalMinutes > 0 ? (s.minutes / totalMinutes) * available : 0;
-      const kind = (s as any).kind ?? "steady";
-
-      let h = 0;
-      let y = 0;
-      let yStart = 0;
-      let yEnd = 0;
-      let shape: BarShape = "rect";
-
-      if (kind === "ramp") {
-        const fromH = heightPct((s as any).from, ftp);
-        const toH = heightPct((s as any).to, ftp);
-        h = Math.max(fromH, toH);
-        y = 100 - h;
-        yStart = 100 - fromH;
-        yEnd = 100 - toH;
-        shape = "trapezoid";
-      } else {
-        const intH = heightPct((s as any).intensity, ftp);
-        h = intH;
-        y = 100 - h;
-        yStart = 100 - intH;
-        yEnd = 100 - intH;
-        shape = "rect";
-      }
-
-      const topY = Math.min(yStart, yEnd); // highest point for tooltip positioning
-      out.push({ x: xCursor, y, w, h, s, shape, topY, yStart, yEnd });
-
-      // advance cursor; add gap after every bar except the last
-      xCursor += w + (i < steps.length - 1 ? GAP_PCT : 0);
-    }
-
-    return out;
-  }, [steps, ftp, totalMinutes]);
 
   // Visual vertical padding inside the SVG drawing area (in % of viewBox)
   const vPad = V_PAD; // equal top/bottom space to keep chart visually centered
@@ -240,37 +246,48 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
     );
   }, [ftpYPx, containerSize.height]);
 
-  const updateTooltipForIndex = (index: number | null) => {
-    if (index === null) return;
-    const bar = bars[index];
-    if (!bar || !containerRef.current) return;
+  const updateTooltipForIndex = useCallback(
+    (index: number | null) => {
+      if (index === null) return;
+      const bar = bars[index];
+      if (!bar || !containerRef.current) return;
 
-    const { width, height } = containerSize;
-    const centerX = ((bar.x + bar.w / 2) / 100) * width;
-    const tooltipEl = tooltipRef.current;
-    const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
-    const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
+      const { width, height } = containerSize;
+      const centerX = ((bar.x + bar.w / 2) / 100) * width;
+      const tooltipEl = tooltipRef.current;
+      const tooltipW = tooltipEl ? tooltipEl.offsetWidth : 140;
+      const tooltipH = tooltipEl ? tooltipEl.offsetHeight : 36;
 
-    const left = clamp(
-      centerX - tooltipW / 2,
-      4,
-      Math.max(4, width - tooltipW - 4)
-    );
-    // Account for internal SVG vertical padding and scale to position tooltip correctly
-    const barTopPct = vPad + (bar.topY ?? bar.y) * scaleY;
-    const barTop = (barTopPct / 100) * height; // px from top
-    const top = clamp(
-      barTop - tooltipH - 8,
-      4,
-      Math.max(4, height - tooltipH - 4)
-    );
-    setTooltipPos({ left, top });
-  };
+      const left = clamp(
+        centerX - tooltipW / 2,
+        4,
+        Math.max(4, width - tooltipW - 4)
+      );
+      // Account for internal SVG vertical padding and scale to position tooltip correctly
+      const barTopPct = vPad + (bar.topY ?? bar.y) * scaleY;
+      const barTop = (barTopPct / 100) * height; // px from top
+      const top = clamp(
+        barTop - tooltipH - 8,
+        4,
+        Math.max(4, height - tooltipH - 4)
+      );
+      setTooltipPos({ left, top });
+    },
+    [bars, containerSize, scaleY, vPad]
+  );
+
+  const activeIndex = active?.index ?? null;
 
   useEffect(() => {
-    if (active !== null) updateTooltipForIndex(active);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, containerSize.width, containerSize.height]);
+    if (activeIndex !== null) updateTooltipForIndex(activeIndex);
+  }, [activeIndex, updateTooltipForIndex]);
+
+  const barInteractions = useBarInteractions({
+    bars,
+    pointerIntentRef,
+    setActive,
+    updateTooltipForIndex,
+  });
 
   if (!steps || steps.length === 0 || totalMinutes === 0) {
     return (
@@ -297,18 +314,10 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         <g transform={`translate(0, ${vPad}) scale(1, ${scaleY})`}>
           {bars.map((bar, idx) => {
             const fill = colorForStep(bar.s, ftp);
-            const activate = () => {
-              setActive(idx);
-              updateTooltipForIndex(idx);
-            };
-            const clear = () => setActive(null);
-            const isActive = active === idx;
-            const kind = (bar.s as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(bar.s as any).from}→${(bar.s as any).to} W`
-                : `${(bar.s as any).intensity} W`;
-            const label = `${bar.s.minutes}' • ${wattsText} — ${bar.s.description}`;
+            const isFocusActive =
+              active?.index === idx && active.source === "focus";
+            const interaction = barInteractions[idx]!;
+            const { ariaLabel: label, interactionProps } = interaction;
             if (bar.shape === "rect") {
               return (
                 <g key={idx}>
@@ -318,16 +327,13 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
                     width={Math.max(0.001, bar.w)}
                     height={bar.h}
                     rx={CORNER_RADIUS}
-                    style={{ fill }}
-                    stroke={isActive ? "var(--ring)" : "transparent"}
-                    strokeWidth={isActive ? 1.5 : 0}
+                    style={{ fill, outline: "none" }}
+                    stroke={isFocusActive ? "var(--ring)" : "transparent"}
+                    strokeWidth={isFocusActive ? 1.5 : 0}
                     role="button"
                     tabIndex={0}
                     aria-label={label}
-                    onFocus={activate}
-                    onBlur={clear}
-                    onMouseEnter={activate}
-                    onMouseLeave={clear}
+                    {...interactionProps}
                   />
                 </g>
               );
@@ -348,16 +354,13 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
               <path
                 key={idx}
                 d={d}
-                style={{ fill }}
-                stroke={isActive ? "var(--ring)" : "transparent"}
-                strokeWidth={isActive ? 1.5 : 0}
+                style={{ fill, outline: "none" }}
+                stroke={isFocusActive ? "var(--ring)" : "transparent"}
+                strokeWidth={isFocusActive ? 1.5 : 0}
                 role="button"
                 tabIndex={0}
                 aria-label={label}
-                onFocus={activate}
-                onBlur={clear}
-                onMouseEnter={activate}
-                onMouseLeave={clear}
+                {...interactionProps}
               />
             );
           })}
@@ -395,26 +398,31 @@ export function WorkoutChart({ steps, ftp, showFtpLine = true }: Props) {
         </div>
       )}
 
-      {active !== null && (
+      {activeIndex !== null && (
         <div
           ref={tooltipRef}
           className="pointer-events-none absolute z-10 bg-[--card] text-[--text-primary] border border-[--border] shadow-sm rounded-md px-2 py-1 text-xs tabular-nums whitespace-nowrap"
+          role="tooltip"
           style={{ left: `${tooltipPos.left}px`, top: `${tooltipPos.top}px` }}
         >
           {(() => {
-            const step = steps[active];
-            const kind = (step as any).kind ?? "steady";
-            const wattsText =
-              kind === "ramp"
-                ? `ramp ${(step as any).from}→${(step as any).to} W`
-                : `${(step as any).intensity} W`;
+            const step = steps[activeIndex];
+            const label = formatStepLabel(step);
+            const wattsText = formatWattsText(step);
+            const minutes = step.minutes ?? 0;
+            const hasWatts = wattsText.length > 0;
+            const description = step.description ?? "";
             return (
-              <>
-                <div className="font-semibold">{`${step.minutes}' • ${wattsText}`}</div>
-                <div className="text-[--text-secondary]">
-                  {step.description}
-                </div>
-              </>
+              <div data-step-label={label}>
+                <span className="font-semibold">
+                  {hasWatts ? `${minutes}' • ${wattsText}` : `${minutes}'`}
+                </span>
+                {description ? (
+                  <span className="block font-normal text-[--text-secondary]">
+                    {` — ${description}`}
+                  </span>
+                ) : null}
+              </div>
             );
           })()}
         </div>

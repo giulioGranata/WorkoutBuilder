@@ -2,11 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { computeNP, computeTSS } from "@/lib/metrics";
-import { Step, Workout, DurationRangeValue, WorkoutType } from "@/lib/types";
+import { usePatternLibrary } from "@/hooks/usePatternLibrary";
+import { sanitizeFilename, triggerDownload } from "@/lib/download";
 import { generateWorkout, rangeToBounds } from "@/lib/generator";
-import { PATTERNS } from "@/lib/patterns";
-import { getParamInt, setParam } from "@/lib/url";
+import { computeNP, computeTSS } from "@/lib/metrics";
+import { DurationRangeValue, Step, Workout, WorkoutType } from "@/lib/types";
+import { getCurrentUrl, getParamInt, setParam } from "@/lib/url";
+import {
+  applyBiasToStep,
+  clamp,
+  getStepAverageWatts,
+  isRampStep,
+  toSteadyStep,
+} from "@/lib/workoutSteps";
 import { toZwoXml } from "@/lib/zwo";
 import {
   Bike,
@@ -17,8 +25,8 @@ import {
   Info,
   ListOrdered,
   Minus,
-  RefreshCw,
   Plus,
+  RefreshCw,
   Target,
   Zap,
 } from "lucide-react";
@@ -40,19 +48,12 @@ interface WorkoutOutputProps {
 const BIAS_MIN = 75;
 const BIAS_MAX = 125;
 
-// --- helpers (bias) ---
-export const clamp = (v: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, v));
-
-export const applyBias = (watts: number, biasPct: number) =>
-  Math.max(0, Math.round(watts * (biasPct / 100)));
-
 export function WorkoutOutput({
   workout: initialWorkout,
   attempted = false,
 }: WorkoutOutputProps) {
   const { toast } = useToast();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { patterns } = usePatternLibrary();
 
   const [workout, setWorkout] = useState<Workout | null>(initialWorkout);
   useEffect(() => {
@@ -61,8 +62,8 @@ export function WorkoutOutput({
 
   const biasFromUrlRef = useRef(false);
   const [bias, setBias] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
+    const url = getCurrentUrl();
+    if (url) {
       const b = getParamInt(url, "bias");
       if (b !== null && b >= BIAS_MIN && b <= BIAS_MAX) {
         biasFromUrlRef.current = true;
@@ -72,14 +73,14 @@ export function WorkoutOutput({
     return 100;
   });
   const nudge = (delta: number) => {
-    if (bias + delta > BIAS_MAX || bias + delta < BIAS_MIN) return;
-    setBias((b) => clamp(b + delta, BIAS_MIN, BIAS_MAX));
+    setBias((current) => clamp(current + delta, BIAS_MIN, BIAS_MAX));
   };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!biasFromUrlRef.current && bias === 100) return;
-    const url = new URL(window.location.href);
+    const url = getCurrentUrl();
+    if (!url) return;
     const id = window.setTimeout(() => {
       setParam(url, "bias", clamp(bias, BIAS_MIN, BIAS_MAX));
       biasFromUrlRef.current = true;
@@ -88,15 +89,19 @@ export function WorkoutOutput({
   }, [bias]);
 
   const handleNextWorkout = () => {
-    if (!workout || typeof window === "undefined") return;
-    const url = new URL(window.location.href);
+    if (!workout) return;
+    const url = getCurrentUrl();
+    if (!url) return;
     const ftp = getParamInt(url, "ftp");
-    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const durationRange = url.searchParams.get(
+      "durRange"
+    ) as DurationRangeValue | null;
     const type = url.searchParams.get("type") as WorkoutType | null;
     if (ftp !== null && durationRange && type) {
       const next = generateWorkout(
         { ftp, durationRange, type },
-        workout.signature
+        workout.signature,
+        patterns
       );
       setWorkout(next);
     }
@@ -104,14 +109,16 @@ export function WorkoutOutput({
 
   const canShowNext = useMemo(() => {
     if (!workout) return false;
-    if (typeof window === "undefined") return false;
-    const url = new URL(window.location.href);
-    const durationRange = url.searchParams.get("durRange") as DurationRangeValue | null;
+    const url = getCurrentUrl();
+    if (!url) return false;
+    const durationRange = url.searchParams.get(
+      "durRange"
+    ) as DurationRangeValue | null;
     const type = url.searchParams.get("type") as WorkoutType | null;
     if (!durationRange || !type) return true; // if params are missing, default to showing
     const { min, max } = rangeToBounds(durationRange);
     const cap = typeof max === "number" ? max : 240;
-    const variants = PATTERNS[type];
+    const variants = patterns[type];
     const WU = 10;
     const CD = 10;
     const fitCount = variants.filter((variant) => {
@@ -120,48 +127,23 @@ export function WorkoutOutput({
       return total >= min && total <= cap;
     }).length;
     return fitCount > 1;
-  }, [workout]);
+  }, [workout, patterns]);
 
   // Compute a biased view of the workout (steps only)
   const biasedSteps = useMemo<Step[]>(
     () =>
-      workout
-        ? workout.steps.map((s) => {
-            const kind = (s as any).kind ?? "steady";
-            if (kind === "ramp") {
-              const rs = s as any;
-              return {
-                ...rs,
-                kind: "ramp",
-                from: applyBias(rs.from, bias),
-                to: applyBias(rs.to, bias),
-              };
-            }
-            const ss = s as any;
-            return {
-              ...ss,
-              kind: "steady",
-              intensity: applyBias(ss.intensity, bias),
-            };
-          })
-        : [],
+      workout ? workout.steps.map((step) => applyBiasToStep(step, bias)) : [],
     [workout, bias]
   );
 
   // Recompute avg intensity (W) using biased steps (duration-weighted)
   const biasedAvgIntensity = useMemo<number>(() => {
     if (!workout || biasedSteps.length === 0 || !workout.totalMinutes) return 0;
-    const weighted =
-      biasedSteps.reduce((sum, s) => {
-        const kind = (s as any).kind ?? "steady";
-        if (kind === "ramp") {
-          const rs = s as any;
-          return sum + ((rs.from + rs.to) / 2) * rs.minutes;
-        }
-        const ss = s as any;
-        return sum + ss.intensity * ss.minutes;
-      }, 0) / workout.totalMinutes;
-    return Math.round(weighted);
+    const totalWatts = biasedSteps.reduce(
+      (sum, step) => sum + getStepAverageWatts(step) * step.minutes,
+      0
+    );
+    return Math.round(totalWatts / workout.totalMinutes);
   }, [workout, biasedSteps]);
 
   const np = useMemo(() => {
@@ -177,32 +159,37 @@ export function WorkoutOutput({
   const normalizeDescription = (text: string) =>
     text.replace(/truncated/gi, "shortened");
 
-  const buildWorkoutText = () => {
+  const sanitizedSteps = useMemo(
+    () =>
+      biasedSteps.map((step) => ({
+        ...step,
+        description: normalizeDescription(step.description),
+      })),
+    [biasedSteps]
+  );
+
+  const workoutText = useMemo(() => {
     if (!workout) return "";
     const header = `${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}% • TSS: ${tss}\n\n`;
-    const body = biasedSteps
+    const body = sanitizedSteps
       .map((step, index) => {
-        const kind = (step as any).kind ?? "steady";
-        const wattsText =
-          kind === "ramp"
-            ? `ramp ${(step as any).from}→${(step as any).to} W`
-            : `${(step as any).intensity} W`;
-        return `${index + 1}. ${
-          step.minutes
-        }' — ${wattsText} — ${normalizeDescription(step.description)}`;
+        if (isRampStep(step)) {
+          return `${index + 1}. ${step.minutes}' — ramp ${step.from}→${
+            step.to
+          } W — ${step.description}`;
+        }
+        const steady = toSteadyStep(step);
+        return `${index + 1}. ${step.minutes}' — ${steady.intensity} W — ${
+          step.description
+        }`;
       })
       .join("\n");
     const footer = `\n\nTotal: ${workout.totalMinutes}'\nAvg: ${biasedAvgIntensity} W\nTSS: ${tss}`;
     return header + body + footer;
-  };
+  }, [workout, sanitizedSteps, bias, tss, biasedAvgIntensity]);
 
   const handleExportJSON = () => {
     if (!workout) return;
-
-    const sanitizedSteps = biasedSteps.map((s) => ({
-      ...s,
-      description: normalizeDescription(s.description),
-    }));
 
     const payload = {
       ...workout,
@@ -215,16 +202,9 @@ export function WorkoutOutput({
     const header = `// ${workout.title} • FTP: ${workout.ftp} W • Bias: ${bias}% • TSS ${tss}\n`;
     const dataStr = header + JSON.stringify(payload, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
 
-    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeTitle}_bias_${bias}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const safeTitle = sanitizeFilename(workout.title);
+    triggerDownload(dataBlob, `${safeTitle}_bias_${bias}.json`);
 
     toast({
       title: "Export successful",
@@ -234,32 +214,17 @@ export function WorkoutOutput({
 
   const handleExportText = () => {
     if (!workout) return;
-    const data = buildWorkoutText();
-    const blob = new Blob([data], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeTitle}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const blob = new Blob([workoutText], { type: "text/plain" });
+    const safeTitle = sanitizeFilename(workout.title);
+    triggerDownload(blob, `${safeTitle}.txt`);
   };
 
   const handleExportZWO = () => {
     if (!workout) return;
     const xml = toZwoXml({ ...workout, biasPct: bias, tss });
     const blob = new Blob([xml], { type: "text/xml" });
-    const url = URL.createObjectURL(blob);
-    const safeTitle = workout.title.replace(/[^a-zA-Z0-9]/g, "_");
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeTitle}.zwo`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    const safeTitle = sanitizeFilename(workout.title);
+    triggerDownload(blob, `${safeTitle}.zwo`);
 
     toast({
       title: "Export successful",
@@ -363,7 +328,7 @@ export function WorkoutOutput({
             {canShowNext && (
               <Button
                 onClick={handleNextWorkout}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--text-primary] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--accent-foreground] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
                 data-testid="button-next-workout"
               >
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />

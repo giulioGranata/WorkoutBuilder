@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { toZwoXml } from "@/lib/zwo";
-import { applyBias } from "@/components/WorkoutOutput";
+import { applyBias } from "@/lib/workoutSteps";
 import { computeNP, computeTSS } from "@/lib/metrics";
 import type { Workout, Step } from "@/lib/types";
 

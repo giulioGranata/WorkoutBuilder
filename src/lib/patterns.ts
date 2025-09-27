@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { Step } from "./types";
 
 export type PatternSet = Record<
@@ -5,7 +6,7 @@ export type PatternSet = Record<
   Step[][]
 >;
 
-export const PATTERNS: PatternSet = {
+export const FALLBACK_PATTERNS: PatternSet = {
   // Recovery: 50-60% FTP
   recovery: [
     // A (existing pattern reused)
@@ -457,3 +458,79 @@ export const PATTERNS: PatternSet = {
     ],
   ],
 };
+
+const stepPhaseSchema = z.enum(["warmup", "work", "recovery", "cooldown"]);
+
+const steadyStepSchema: z.ZodType<Step> = z
+  .object({
+    kind: z.literal("steady").optional(),
+    minutes: z.number().positive({ message: "Step minutes must be greater than 0" }),
+    intensity: z
+      .number({ invalid_type_error: "Intensity must be a number" })
+      .min(0, { message: "Intensity cannot be negative" }),
+    phase: stepPhaseSchema,
+    description: z.string().min(1, { message: "Description is required" }),
+  })
+  .strict();
+
+const rampStepSchema: z.ZodType<Step> = z
+  .object({
+    kind: z.literal("ramp").optional(),
+    minutes: z.number().positive({ message: "Step minutes must be greater than 0" }),
+    from: z
+      .number({ invalid_type_error: "Ramp 'from' must be a number" })
+      .min(0, { message: "Ramp 'from' cannot be negative" }),
+    to: z
+      .number({ invalid_type_error: "Ramp 'to' must be a number" })
+      .min(0, { message: "Ramp 'to' cannot be negative" }),
+    phase: stepPhaseSchema,
+    description: z.string().min(1, { message: "Description is required" }),
+  })
+  .strict()
+  .superRefine((value, ctx) => {
+    if (value.to < value.from) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Ramp 'to' must be greater than or equal to 'from'",
+        path: ["to"],
+      });
+    }
+  });
+
+const stepSchema: z.ZodType<Step> = z.union([steadyStepSchema, rampStepSchema]);
+
+const patternSchema = z.array(stepSchema).min(1, {
+  message: "Each workout variant must include at least one step",
+});
+
+const patternSetSchema: z.ZodType<PatternSet> = z
+  .object({
+    recovery: z.array(patternSchema).min(1),
+    endurance: z.array(patternSchema).min(1),
+    tempo: z.array(patternSchema).min(1),
+    threshold: z.array(patternSchema).min(1),
+    vo2max: z.array(patternSchema).min(1),
+    anaerobic: z.array(patternSchema).min(1),
+  })
+  .strict();
+
+const patternPayloadSchema = z.object({
+  version: z.string().min(1, { message: "Version is required" }),
+  patterns: patternSetSchema,
+});
+
+export type PatternPayload = z.infer<typeof patternPayloadSchema>;
+
+export function parsePatternPayload(payload: unknown): PatternPayload {
+  const result = patternPayloadSchema.safeParse(payload);
+  if (!result.success) {
+    const message = result.error.issues
+      .map((issue) => {
+        const path = issue.path.join(".") || "payload";
+        return `${path}: ${issue.message}`;
+      })
+      .join("; ");
+    throw new Error(`Invalid pattern payload: ${message}`);
+  }
+  return result.data;
+}
