@@ -33,10 +33,10 @@ describe("WorkoutSegments", () => {
   it("shows warm-up and cool-down ranges with ascending FTP percentages", () => {
     render(<WorkoutSegments steps={makeSteps()} ftp={250} />);
 
-    expect(screen.getByText("Warm-up")).toBeInTheDocument();
-    expect(screen.getByText("60–80% FTP")).toBeInTheDocument();
+    expect(screen.getByText("Warm-up")).toBeTruthy();
+    expect(screen.getByText("60–80% FTP")).toBeTruthy();
 
-    expect(screen.getByText("Cool-down")).toBeInTheDocument();
-    expect(screen.getByText("48–76% FTP")).toBeInTheDocument();
+    expect(screen.getByText("Cool-down")).toBeTruthy();
+    expect(screen.getByText("48–76% FTP")).toBeTruthy();
   });
 });

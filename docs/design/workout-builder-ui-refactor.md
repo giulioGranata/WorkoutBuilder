@@ -35,7 +35,7 @@ Colori funzione allenamento:
 | `--phase-work` | `#22C55E` | `#10B981` | set principale |
 | `--phase-recovery` | `#F97316` | `#FB923C` | recupero |
 | `--phase-cooldown` | `#A855F7` | `#C084FC` | cool-down |
-| `--z1` … `--z6` | `#BAE6FD`, `#7DD3FC`, `#34D399`, `#FACC15`, `#F97316`, `#F43F5E` | `#1D4ED8`, `#0EA5E9`, `#22C55E`, `#FACC15`, `#FB923C`, `#F97316` | bande FTP nel grafico |
+| `--z1` … `--z6` | `#9CA3AF`, `#3b53f6`, `#28A745`, `#FACC15`, `#FF693D`, `#FF3D42` | `#9CA3AF`, `#3b53f6`, `#28A745`, `#FACC15`, `#FF693D`, `#FF3D42` | bande FTP nel grafico |
 
 Spaziature e raggi:
 

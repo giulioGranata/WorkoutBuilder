@@ -16,7 +16,7 @@ Output: steps dettagliati, chart interattivo, esportazione nei principali format
 - Test automatizzati con Vitest e Playwright.
 
 ## 🚀 Tech Stack
-- Vite + React + TypeScript
+- Next.js 15 (App Router) + React + TypeScript
 - TailwindCSS + shadcn/ui
 - Vitest + Playwright
 - Vercel (hosting)
@@ -28,8 +28,7 @@ npm run dev
 ```
 
 ## 🗂️ Pattern catalog
-- The workout library now lives in `public/patterns/patterns.json`. Update this file when you add or adjust pattern variants and bump the `version` string so clients know which dataset they are using.
+- The default workout library lives in `public/patterns/default.json`. Update this file when you add or adjust pattern variants and bump the `version` string so clients know which dataset they are using. A copy is served at `public/patterns/patterns.json` for the runtime fetch.
 - Every payload is validated at runtime with Zod. Invalid data (unknown workout types, missing fields, negative durations, incorrect ramp bounds, etc.) triggers an automatic fallback to the internal `FALLBACK_PATTERNS` catalog.
 - When the remote fetch fails or the payload is invalid the UI keeps working with the fallback dataset and shows a warning toast so contributors notice the problem.
 - Keep inline comments in English across the repository.
-

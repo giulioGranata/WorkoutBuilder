@@ -3,12 +3,16 @@ import path from 'path';
 
 // Keep Vitest and Playwright separate: exclude e2e specs
 export default defineConfig({
+  esbuild: {
+    jsx: 'automatic',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
     },
   },
   test: {
+    environment: 'jsdom',
     exclude: [
       'tests/e2e/**',
       'node_modules/**',
