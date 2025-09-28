@@ -1,0 +1,250 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+
+  --font-family: Inter, "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: 2.25rem;
+  --font-h1: 1.75rem;
+  --font-h2: 1.5rem;
+  --font-h3: 1.25rem;
+  --font-body: 1rem;
+  --font-body-sm: 0.875rem;
+  --font-mono: 0.875rem;
+
+  --line-height-display: 1.2;
+  --line-height-h1: 1.25;
+  --line-height-h2: 1.3;
+  --line-height-h3: 1.35;
+  --line-height-body: 1.5;
+  --line-height-body-sm: 1.45;
+  --line-height-mono: 1.45;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-card-light: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --shadow-card-dark: 0 20px 48px rgba(8, 15, 31, 0.45);
+
+  --font-sans: 'Inter', sans-serif;
+  --font-serif: Georgia, serif;
+  --font-mono: Menlo, monospace;
+}
+
+:root[data-theme="light"],
+:root:not([data-theme]),
+:root.light {
+  --color-bg: #f6f7fb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef1f8;
+  --color-surface-raised: #ffffff;
+  --color-border: #d5dae1;
+  --color-border-strong: #b8c0cc;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-tertiary: #64748b;
+  --color-accent-base: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-pressed: #1e40af;
+  --color-accent-soft: #dbeafe;
+  --color-accent-ring: rgba(37, 99, 235, 0.35);
+  --color-accent-foreground: #ffffff;
+  --color-error: #ef4444;
+  --shadow-card: var(--shadow-card-light);
+
+  --phase-warmup: #9ca3af;
+  --phase-work: #22c55e;
+  --phase-recovery: #f97316;
+  --phase-cooldown: #9ca3af;
+
+  --z1: #9ca3af;
+  --z2: #3b53f6;
+  --z3: #28a745;
+  --z4: #facc15;
+  --z5: #FF693D;
+  --z6: #FF3D42;
+
+  /* Legacy aliases */
+  --bg: var(--color-bg);
+  --card: var(--color-surface);
+  --card-light: var(--color-surface-muted);
+  --muted: var(--color-surface-muted);
+  --border: var(--color-border);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --accent: var(--color-accent-base);
+  --accent-hover: var(--color-accent-hover);
+  --accent-pressed: var(--color-accent-pressed);
+  --accent-soft: var(--color-accent-soft);
+  --accent-foreground: var(--color-accent-foreground);
+  --ring: var(--color-accent-ring);
+  --error: var(--color-error);
+
+  /* Legacy background tokens */
+  --background: var(--color-bg);
+  --foreground: var(--color-text-primary);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-base);
+  --primary-foreground: var(--color-accent-foreground);
+  --secondary: var(--color-text-primary);
+  --secondary-foreground: #ffffff;
+  --muted-foreground: var(--color-text-secondary);
+  --input: var(--color-surface-muted);
+
+  --chart-1: var(--color-accent-base);
+  --chart-2: #16a34a;
+  --chart-3: #facc15;
+  --chart-4: #fb923c;
+  --chart-5: #f43f5e;
+
+  --emerald-500: #22c55e;
+  --emerald-600: #16a34a;
+  --emerald-700: #15803d;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --yellow-500: #facc15;
+  --purple-500: #a855f7;
+  --gray-850: #111827;
+  --gray-900: #0f172a;
+  --gray-700: #334155;
+  --gray-600: #475569;
+  --gray-500: #64748b;
+  --gray-400: #94a3b8;
+  --gray-300: #cbd5f5;
+}
+
+:root[data-theme="dark"],
+:root.dark {
+  --color-bg: #05070f;
+  --color-surface: #0b1020;
+  --color-surface-muted: #151b2e;
+  --color-surface-raised: #11182b;
+  --color-border: #202b3d;
+  --color-border-strong: #2e3b54;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #a9b4d0;
+  --color-text-tertiary: #7c8aa5;
+  --color-accent-base: #60a5fa;
+  --color-accent-hover: #3b82f6;
+  --color-accent-pressed: #2563eb;
+  --color-accent-soft: #1e3a8a;
+  --color-accent-ring: rgba(96, 165, 250, 0.45);
+  --color-accent-foreground: #ffffff;
+  --color-error: #f87171;
+  --shadow-card: var(--shadow-card-dark);
+
+  --phase-warmup: #9ca3af;
+  --phase-work: #10b981;
+  --phase-recovery: #fb923c;
+  --phase-cooldown: #9ca3af;
+
+  --z1: #9ca3af;
+  --z2: #3b53f6;
+  --z3: #28a745;
+  --z4: #facc15;
+  --z5: #FF693D;
+  --z6: #FF3D42;
+
+  /* Legacy aliases */
+  --bg: var(--color-bg);
+  --card: var(--color-surface);
+  --card-light: var(--color-surface-muted);
+  --muted: var(--color-surface-muted);
+  --border: var(--color-border);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --accent: var(--color-accent-base);
+  --accent-hover: var(--color-accent-hover);
+  --accent-pressed: var(--color-accent-pressed);
+  --accent-soft: var(--color-accent-soft);
+  --accent-foreground: var(--color-accent-foreground);
+  --ring: var(--color-accent-ring);
+  --error: var(--color-error);
+
+  /* Legacy background tokens */
+  --background: var(--color-bg);
+  --foreground: var(--color-text-primary);
+  --card-foreground: var(--color-text-primary);
+  --popover: var(--color-surface);
+  --popover-foreground: var(--color-text-primary);
+  --primary: var(--color-accent-base);
+  --primary-foreground: var(--color-accent-foreground);
+  --secondary: #e2e8f0;
+  --secondary-foreground: #0f172a;
+  --muted-foreground: var(--color-text-secondary);
+  --input: var(--color-surface-muted);
+
+  --chart-1: var(--color-accent-base);
+  --chart-2: #16a34a;
+  --chart-3: #facc15;
+  --chart-4: #fb923c;
+  --chart-5: #f43f5e;
+
+  --emerald-500: #22c55e;
+  --emerald-600: #16a34a;
+  --emerald-700: #15803d;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --yellow-500: #facc15;
+  --purple-500: #a855f7;
+  --gray-850: #111827;
+  --gray-900: #0f172a;
+  --gray-700: #334155;
+  --gray-600: #475569;
+  --gray-500: #64748b;
+  --gray-400: #94a3b8;
+  --gray-300: #cbd5f5;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    font-family: var(--font-family);
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-size: var(--font-body);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.workout-step-warmup {
+  @apply border-l-blue-500;
+}
+
+.workout-step-work {
+  @apply border-l-emerald-500;
+}
+
+.workout-step-recovery {
+  @apply border-l-yellow-500;
+}
+
+.workout-step-cooldown {
+  @apply border-l-purple-500;
+}

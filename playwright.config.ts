@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { defineConfig, devices } from '@playwright/test';
 
 const isCI = !!process.env.CI;
@@ -13,7 +14,7 @@ export default defineConfig({
   },
   // Visual settings and defaults
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3000',
     screenshot: 'only-on-failure',
     video: 'off',
     trace: 'off',
@@ -21,8 +22,8 @@ export default defineConfig({
     deviceScaleFactor: 1,
   },
   webServer: {
-    command: 'npm run dev -- --port 5173',
-    url: 'http://localhost:5173',
+    command: 'npm run dev -- --port 3000',
+    url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
