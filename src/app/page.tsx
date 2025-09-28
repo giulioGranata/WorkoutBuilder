@@ -1,7 +1,15 @@
 'use client';
 
+import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
+
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
@@ -36,11 +44,31 @@ export default function Page() {
                 Generate personalized cycling workouts
               </p>
             </div>
-            <div className="flex items-center justify-end gap-3 sm:self-auto">
-              <ThemeToggle />
-              <span className="text-[--text-tertiary] text-xs sm:text-right">
-                Powered by science-based training zones
-              </span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:self-auto">
+              <div className="flex items-center gap-3">
+                <Link
+                  href={{ pathname: "/pro" }}
+                  className="text-sm font-medium text-[--text-primary] hover:text-[--accent] transition-colors"
+                >
+                  Pro dashboard
+                </Link>
+                <SignedOut>
+                  <SignInButton mode="redirect">
+                    <button className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity">
+                      Sign in
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
+              </div>
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <span className="text-[--text-tertiary] text-xs sm:text-right">
+                  Powered by science-based training zones
+                </span>
+              </div>
             </div>
           </div>
         </div>

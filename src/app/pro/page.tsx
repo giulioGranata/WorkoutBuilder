@@ -1,0 +1,41 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { currentUser } from "@clerk/nextjs/server";
+
+export const metadata: Metadata = {
+  title: "Workout Generator Pro",
+};
+
+export default async function ProPage() {
+  const user = await currentUser();
+
+  return (
+    <main className="min-h-screen bg-[--bg] px-6 py-16 text-[--text-primary]">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 rounded-3xl border border-[--border] bg-[--card] p-8 shadow-lg">
+        <div>
+          <h1 className="text-3xl font-semibold">Pro dashboard</h1>
+          <p className="mt-2 text-[--text-secondary]">
+            Welcome{user ? `, ${user.firstName ?? user.username ?? user.emailAddresses[0]?.emailAddress ?? 'athlete'}` : ''}! This area is reserved for future premium analytics and planning tools.
+          </p>
+        </div>
+        <div className="rounded-2xl bg-[--bg] p-6">
+          <p className="text-[--text-secondary]">
+            We are just getting started. Come back soon for advanced workout scheduling, adaptive training insights, and progress tracking tailored to your riding goals.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center rounded-lg bg-[--accent] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            Back to generator
+          </Link>
+          <span className="text-xs text-[--text-tertiary]">
+            Need to manage your account? Use the menu in the top right.
+          </span>
+        </div>
+      </div>
+    </main>
+  );
+}
