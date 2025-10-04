@@ -48,6 +48,14 @@ export default function Page() {
                   Pro dashboard
                 </Link>
                 {session ? (
+                  <Link
+                    href={{ pathname: "/profile" }}
+                    className="text-sm font-medium text-[--text-primary] hover:text-[--accent] transition-colors"
+                  >
+                    Profile
+                  </Link>
+                ) : null}
+                {session ? (
                   <form action="/sign-out" method="post" className="contents">
                     <button className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity">
                       Sign out

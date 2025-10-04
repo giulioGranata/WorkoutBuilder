@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,6 +8,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabase } from "@/components/SupabaseProvider";
 
 export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInContent />
+    </Suspense>
+  );
+}
+
+function SignInContent() {
   const { supabase, session } = useSupabase();
   const router = useRouter();
   const searchParams = useSearchParams();
