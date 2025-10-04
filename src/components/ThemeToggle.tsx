@@ -1,3 +1,5 @@
+"use client";
+
 import { Moon, Sun } from "lucide-react";
 
 import { useTheme } from "@/hooks/useTheme";
@@ -17,16 +19,14 @@ export function ThemeToggle() {
         aria-hidden="true"
         className={cn(
           "h-4 w-4 transition-all duration-300",
-          theme === "dark" ? "scale-0 opacity-0" : "scale-100 opacity-100",
+          theme === "dark" ? "scale-0 opacity-0" : "scale-100 opacity-100"
         )}
       />
       <Moon
         aria-hidden="true"
         className={cn(
           "absolute h-4 w-4 transition-all duration-300",
-          theme === "dark"
-            ? "scale-100 opacity-100"
-            : "scale-0 opacity-0",
+          theme === "dark" ? "scale-100 opacity-100" : "scale-0 opacity-0"
         )}
       />
       <span className="sr-only">Toggle theme</span>

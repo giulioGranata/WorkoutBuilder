@@ -41,12 +41,6 @@ export default function Page() {
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:self-auto">
               <div className="flex items-center gap-3">
-                <Link
-                  href={{ pathname: "/pro" }}
-                  className="text-sm font-medium text-[--text-primary] hover:text-[--accent] transition-colors"
-                >
-                  Pro dashboard
-                </Link>
                 {session ? (
                   <Link
                     href={{ pathname: "/profile" }}
