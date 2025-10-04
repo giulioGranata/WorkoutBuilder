@@ -6,7 +6,7 @@ vite.config.ts.*
 *.tar.gz
 test-results/
 playwright-report/
-.next/
+.next/*
 .env
 .env.*
 !.env.example
