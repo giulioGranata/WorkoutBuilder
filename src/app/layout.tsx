@@ -1,27 +1,39 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-import { ClerkProvider } from "@clerk/nextjs";
+import type { Session } from "@supabase/supabase-js";
 
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Workout Generator",
-  description: "Generate personalized cycling workouts tailored to your FTP and goals.",
+  description:
+    "Generate personalized cycling workouts tailored to your FTP and goals.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let session: Session | null = null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to load Supabase session", error);
+    }
+  }
+
   return (
-    <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body suppressHydrationWarning>
-          <Providers>{children}</Providers>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <Providers initialSession={session}>{children}</Providers>
+      </body>
+    </html>
   );
 }

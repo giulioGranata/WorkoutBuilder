@@ -1,14 +1,32 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { currentUser } from "@clerk/nextjs/server";
+import type { User } from "@supabase/supabase-js";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Workout Generator Pro",
 };
 
 export default async function ProPage() {
-  const user = await currentUser();
+  let user: User | null = null;
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (error) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("Failed to load Supabase user", error);
+    }
+  }
+
+  const metadata = (user?.user_metadata ?? {}) as {
+    full_name?: string;
+    user_name?: string;
+  };
+  const displayName = metadata.full_name ?? metadata.user_name ?? user?.email ?? "athlete";
 
   return (
     <main className="min-h-screen bg-[--bg] px-6 py-16 text-[--text-primary]">
@@ -16,7 +34,7 @@ export default async function ProPage() {
         <div>
           <h1 className="text-3xl font-semibold">Pro dashboard</h1>
           <p className="mt-2 text-[--text-secondary]">
-            Welcome{user ? `, ${user.firstName ?? user.username ?? user.emailAddresses[0]?.emailAddress ?? 'athlete'}` : ''}! This area is reserved for future premium analytics and planning tools.
+            Welcome{user ? `, ${displayName}` : ""}! This area is reserved for future premium analytics and planning tools.
           </p>
         </div>
         <div className="rounded-2xl bg-[--bg] p-6">
@@ -32,7 +50,7 @@ export default async function ProPage() {
             Back to generator
           </Link>
           <span className="text-xs text-[--text-tertiary]">
-            Need to manage your account? Use the menu in the top right.
+            Need to manage your account? Use the sign out button in the header.
           </span>
         </div>
       </div>

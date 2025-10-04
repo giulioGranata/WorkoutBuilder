@@ -27,10 +27,14 @@ npm install
 npm run dev
 ```
 
-## 🔐 Clerk configuration on Vercel
-1. Create a Clerk application. In the Clerk dashboard open **Settings → API Keys** and copy the **Publishable key** (it starts with `pk_`) and the **Secret key** (it starts with `sk_`).
-2. In your Vercel project go to **Settings → Environment Variables** and add `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` with the values from Clerk.
-3. Trigger a redeploy (or deploy preview) so that the new credentials are available to the Next.js runtime and the middleware protecting `/pro` routes.
+## 🔐 Supabase authentication
+1. In the Supabase dashboard open **Authentication → Providers → Email** and enable **Magic Link (Email OTP)**. Set the **Site URL** to your Vercel preview/production domain so the verification links redirect back to your app.
+2. In Vercel go to **Settings → Environment Variables** and add:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   Use the values from your Supabase project settings and redeploy so the runtime picks up the credentials.
+3. To test locally, run `npm run dev`, visit `/sign-in`, request a magic link, and open it on the same device. After signing in you should be able to access `/pro`; when signed out you will be redirected back to `/sign-in`.
 
 ## 🗂️ Pattern catalog
 - The default workout library lives in `public/patterns/default.json`. Update this file when you add or adjust pattern variants and bump the `version` string so clients know which dataset they are using. A copy is served at `public/patterns/patterns.json` for the runtime fetch.

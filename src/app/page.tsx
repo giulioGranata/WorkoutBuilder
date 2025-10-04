@@ -4,20 +4,15 @@ import Link from "next/link";
 import { Dumbbell } from "lucide-react";
 import { useState } from "react";
 
-import {
-  SignInButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from "@clerk/nextjs";
-
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
 import WorkoutTypes from "@/components/WorkoutTypes";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useSupabase } from "@/components/SupabaseProvider";
 import type { Workout } from "@/lib/types";
 
 export default function Page() {
+  const { session } = useSupabase();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [attempted, setAttempted] = useState(false);
 
@@ -52,16 +47,20 @@ export default function Page() {
                 >
                   Pro dashboard
                 </Link>
-                <SignedOut>
-                  <SignInButton mode="redirect">
+                {session ? (
+                  <form action="/sign-out" method="post" className="contents">
                     <button className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity">
-                      Sign in
+                      Sign out
                     </button>
-                  </SignInButton>
-                </SignedOut>
-                <SignedIn>
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
+                  </form>
+                ) : (
+                  <Link
+                    href="/sign-in"
+                    className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  >
+                    Sign in
+                  </Link>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <ThemeToggle />
