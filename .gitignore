@@ -6,8 +6,12 @@ vite.config.ts.*
 *.tar.gz
 test-results/
 playwright-report/
-.next/*
+# Next.js build output
+.next/
+.next/cache/
+.next/trace
+
+# Environment variables
 .env
 .env.*
 !.env.example
-.next/trace
