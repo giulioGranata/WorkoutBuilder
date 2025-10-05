@@ -1,18 +1,14 @@
 'use client';
 
-import Link from "next/link";
-import { Dumbbell } from "lucide-react";
 import { useState } from "react";
 
+import Header from "@/components/Header";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
 import WorkoutTypes from "@/components/WorkoutTypes";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useSupabase } from "@/components/SupabaseProvider";
 import type { Workout } from "@/lib/types";
 
 export default function Page() {
-  const { session } = useSupabase();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [attempted, setAttempted] = useState(false);
 
@@ -23,57 +19,7 @@ export default function Page() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[--bg] text-[--text-primary] font-sans">
-      <header className="bg-[--card] border-b border-[--border]">
-        <div className="max-w-5xl mx-auto py-5 px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[--accent] rounded-xl flex items-center justify-center">
-                  <Dumbbell className="text-white h-5 w-5" />
-                </div>
-                <h1 className="text-2xl md:text-3xl font-semibold text-[--text-primary]">
-                  Workout Generator
-                </h1>
-              </div>
-              <p className="text-sm text-[--text-secondary] mt-2">
-                Generate personalized cycling workouts
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 sm:self-auto">
-              <div className="flex items-center gap-3">
-                {session ? (
-                  <Link
-                    href={{ pathname: "/profile" }}
-                    className="text-sm font-medium text-[--text-primary] hover:text-[--accent] transition-colors"
-                  >
-                    Profile
-                  </Link>
-                ) : null}
-                {session ? (
-                  <form action="/sign-out" method="post" className="contents">
-                    <button className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity">
-                      Sign out
-                    </button>
-                  </form>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="px-4 py-2 rounded-lg bg-[--accent] text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                  >
-                    Sign in
-                  </Link>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <ThemeToggle />
-                <span className="text-[--text-tertiary] text-xs sm:text-right">
-                  Powered by science-based training zones
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">

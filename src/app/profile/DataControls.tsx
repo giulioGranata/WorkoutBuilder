@@ -37,7 +37,8 @@ export default function DataControls() {
           description: "Your profile and workouts have been downloaded.",
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Export failed";
+        const message =
+          error instanceof Error ? error.message : "Export failed";
         toast({
           title: "Export failed",
           description: message,
@@ -49,7 +50,7 @@ export default function DataControls() {
 
   const handleDelete = () => {
     const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone.",
+      "Are you sure you want to delete your account? This action cannot be undone."
     );
 
     if (!confirmed) {
@@ -63,7 +64,9 @@ export default function DataControls() {
         });
 
         if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+          const payload = (await response.json().catch(() => null)) as {
+            error?: string;
+          } | null;
           throw new Error(payload?.error ?? "Failed to delete account");
         }
 
@@ -74,7 +77,8 @@ export default function DataControls() {
 
         window.location.href = "/sign-in";
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to delete account";
+        const message =
+          error instanceof Error ? error.message : "Failed to delete account";
         toast({
           title: "Failed to delete account",
           description: message,
@@ -85,19 +89,28 @@ export default function DataControls() {
   };
 
   return (
-    <section className="rounded-3xl border border-[--border] bg-[--card] p-8 shadow-lg">
+    <section className="rounded-3xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex flex-col gap-6">
         <div>
           <h2 className="text-xl font-semibold">Data & privacy</h2>
           <p className="text-sm text-[--text-secondary]">
-            Download your data or permanently remove your account from Workout Generator.
+            Download your data or permanently remove your account from Workout
+            Generator.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Button onClick={handleExport} disabled={isExporting} variant="outline">
+          <Button
+            onClick={handleExport}
+            disabled={isExporting}
+            variant="outline"
+          >
             {isExporting ? "Exporting..." : "Export my data"}
           </Button>
-          <Button onClick={handleDelete} disabled={isDeleting} variant="destructive">
+          <Button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            variant="destructive"
+          >
             {isDeleting ? "Deleting..." : "Delete account"}
           </Button>
         </div>

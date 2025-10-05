@@ -37,8 +37,8 @@
   --radius-md: 0.75rem;
   --radius-lg: 1.25rem;
 
-  --shadow-card-light: 0 18px 40px rgba(15, 23, 42, 0.08);
-  --shadow-card-dark: 0 20px 48px rgba(8, 15, 31, 0.45);
+  --shadow-card-light: 0 50px 120px rgba(15, 23, 42, 0.24);
+  --shadow-card-dark: 0 60px 160px rgba(8, 15, 31, 0.85);
 
   --font-sans: 'Inter', sans-serif;
   --font-serif: Georgia, serif;

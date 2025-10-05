@@ -31,7 +31,7 @@ export default function SessionsSection() {
   };
 
   return (
-    <section className="rounded-3xl border border-[--border] bg-[--card] p-8 shadow-lg">
+    <section className="rounded-3xl border -[--border] bg-[--card] p-8 shadow-[--shadow-card]">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold">Sessions</h2>

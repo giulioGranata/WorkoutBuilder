@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { generateWorkout } from "@/lib/generator";
 import { readFtp, writeFtp } from "@/lib/storage";
 import {
@@ -24,7 +25,6 @@ import {
   WorkoutFormData,
 } from "@/lib/types";
 import { getCurrentUrl, getParamInt, setParam } from "@/lib/url";
-import { usePatternLibrary } from "@/hooks/usePatternLibrary";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Clock, Play, Settings, Target, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -171,7 +171,7 @@ export function WorkoutForm({
   }, [typeWatch]);
 
   return (
-    <div className="rounded-2xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
+    <div className="rounded-3xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
       <div className="flex items-center mb-6">
         <Settings className="text-[--accent] opacity-90 mr-3 h-5 w-5" />
         <h2 className="text-lg font-semibold text-[--text-primary]">

@@ -1,0 +1,222 @@
+"use client";
+
+import type { Session } from "@supabase/supabase-js";
+import { Dumbbell, Menu, X } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+import { useSupabase } from "@/components/SupabaseProvider";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  dropdownMenuItemClass,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS: Array<{ label: string; href: Route }> = [
+  { label: "Generator", href: "/" },
+  { label: "Pro", href: "/pro" },
+];
+
+function getDisplayName(session: Session | null) {
+  const metadata = (session?.user?.user_metadata ?? {}) as {
+    full_name?: string;
+    user_name?: string;
+  };
+
+  return metadata.full_name ?? metadata.user_name ?? session?.user?.email ?? "";
+}
+
+function getInitials(input: string) {
+  if (!input) return "WG";
+
+  const tokens = input
+    .split(/[\s@._-]+/g)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    return input.slice(0, 2).toUpperCase();
+  }
+
+  if (tokens.length === 1) {
+    return tokens[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${tokens[0][0] ?? ""}${tokens[1][0] ?? ""}`.toUpperCase();
+}
+
+export function Header() {
+  const { session } = useSupabase();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isHome = pathname === "/";
+  const isProfile = pathname?.startsWith("/profile");
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const displayName = useMemo(() => getDisplayName(session), [session]);
+  const initials = useMemo(() => getInitials(displayName), [displayName]);
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-[--border] bg-[--card] backdrop-blur-sm">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
+        <div className="flex items-center gap-8">
+          <Link href="/" className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[--accent] text-[--accent-foreground]">
+              <Dumbbell className="h-4 w-4" />
+            </span>
+            <span className="font-semibold tracking-tight text-[--text-primary]">
+              Workout Generator
+            </span>
+          </Link>
+
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            {NAV_LINKS.map((item) => {
+              if (isHome && item.href === "/") {
+                return null;
+              }
+
+              const active = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "transition-colors",
+                    active
+                      ? "text-[--accent]"
+                      : "text-[--text-secondary] hover:text-[--text-primary]"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+
+          {session ? (
+            <DropdownMenu className="hidden md:inline-flex">
+              <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-full border border-[--border] bg-[--card] text-sm font-medium uppercase text-[--text-primary] transition-colors hover:bg-[--card-light]">
+                {initials}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-[--card]">
+                <div className="px-3 pb-2 pt-3">
+                  <p className="text-xs uppercase tracking-wide text-[--text-tertiary]">
+                    Signed in
+                  </p>
+                  <p className="truncate text-sm text-[--text-secondary]">
+                    {displayName || session.user?.email}
+                  </p>
+                </div>
+                <div className="my-1 h-px bg-[--border]" />
+                {!isProfile ? (
+                  <Link href="/profile" className={dropdownMenuItemClass}>
+                    Profile
+                  </Link>
+                ) : null}
+                <form action="/sign-out" method="post" className="contents">
+                  <DropdownMenuItem type="submit">Sign out</DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="hidden rounded-full border border-[--border] bg-[--card] px-4 py-2 text-sm font-medium text-[--text-primary] transition-colors hover:bg-[--card-light] md:inline-flex"
+            >
+              Sign in
+            </Link>
+          )}
+
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[--text-secondary] transition-colors hover:bg-[--card-light] md:hidden"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            aria-label="Toggle navigation"
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
+        <div className="border-t border-[--border] bg-[--card] px-4 py-3">
+          <nav className="flex flex-col gap-2">
+            {NAV_LINKS.map((item) => {
+              if (isHome && item.href === "/") {
+                return null;
+              }
+
+              const active = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-[--card-light] text-[--accent]"
+                      : "text-[--text-secondary] hover:bg-[--card-light] hover:text-[--text-primary]"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="mt-3 border-t border-[--border] pt-3">
+            {session ? (
+              <div className="flex flex-col gap-2">
+                {!isProfile ? (
+                  <Link
+                    href="/profile"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
+                  >
+                    Profile
+                  </Link>
+                ) : null}
+                <form action="/sign-out" method="post">
+                  <button
+                    type="submit"
+                    className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
+                  >
+                    Sign out
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="inline-flex w-full items-center justify-center rounded-lg border border-[--border] bg-[--card] px-3 py-2 text-sm font-medium text-[--text-primary] transition-colors hover:bg-[--card-light]"
+              >
+                Sign in
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header;
