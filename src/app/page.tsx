@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import Header from "@/components/Header";
 import { WorkoutForm } from "@/components/WorkoutForm";
 import { WorkoutOutput } from "@/components/WorkoutOutput";
 import WorkoutTypes from "@/components/WorkoutTypes";
@@ -18,10 +17,8 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[--bg] text-[--text-primary] font-sans">
-      <Header />
-
-      <main className="flex-1 max-w-5xl mx-auto px-4 py-8 w-full">
+    <div className="flex flex-1 flex-col">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
           <WorkoutForm
             onWorkoutGenerated={handleWorkoutGenerated}

@@ -1,8 +1,6 @@
 import { Dumbbell } from "lucide-react";
 import type { Metadata } from "next";
 
-import Header from "@/components/Header";
-
 import { getProfileAction } from "./actions";
 import DataControls from "./DataControls";
 import ProfileForm from "./ProfileForm";
@@ -28,9 +26,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[--bg] text-[--text-primary] font-sans">
-      <Header />
-
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 w-full">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-6 py-10">
           <section className="rounded-3xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">

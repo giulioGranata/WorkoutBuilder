@@ -3,6 +3,7 @@ import "./globals.css";
 
 import type { Session } from "@supabase/supabase-js";
 
+import Header from "@/components/Header";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Providers } from "./providers";
 
@@ -31,8 +32,15 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <Providers initialSession={session}>{children}</Providers>
+      <body className="min-h-screen bg-[--bg] text-[--text-primary] font-sans">
+        <Providers initialSession={session}>
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <div className="flex-1 flex flex-col">
+              {children}
+            </div>
+          </div>
+        </Providers>
       </body>
     </html>
   );

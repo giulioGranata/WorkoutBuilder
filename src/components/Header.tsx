@@ -55,7 +55,6 @@ export function Header() {
   const { session } = useSupabase();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const isHome = pathname === "/";
   const isProfile = pathname?.startsWith("/profile");
 
   useEffect(() => {
@@ -80,22 +79,17 @@ export function Header() {
 
           <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
             {NAV_LINKS.map((item) => {
-              if (isHome && item.href === "/") {
+              const active = pathname === item.href;
+
+              if (active) {
                 return null;
               }
-
-              const active = pathname === item.href;
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    "transition-colors",
-                    active
-                      ? "text-[--accent]"
-                      : "text-[--text-secondary] hover:text-[--text-primary]"
-                  )}
+                  className="text-[--text-secondary] transition-colors hover:text-[--text-primary]"
                 >
                   {item.label}
                 </Link>
@@ -161,22 +155,17 @@ export function Header() {
         <div className="border-t border-[--border] bg-[--card] px-4 py-3">
           <nav className="flex flex-col gap-2">
             {NAV_LINKS.map((item) => {
-              if (isHome && item.href === "/") {
+              const active = pathname === item.href;
+
+              if (active) {
                 return null;
               }
-
-              const active = pathname === item.href;
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                    active
-                      ? "bg-[--card-light] text-[--accent]"
-                      : "text-[--text-secondary] hover:bg-[--card-light] hover:text-[--text-primary]"
-                  )}
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
                 >
                   {item.label}
                 </Link>
