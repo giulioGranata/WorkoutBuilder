@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 
@@ -19,7 +19,7 @@ export default function Page() {
   return (
     <div className="flex flex-1 flex-col">
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           <WorkoutForm
             onWorkoutGenerated={handleWorkoutGenerated}
             hasWorkout={!!workout}

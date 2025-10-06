@@ -173,7 +173,7 @@ export function WorkoutForm({
   }, [typeWatch]);
 
   return (
-    <div className="rounded-2xl border border-[--border] bg-[color:var(--card)] p-6">
+    <div className="lg:col-span-1 rounded-2xl border border-[--border] bg-[color:var(--card)] p-6">
       <div className="mb-6 flex items-center">
         <Settings className="mr-3 h-5 w-5 text-sky-400" />
         <h2 className="text-lg font-semibold text-[--text-primary]">

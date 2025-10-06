@@ -237,7 +237,7 @@ export function WorkoutOutput({
   // step list visuals removed in favor of the chart
 
   return (
-    <div className="rounded-2xl border border-[--border] bg-[color:var(--card)] px-4 py-6 sm:px-6">
+    <div className="lg:col-span-2 rounded-2xl border border-[--border] bg-[color:var(--card)] px-4 py-6 sm:px-6">
       <div className="mb-5 flex items-center">
         <ListOrdered className="mr-3 h-5 w-5 text-sky-400" />
         <h2 className="text-lg font-semibold text-[--text-primary]">
@@ -269,7 +269,9 @@ export function WorkoutOutput({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <span className="tabular-nums text-sm text-[--text-primary]">{bias}%</span>
+            <span className="tabular-nums text-sm text-[--text-primary]">
+              {bias}%
+            </span>
           </div>
 
           {/* Bottom row: - slider + */}
