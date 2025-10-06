@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Workout Generator Pro",
@@ -29,7 +31,7 @@ export default async function ProPage() {
   const displayName = metadata.full_name ?? metadata.user_name ?? user?.email ?? "athlete";
 
   return (
-    <main className="min-h-screen bg-[--bg] px-6 py-16 text-[--text-primary]">
+    <main className="flex flex-1 flex-col bg-[--bg] px-6 py-16 text-[--text-primary]">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 rounded-3xl border border-[--border] bg-[--card] p-8 shadow-lg">
         <div>
           <h1 className="text-3xl font-semibold">Pro dashboard</h1>
@@ -43,10 +45,7 @@ export default async function ProPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center rounded-lg bg-[--accent] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
+          <Link href="/" className={cn(buttonVariants({ variant: "primary" }))}>
             Back to generator
           </Link>
           <span className="text-xs text-[--text-tertiary]">

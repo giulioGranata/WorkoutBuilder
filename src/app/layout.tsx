@@ -36,9 +36,16 @@ export default async function RootLayout({
         <Providers initialSession={session}>
           <div className="flex min-h-screen flex-col">
             <Header />
-            <div className="flex-1 flex flex-col">
-              {children}
-            </div>
+            <div className="flex flex-1 flex-col">{children}</div>
+            <footer className="mt-12 border-t border-[--border] bg-[--card]">
+              <div className="mx-auto max-w-5xl px-4 py-6">
+                <div className="flex flex-col items-center justify-start sm:flex-row">
+                  <div className="mb-4 text-sm text-[--text-secondary] sm:mb-0">
+                    © {new Date().getFullYear()} Workout Generator. Built for cyclists, by cyclists.
+                  </div>
+                </div>
+              </div>
+            </footer>
           </div>
         </Providers>
       </body>

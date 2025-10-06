@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { useSupabase } from "@/components/SupabaseProvider";
 
 export default function SignInPage() {
@@ -62,7 +63,7 @@ function SignInContent() {
   };
 
   return (
-    <main className="min-h-screen bg-[--bg] px-6 py-16 text-[--text-primary]">
+    <main className="flex flex-1 flex-col bg-[--bg] px-6 py-16 text-[--text-primary]">
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 rounded-3xl border border-[--border] bg-[--card] p-8 shadow-lg">
         <div>
           <h1 className="text-3xl font-semibold">Sign in</h1>
@@ -83,13 +84,14 @@ function SignInContent() {
             className="w-full rounded-lg border border-[--border] bg-[--bg] px-4 py-2 text-[--text-primary] focus:border-[--accent] focus:outline-none focus:ring-2 focus:ring-[--accent]/20"
             placeholder="you@example.com"
           />
-          <button
+          <Button
             type="submit"
+            variant="primary"
             disabled={status === "loading" || status === "sent"}
-            className="mt-2 inline-flex items-center justify-center rounded-lg bg-[--accent] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
+            className="mt-2"
           >
             {status === "loading" ? "Sending magic link..." : status === "sent" ? "Link sent" : "Send magic link"}
-          </button>
+          </Button>
         </form>
         {errorMessage ? (
           <p className="text-sm text-red-500" role="alert">
@@ -106,9 +108,14 @@ function SignInContent() {
             Having trouble? Ensure your Supabase project has <strong>Email OTP</strong> enabled and that emails are being delivered.
           </p>
         </div>
-        <Link href="/" className="text-sm font-medium text-[--accent] hover:underline">
-          Back to home
-        </Link>
+        <Button
+          asChild
+          variant="ghost"
+          size="sm"
+          className="justify-start px-0 text-sm font-medium"
+        >
+          <Link href="/">Back to home</Link>
+        </Button>
       </div>
     </main>
   );

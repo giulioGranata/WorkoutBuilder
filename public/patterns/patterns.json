@@ -57,6 +57,66 @@
           "description": "Smooth cadence (ramp)",
           "phase": "work"
         }
+      ],
+      [
+        {
+          "minutes": 15,
+          "intensity": 50,
+          "description": "Light flush ride",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Spin-up",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 25,
+          "intensity": 58,
+          "description": "Active recovery base",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 30,
+          "intensity": 52,
+          "description": "Long easy recovery spin",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 15,
+          "intensity": 50,
+          "description": "Light flush ride",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Spin-up",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 25,
+          "intensity": 58,
+          "description": "Active recovery base",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 30,
+          "intensity": 52,
+          "description": "Long easy recovery spin",
+          "phase": "work"
+        }
       ]
     ],
     "endurance": [
@@ -105,6 +165,102 @@
           "minutes": 15,
           "intensity": 70,
           "description": "Endurance sustained 2",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 30,
+          "intensity": 68,
+          "description": "Continuous endurance effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 10,
+          "intensity": 60,
+          "description": "Recovery block",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 30,
+          "intensity": 68,
+          "description": "Repeat endurance effort",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 25,
+          "intensity": 66,
+          "description": "Steady endurance base",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Reset",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 25,
+          "intensity": 69,
+          "description": "Progressive endurance",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 60,
+          "intensity": 67,
+          "description": "Long steady endurance",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 30,
+          "intensity": 68,
+          "description": "Continuous endurance effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 10,
+          "intensity": 60,
+          "description": "Recovery block",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 30,
+          "intensity": 68,
+          "description": "Repeat endurance effort",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 25,
+          "intensity": 66,
+          "description": "Steady endurance base",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Reset",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 25,
+          "intensity": 69,
+          "description": "Progressive endurance",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 60,
+          "intensity": 67,
+          "description": "Long steady endurance",
           "phase": "work"
         }
       ]
@@ -179,6 +335,130 @@
           "minutes": 20,
           "intensity": 80,
           "description": "Tempo sustained 2",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 12,
+          "intensity": 80,
+          "description": "Tempo interval 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 80,
+          "description": "Tempo interval 2",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 20,
+          "intensity": 78,
+          "description": "Steady tempo effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 15,
+          "intensity": 82,
+          "description": "Slightly harder tempo effort",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 25,
+          "from": 75,
+          "to": 88,
+          "description": "Progressive tempo build",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 10,
+          "intensity": 85,
+          "description": "Tempo finish",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 12,
+          "intensity": 80,
+          "description": "Tempo interval 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 80,
+          "description": "Tempo interval 2",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 20,
+          "intensity": 78,
+          "description": "Steady tempo effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 15,
+          "intensity": 82,
+          "description": "Slightly harder tempo effort",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 25,
+          "from": 75,
+          "to": 88,
+          "description": "Progressive tempo build",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 10,
+          "intensity": 85,
+          "description": "Tempo finish",
           "phase": "work"
         }
       ]
@@ -277,6 +557,154 @@
           "minutes": 8,
           "intensity": 100,
           "description": "Threshold repeats 4",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 20,
+          "intensity": 95,
+          "description": "Continuous threshold effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 10,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 15,
+          "intensity": 100,
+          "description": "Second threshold push",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 6,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 6,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 3",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 20,
+          "from": 85,
+          "to": 105,
+          "description": "Build to threshold",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 10,
+          "intensity": 100,
+          "description": "Threshold hold",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 20,
+          "intensity": 95,
+          "description": "Continuous threshold effort",
+          "phase": "work"
+        },
+        {
+          "minutes": 10,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 15,
+          "intensity": 100,
+          "description": "Second threshold push",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 6,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 6,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 12,
+          "intensity": 98,
+          "description": "Threshold effort 3",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 20,
+          "from": 85,
+          "to": 105,
+          "description": "Build to threshold",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 10,
+          "intensity": 100,
+          "description": "Threshold hold",
           "phase": "work"
         }
       ]
@@ -466,6 +894,202 @@
           "intensity": 60,
           "description": "Recovery",
           "phase": "recovery"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 5,
+          "from": 90,
+          "to": 120,
+          "description": "Ramp to VO2max",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 3,
+          "intensity": 115,
+          "description": "Final VO2max push",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 3",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 3",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 4",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "kind": "ramp",
+          "minutes": 5,
+          "from": 90,
+          "to": 120,
+          "description": "Ramp to VO2max",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 3,
+          "intensity": 115,
+          "description": "Final VO2max push",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 5,
+          "intensity": 55,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 5,
+          "intensity": 112,
+          "description": "VO2max sustained 3",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 3",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 125,
+          "description": "High VO2max 4",
+          "phase": "work"
         }
       ]
     ],
@@ -743,6 +1367,114 @@
           "minutes": 1,
           "intensity": 145,
           "description": "Anaerobic power 6",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 0.5,
+          "intensity": 150,
+          "description": "Standing sprint 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery spin",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 0.5,
+          "intensity": 150,
+          "description": "Standing sprint 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 2.5,
+          "intensity": 60,
+          "description": "Recovery spin",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 0.5,
+          "intensity": 150,
+          "description": "Standing sprint 3",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 0.25,
+          "intensity": 160,
+          "description": "Short sprint 1",
+          "phase": "work"
+        },
+        {
+          "minutes": 2,
+          "intensity": 55,
+          "description": "Full recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 0.25,
+          "intensity": 160,
+          "description": "Short sprint 2",
+          "phase": "work"
+        },
+        {
+          "minutes": 2,
+          "intensity": 55,
+          "description": "Full recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 0.25,
+          "intensity": 160,
+          "description": "Short sprint 3",
+          "phase": "work"
+        },
+        {
+          "minutes": 2,
+          "intensity": 55,
+          "description": "Full recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 0.25,
+          "intensity": 160,
+          "description": "Short sprint 4",
+          "phase": "work"
+        }
+      ],
+      [
+        {
+          "minutes": 1,
+          "intensity": 140,
+          "description": "Seated sprint endurance",
+          "phase": "work"
+        },
+        {
+          "minutes": 3,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 1,
+          "intensity": 140,
+          "description": "Second seated sprint",
+          "phase": "work"
+        },
+        {
+          "minutes": 3,
+          "intensity": 60,
+          "description": "Recovery",
+          "phase": "recovery"
+        },
+        {
+          "minutes": 1,
+          "intensity": 140,
+          "description": "Final seated sprint",
           "phase": "work"
         }
       ]

@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useSupabase } from "@/components/SupabaseProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,14 +66,17 @@ export function Header() {
   const initials = useMemo(() => getInitials(displayName), [displayName]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[--border] bg-[--card] backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[--accent] text-[--accent-foreground]">
+          <Link
+            href="/"
+            className="flex items-center gap-3 motion-safe:transition-opacity motion-safe:duration-200 hover:opacity-90"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[--accent] text-[--accent-foreground] shadow-[0_1px_0_0_rgba(255,255,255,0.08)]">
               <Dumbbell className="h-4 w-4" />
             </span>
-            <span className="font-semibold tracking-tight text-[--text-primary]">
+            <span className="font-semibold tracking-tight text-zinc-100">
               Workout Generator
             </span>
           </Link>
@@ -81,7 +85,7 @@ export function Header() {
             {NAV_LINKS.map((item) => {
               const active = pathname === item.href;
 
-              if (active) {
+              if (active && item.label !== "Pro") {
                 return null;
               }
 
@@ -89,7 +93,13 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-[--text-secondary] transition-colors hover:text-[--text-primary]"
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:text-zinc-200 focus-visible:outline-none focus-visible:text-zinc-200",
+                    active
+                      ? "text-sky-400 underline underline-offset-4 decoration-sky-400/40"
+                      : undefined,
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -103,19 +113,19 @@ export function Header() {
 
           {session ? (
             <DropdownMenu className="hidden md:inline-flex">
-              <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-full border border-[--border] bg-[--card] text-sm font-medium uppercase text-[--text-primary] transition-colors hover:bg-[--card-light]">
+              <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/70 text-sm font-medium uppercase text-zinc-100 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900 focus-ring btn-press">
                 {initials}
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[--card]">
+              <DropdownMenuContent className="border border-zinc-800 bg-zinc-900/90 text-zinc-100 backdrop-blur-sm shadow-xl">
                 <div className="px-3 pb-2 pt-3">
-                  <p className="text-xs uppercase tracking-wide text-[--text-tertiary]">
+                  <p className="text-xs uppercase tracking-wide text-zinc-500">
                     Signed in
                   </p>
-                  <p className="truncate text-sm text-[--text-secondary]">
+                  <p className="truncate text-sm text-zinc-300">
                     {displayName || session.user?.email}
                   </p>
                 </div>
-                <div className="my-1 h-px bg-[--border]" />
+                <div className="my-1 h-px bg-zinc-800" />
                 {!isProfile ? (
                   <Link href="/profile" className={dropdownMenuItemClass}>
                     Profile
@@ -127,17 +137,21 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link
-              href="/sign-in"
-              className="hidden rounded-full border border-[--border] bg-[--card] px-4 py-2 text-sm font-medium text-[--text-primary] transition-colors hover:bg-[--card-light] md:inline-flex"
+            <Button
+              asChild
+              variant="primary"
+              size="sm"
+              className="hidden rounded-full md:inline-flex"
             >
-              Sign in
-            </Link>
+              <Link href="/sign-in">Sign in</Link>
+            </Button>
           )}
 
-          <button
+          <Button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-[--text-secondary] transition-colors hover:bg-[--card-light] md:hidden"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-zinc-400 md:hidden"
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Toggle navigation"
             aria-expanded={menuOpen}
@@ -147,17 +161,17 @@ export function Header() {
             ) : (
               <Menu className="h-5 w-5" />
             )}
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
-        <div className="border-t border-[--border] bg-[--card] px-4 py-3">
+        <div className="border-t border-zinc-800 bg-zinc-950/80 backdrop-blur-sm px-4 py-3">
           <nav className="flex flex-col gap-2">
             {NAV_LINKS.map((item) => {
               const active = pathname === item.href;
 
-              if (active) {
+              if (active && item.label !== "Pro") {
                 return null;
               }
 
@@ -165,7 +179,13 @@ export function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900/70 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                    active
+                      ? "text-sky-400 underline underline-offset-4 decoration-sky-400/40"
+                      : undefined,
+                  )}
                 >
                   {item.label}
                 </Link>
@@ -179,27 +199,30 @@ export function Header() {
                 {!isProfile ? (
                   <Link
                     href="/profile"
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900/70 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                   >
                     Profile
                   </Link>
                 ) : null}
                 <form action="/sign-out" method="post">
-                  <button
+                  <Button
                     type="submit"
-                    className="w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-[--text-secondary] transition-colors hover:bg-[--card-light] hover:text-[--text-primary]"
+                    variant="ghost"
+                    className="w-full justify-start text-zinc-400"
                   >
                     Sign out
-                  </button>
+                  </Button>
                 </form>
               </div>
             ) : (
-              <Link
-                href="/sign-in"
-                className="inline-flex w-full items-center justify-center rounded-lg border border-[--border] bg-[--card] px-3 py-2 text-sm font-medium text-[--text-primary] transition-colors hover:bg-[--card-light]"
+              <Button
+                asChild
+                variant="primary"
+                size="sm"
+                className="w-full rounded-full"
               >
-                Sign in
-              </Link>
+                <Link href="/sign-in">Sign in</Link>
+              </Button>
             )}
           </div>
         </div>

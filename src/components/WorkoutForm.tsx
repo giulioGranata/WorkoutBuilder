@@ -31,6 +31,8 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { cn } from "@/lib/utils";
+
 const formSchema = z.object({
   ftp: z
     .number()
@@ -171,10 +173,10 @@ export function WorkoutForm({
   }, [typeWatch]);
 
   return (
-    <div className="rounded-3xl bg-[--card] border border-[--border] p-6 shadow-[--shadow-card]">
-      <div className="flex items-center mb-6">
-        <Settings className="text-[--accent] opacity-90 mr-3 h-5 w-5" />
-        <h2 className="text-lg font-semibold text-[--text-primary]">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+      <div className="mb-6 flex items-center">
+        <Settings className="mr-3 h-5 w-5 text-sky-400" />
+        <h2 className="text-lg font-semibold text-zinc-100">
           Workout Configuration
         </h2>
       </div>
@@ -191,9 +193,9 @@ export function WorkoutForm({
             name="ftp"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  <div className="flex flex-row items-center gap-2">
-                    <Zap className="h-4 w-4 text-[--accent] opacity-90" />
+                <FormLabel className="text-sm font-medium text-zinc-400">
+                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                    <Zap className="h-4 w-4 text-sky-400" />
                     FTP (Functional Threshold Power)
                   </div>
                 </FormLabel>
@@ -205,25 +207,25 @@ export function WorkoutForm({
                       max={500}
                       required
                       placeholder="250"
-                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={cn(
                         form.formState.errors.ftp
-                          ? "border-[--error]"
-                          : "border-[--border]"
-                      } focus:border-[--accent]`}
+                          ? "border-red-500/70 focus-visible:ring-red-500/60"
+                          : "border-zinc-800"
+                      )}
                       data-testid="input-ftp"
                       {...field}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                         field.onChange(parseInt(e.target.value) || 0)
                       }
                     />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <span className="text-[--text-tertiary] text-sm tabular-nums">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                      <span className="tabular-nums text-sm text-zinc-500">
                         watts
                       </span>
                     </div>
                   </div>
                 </FormControl>
-                <FormMessage className="text-[--error] text-sm mt-1" />{" "}
+                <FormMessage className="mt-1 text-sm text-red-400" />{" "}
               </FormItem>
             )}
           />
@@ -234,9 +236,9 @@ export function WorkoutForm({
             name="durationRange"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  <div className="flex flex-row items-center gap-2">
-                    <Clock className="h-4 w-4 text-[--accent] opacity-90" />
+                <FormLabel className="text-sm font-medium text-zinc-400">
+                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                    <Clock className="h-4 w-4 text-sky-400" />
                     Duration
                   </div>
                 </FormLabel>
@@ -247,49 +249,24 @@ export function WorkoutForm({
                 >
                   <FormControl>
                     <SelectTrigger
-                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={cn(
                         form.formState.errors.durationRange
-                          ? "border-[--error]"
-                          : "border-[--border]"
-                      } focus:border-[--accent]`}
+                          ? "border-red-500/70 focus-visible:ring-red-500/60"
+                          : "border-zinc-800"
+                      )}
                     >
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-[--muted] border border-[--border]">
-                    <SelectItem
-                      value="30-45"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
-                      30-45 minutes
-                    </SelectItem>
-                    <SelectItem
-                      value="45-60"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
-                      45-60 minutes
-                    </SelectItem>
-                    <SelectItem
-                      value="60-75"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
-                      60-75 minutes
-                    </SelectItem>
-                    <SelectItem
-                      value="75-90"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
-                      75-90 minutes
-                    </SelectItem>
-                    <SelectItem
-                      value="90-plus"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
-                      90+ minutes
-                    </SelectItem>
+                  <SelectContent className="border border-zinc-800 bg-zinc-900/90 backdrop-blur-sm">
+                    <SelectItem value="30-45">30-45 minutes</SelectItem>
+                    <SelectItem value="45-60">45-60 minutes</SelectItem>
+                    <SelectItem value="60-75">60-75 minutes</SelectItem>
+                    <SelectItem value="75-90">75-90 minutes</SelectItem>
+                    <SelectItem value="90-plus">90+ minutes</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage className="text-[--error] text-sm mt-1" />
+                <FormMessage className="mt-1 text-sm text-red-400" />
               </FormItem>
             )}
           />
@@ -300,9 +277,9 @@ export function WorkoutForm({
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-[--text-secondary]">
-                  <div className="flex flex-row items-center gap-2">
-                    <Target className="h-4 w-4 text-[--accent] opacity-90" />
+                <FormLabel className="text-sm font-medium text-zinc-400">
+                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                    <Target className="h-4 w-4 text-sky-400" />
                     Workout Type
                   </div>
                 </FormLabel>
@@ -313,55 +290,37 @@ export function WorkoutForm({
                 >
                   <FormControl>
                     <SelectTrigger
-                      className={`w-full rounded-lg px-3 py-2 bg-[--muted] text-[--text-primary] border ${
+                      className={cn(
                         form.formState.errors.type
-                          ? "border-[--error]"
-                          : "border-[--border]"
-                      } focus:border-[--accent]`}
+                          ? "border-red-500/70 focus-visible:ring-red-500/60"
+                          : "border-zinc-800"
+                      )}
                     >
                       <SelectValue placeholder="Select workout type" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-[--muted] border border-[--border]">
-                    <SelectItem
-                      value="recovery"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                  <SelectContent className="border border-zinc-800 bg-zinc-900/90 backdrop-blur-sm">
+                    <SelectItem value="recovery">
                       {WORKOUT_TYPES["recovery"].label}
                     </SelectItem>
-                    <SelectItem
-                      value="endurance"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                    <SelectItem value="endurance">
                       {WORKOUT_TYPES["endurance"].label}
                     </SelectItem>
-                    <SelectItem
-                      value="tempo"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                    <SelectItem value="tempo">
                       {WORKOUT_TYPES["tempo"].label}
                     </SelectItem>
-                    <SelectItem
-                      value="threshold"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                    <SelectItem value="threshold">
                       {WORKOUT_TYPES["threshold"].label}
                     </SelectItem>
-                    <SelectItem
-                      value="vo2max"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                    <SelectItem value="vo2max">
                       {WORKOUT_TYPES["vo2max"].label}
                     </SelectItem>
-                    <SelectItem
-                      value="anaerobic"
-                      className="text-[--text-primary] hover:bg-[--border]"
-                    >
+                    <SelectItem value="anaerobic">
                       {WORKOUT_TYPES["anaerobic"].label}
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage className="text-[--error] text-sm mt-1" />{" "}
+                <FormMessage className="mt-1 text-sm text-red-400" />{" "}
               </FormItem>
             )}
           />
@@ -369,12 +328,13 @@ export function WorkoutForm({
           {/* Generate Button */}
           <Button
             type="submit"
+            variant="primary"
             disabled={
               isGenerating ||
               !form.formState.isValid ||
               (hasWorkout && !form.formState.isDirty)
             }
-            className="w-full !mt-14 inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0 bg-[--accent] text-[--accent-foreground] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+            className="mt-14 w-full"
             data-testid="button-generate"
           >
             <Play className="mr-2 h-4 w-4" />

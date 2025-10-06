@@ -21,7 +21,7 @@ export function ThemeToggle() {
         }
       }}
       aria-label={`Switch to ${nextTheme} theme`}
-      className="h-4 w-4 cursor-pointer text-[--text-secondary] transition-colors hover:text-[--text-primary] focus:outline-none focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card)]"
+      className="h-4 w-4 cursor-pointer text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:text-zinc-200 focus-ring"
     />
   );
 }

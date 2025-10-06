@@ -71,14 +71,6 @@ export default async function ProfilePage() {
         </div>
       </main>
 
-      <footer className="border-t border-[--border] bg-[--card]">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6 text-sm text-[--text-secondary]">
-          <span>© {new Date().getFullYear()} Workout Generator</span>
-          <span className="text-[--text-tertiary]">
-            Stay consistent, ride smarter.
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }

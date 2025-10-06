@@ -237,10 +237,10 @@ export function WorkoutOutput({
   // step list visuals removed in favor of the chart
 
   return (
-    <div className="rounded-2xl bg-[--card] border border-[--border] px-4 py-6 sm:px-6 shadow-[--shadow-card]">
-      <div className="flex items-center mb-5">
-        <ListOrdered className="text-[--accent] opacity-90 mr-3 h-5 w-5" />
-        <h2 className="text-lg font-semibold text-[--text-primary]">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-6 sm:px-6">
+      <div className="mb-5 flex items-center">
+        <ListOrdered className="mr-3 h-5 w-5 text-sky-400" />
+        <h2 className="text-lg font-semibold text-zinc-100">
           Generated Workout
         </h2>
       </div>
@@ -249,19 +249,17 @@ export function WorkoutOutput({
       {workout && (
         <div className="mb-5">
           {/* Top row: label + current value */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-[--text-tertiary] uppercase tracking-wider">
-                Bias
-              </span>
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-1 text-zinc-400">
+              <span className="text-xs uppercase tracking-wider">Bias</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 text-[--text-tertiary] cursor-pointer" />
+                    <Info className="h-3.5 w-3.5 cursor-pointer text-zinc-500" />
                   </TooltipTrigger>
                   <TooltipContent
                     side="top"
-                    className="max-w-[240px] text-sm rounded-md px-3 py-2 bg-[--card] text-[--text-primary] border border-[--border] shadow-lg"
+                    className="max-w-[240px] rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-sm text-zinc-200 shadow-xl backdrop-blur-sm"
                   >
                     Adjusts workout intensity on the fly. <br />
                     100% = planned watts, <br />
@@ -271,17 +269,15 @@ export function WorkoutOutput({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <span className="text-sm text-[--text-secondary] tabular-nums">
-              {bias}%
-            </span>
+            <span className="tabular-nums text-sm text-zinc-100">{bias}%</span>
           </div>
 
           {/* Bottom row: - slider + */}
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
-              size="sm"
-              className="h-11 w-11 rounded-full inline-flex items-center justify-center transition-colors duration-150 bg-[--muted] text-[--text-secondary] hover:bg-[--border] focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0"
+              variant="secondary"
+              size="icon"
+              className="h-11 w-11 rounded-full"
               onClick={() => nudge(-1)}
               aria-label="Decrease bias"
               data-testid="bias-dec"
@@ -296,15 +292,15 @@ export function WorkoutOutput({
               step={1}
               value={bias}
               onChange={(e) => setBias(parseInt(e.target.value, 10))}
-              className="flex-1 h-2 accent-[--accent] active:accent-[--accent-pressed] focus:outline-none focus:ring-2 focus:ring-[--ring]"
+              className="flex-1 h-2 rounded-full accent-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 motion-safe:transition-colors motion-safe:duration-200"
               aria-label="Bias percentage"
               data-testid="bias-range"
             />
 
             <Button
-              variant="outline"
-              size="sm"
-              className="h-11 w-11 rounded-full inline-flex items-center justify-center transition-colors duration-150 bg-[--muted] text-[--text-secondary] hover:bg-[--border] focus-visible:ring-2 focus-visible:ring-[--ring] focus-visible:ring-offset-0"
+              variant="secondary"
+              size="icon"
+              className="h-11 w-11 rounded-full"
               onClick={() => nudge(1)}
               aria-label="Increase bias"
               data-testid="bias-inc"
@@ -320,7 +316,7 @@ export function WorkoutOutput({
           {/* Workout Title */}
           <div className="mb-8 flex items-center justify-between">
             <h3
-              className="text-lg font-semibold text-[--text-primary] leading-tight"
+              className="text-lg font-semibold leading-tight text-zinc-100"
               data-testid="text-workout-title"
             >
               {workout.title}
@@ -328,7 +324,7 @@ export function WorkoutOutput({
             {canShowNext && (
               <Button
                 onClick={handleNextWorkout}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2 font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-[--ring] bg-[--accent] text-[--accent-foreground] hover:bg-[--accent-hover] active:bg-[--accent-pressed]"
+                variant="secondary"
                 data-testid="button-next-workout"
               >
                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -346,48 +342,48 @@ export function WorkoutOutput({
           </div>
 
           {/* Metrics */}
-          <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
-              <Clock className="h-5 w-5 mx-auto mb-1 text-primary" />
+          <div className="mt-6 grid grid-cols-1 gap-3 text-center md:mt-8 sm:grid-cols-3">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+              <Clock className="mx-auto mb-1 h-5 w-5 text-sky-400" />
               <div
-                className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none"
+                className="text-2xl font-semibold leading-none tabular-nums text-zinc-100"
                 data-testid="text-total-minutes"
               >
                 {workout.totalMinutes}
               </div>
-              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Total Time (min)
               </div>
             </div>
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
-              <Zap className="h-5 w-5 mx-auto mb-1 text-primary" />
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+              <Zap className="mx-auto mb-1 h-5 w-5 text-sky-400" />
               <div
-                className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none"
+                className="text-2xl font-semibold leading-none tabular-nums text-zinc-100"
                 data-testid="text-avg-intensity"
               >
                 {biasedAvgIntensity}
               </div>
-              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 Avg Power (W)
               </div>
             </div>
-            <div className="bg-[--card-light] rounded-2xl p-5 sm:p-6 shadow-md transition-all hover:shadow-[--shadow-card] hover:bg-[--card]">
-              <Target className="h-5 w-5 mx-auto mb-1 text-primary" />
-              <div className="text-2xl font-semibold text-[--text-primary] tabular-nums leading-none">
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+              <Target className="mx-auto mb-1 h-5 w-5 text-sky-400" />
+              <div className="text-2xl font-semibold leading-none tabular-nums text-zinc-100">
                 <span data-testid="text-tss">{tss}</span>
               </div>
-              <div className="mt-2 text-xs font-semibold text-[--text-tertiary] tracking-wide">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
                 TSS
               </div>
             </div>
           </div>
 
           {/* Export Actions */}
-          <div className="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="mt-6 grid grid-cols-1 gap-3 md:mt-8 sm:grid-cols-3">
             <Button
               onClick={handleExportZWO}
-              variant="outline"
-              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
+              variant="secondary"
+              className="h-auto py-2.5 sm:px-5"
             >
               <FileCog className="h-4 w-4" />
               Export ZWO
@@ -395,8 +391,8 @@ export function WorkoutOutput({
 
             <Button
               onClick={handleExportText}
-              variant="outline"
-              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
+              variant="secondary"
+              className="h-auto py-2.5 sm:px-5"
             >
               <FileText className="h-4 w-4" />
               Export Text
@@ -404,8 +400,8 @@ export function WorkoutOutput({
 
             <Button
               onClick={handleExportJSON}
-              variant="outline"
-              className="h-auto px-4 py-2 sm:px-5 sm:py-2.5 flex items-center justify-center gap-2 rounded-xl font-medium border border-[--border] text-[--text-secondary] bg-transparent hover:bg-[--muted] focus-visible:ring-offset-0"
+              variant="secondary"
+              className="h-auto py-2.5 sm:px-5"
             >
               <Code className="h-4 w-4" />
               Export JSON
@@ -414,28 +410,28 @@ export function WorkoutOutput({
         </div>
       ) : attempted ? (
         <div
-          className="empty-state text-center py-12"
+          className="empty-state py-12 text-center"
           data-testid="empty-state"
         >
-          <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
-          <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
+          <Bike className="mx-auto mb-4 h-16 w-16 text-zinc-600" />
+          <h3 className="mb-2 text-lg font-semibold text-zinc-100">
             No workout found
           </h3>
-          <p className="text-[--text-tertiary]">
+          <p className="text-zinc-400">
             No pattern fits the selected duration range. Try a longer range or
             another type.
           </p>
         </div>
       ) : (
         <div
-          className="empty-state text-center py-12"
+          className="empty-state py-12 text-center"
           data-testid="empty-state"
         >
-          <Bike className="mx-auto text-4xl text-[--text-tertiary] mb-4 h-16 w-16" />
-          <h3 className="text-lg font-medium text-[--text-secondary] mb-2">
+          <Bike className="mx-auto mb-4 h-16 w-16 text-zinc-600" />
+          <h3 className="mb-2 text-lg font-semibold text-zinc-100">
             No workout generated yet
           </h3>
-          <p className="text-[--text-tertiary]">
+          <p className="text-zinc-400">
             Configure your settings and click "Generate Workout" to create a
             personalized training session.
           </p>
