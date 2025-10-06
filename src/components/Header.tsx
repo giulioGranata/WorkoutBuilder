@@ -66,7 +66,7 @@ export function Header() {
   const initials = useMemo(() => getInitials(displayName), [displayName]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-40 border-b border-[--border] surface-glass">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-8">
           <Link
@@ -76,7 +76,7 @@ export function Header() {
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-[--accent] text-[--accent-foreground] shadow-[0_1px_0_0_rgba(255,255,255,0.08)]">
               <Dumbbell className="h-4 w-4" />
             </span>
-            <span className="font-semibold tracking-tight text-zinc-100">
+            <span className="font-semibold tracking-tight text-[--text-primary]">
               Workout Generator
             </span>
           </Link>
@@ -95,7 +95,7 @@ export function Header() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:text-zinc-200 focus-visible:outline-none focus-visible:text-zinc-200",
+                    "text-[--text-secondary] motion-safe:transition-colors motion-safe:duration-200 hover:text-[--text-primary] focus-visible:outline-none focus-visible:text-[--text-primary]",
                     active
                       ? "text-sky-400 underline underline-offset-4 decoration-sky-400/40"
                       : undefined,
@@ -113,19 +113,19 @@ export function Header() {
 
           {session ? (
             <DropdownMenu className="hidden md:inline-flex">
-              <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/70 text-sm font-medium uppercase text-zinc-100 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900 focus-ring btn-press">
+              <DropdownMenuTrigger className="flex h-9 w-9 items-center justify-center rounded-full border border-[--border] bg-[color:var(--color-surface-muted)] text-sm font-medium uppercase text-[--text-primary] motion-safe:transition-colors motion-safe:duration-200 hover:bg-[color:var(--color-surface)] focus-ring btn-press">
                 {initials}
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="border border-zinc-800 bg-zinc-900/90 text-zinc-100 backdrop-blur-sm shadow-xl">
+              <DropdownMenuContent className="border border-[--border] bg-[color:var(--card)] text-[--text-primary] backdrop-blur-sm shadow-xl">
                 <div className="px-3 pb-2 pt-3">
-                  <p className="text-xs uppercase tracking-wide text-zinc-500">
+                  <p className="text-xs uppercase tracking-wide text-[--text-tertiary]">
                     Signed in
                   </p>
-                  <p className="truncate text-sm text-zinc-300">
+                  <p className="truncate text-sm text-[--text-secondary]">
                     {displayName || session.user?.email}
                   </p>
                 </div>
-                <div className="my-1 h-px bg-zinc-800" />
+                <div className="my-1 h-px bg-[--border]" />
                 {!isProfile ? (
                   <Link href="/profile" className={dropdownMenuItemClass}>
                     Profile
@@ -151,7 +151,7 @@ export function Header() {
             type="button"
             variant="ghost"
             size="icon"
-            className="h-9 w-9 text-zinc-400 md:hidden"
+            className="h-9 w-9 text-[--text-secondary] md:hidden"
             onClick={() => setMenuOpen((prev) => !prev)}
             aria-label="Toggle navigation"
             aria-expanded={menuOpen}
@@ -166,7 +166,7 @@ export function Header() {
       </div>
 
       <div className={cn("md:hidden", menuOpen ? "block" : "hidden")}>
-        <div className="border-t border-zinc-800 bg-zinc-950/80 backdrop-blur-sm px-4 py-3">
+        <div className="border-t border-[--border] surface-glass px-4 py-3">
           <nav className="flex flex-col gap-2">
             {NAV_LINKS.map((item) => {
               const active = pathname === item.href;
@@ -181,7 +181,7 @@ export function Header() {
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900/70 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                    "rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] motion-safe:transition-colors motion-safe:duration-200 hover:bg-[color:var(--color-surface-muted)] hover:text-[--text-primary] focus-ring",
                     active
                       ? "text-sky-400 underline underline-offset-4 decoration-sky-400/40"
                       : undefined,
@@ -199,7 +199,7 @@ export function Header() {
                 {!isProfile ? (
                   <Link
                     href="/profile"
-                    className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-900/70 hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-[--text-secondary] motion-safe:transition-colors motion-safe:duration-200 hover:bg-[color:var(--color-surface-muted)] hover:text-[--text-primary] focus-ring"
                   >
                     Profile
                   </Link>
@@ -208,7 +208,7 @@ export function Header() {
                   <Button
                     type="submit"
                     variant="ghost"
-                    className="w-full justify-start text-zinc-400"
+                    className="w-full justify-start text-[--text-secondary]"
                   >
                     Sign out
                   </Button>

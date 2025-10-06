@@ -48,22 +48,22 @@
 :root[data-theme="light"],
 :root:not([data-theme]),
 :root.light {
-  --color-bg: #09090b;
-  --color-surface: #18181b;
-  --color-surface-muted: #18181b;
-  --color-surface-raised: #1f1f23;
-  --color-border: #27272a;
-  --color-border-strong: #3f3f46;
-  --color-text-primary: #e4e4e7;
-  --color-text-secondary: #a1a1aa;
-  --color-text-tertiary: #71717a;
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-surface-raised: #e2e8f0;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5f5;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
   --color-accent-base: #2563eb;
   --color-accent-hover: #1d4ed8;
   --color-accent-pressed: #1e40af;
   --color-accent-soft: #dbeafe;
-  --color-accent-ring: rgba(37, 99, 235, 0.35);
+  --color-accent-ring: rgba(37, 99, 235, 0.25);
   --color-accent-foreground: #ffffff;
-  --color-error: #ef4444;
+  --color-error: #dc2626;
   --shadow-card: var(--shadow-card-light);
 
   --phase-warmup: #9ca3af;
@@ -103,7 +103,7 @@
   --popover-foreground: var(--color-text-primary);
   --primary: var(--color-accent-base);
   --primary-foreground: var(--color-accent-foreground);
-  --secondary: var(--color-text-primary);
+  --secondary: #1f2937;
   --secondary-foreground: #ffffff;
   --muted-foreground: var(--color-text-secondary);
   --input: var(--color-surface-muted);
@@ -225,7 +225,6 @@
     font-family: var(--font-family);
     background-color: var(--color-bg);
     color: var(--color-text-primary);
-    @apply bg-zinc-950 text-zinc-200;
     font-size: var(--font-body);
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-body);
@@ -234,7 +233,8 @@
   }
 
   footer {
-    @apply py-6 text-sm text-zinc-500 opacity-60;
+    @apply py-6 text-sm opacity-60;
+    color: var(--text-secondary);
   }
 
   footer .text-\[--text-secondary\] {
@@ -248,7 +248,19 @@
   }
 
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2;
+    --tw-ring-offset-color: var(--color-bg);
+  }
+
+  .surface-glass {
+    background-color: color-mix(in srgb, var(--card) 92%, transparent);
+    backdrop-filter: blur(12px);
+  }
+  .surface-muted {
+    background-color: var(--color-surface-muted);
+  }
+  .border-subtle {
+    border-color: color-mix(in srgb, var(--border) 70%, transparent);
   }
 }
 

@@ -21,12 +21,12 @@ const ZONE_COLORS: Record<WorkoutType, string> = {
 
 export default function WorkoutTypes() {
   return (
-    <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6 text-zinc-400 md:mt-8">
+    <div className="mt-6 rounded-2xl border border-[--border] bg-[color:var(--card)] p-6 text-[--text-secondary] md:mt-8">
       <div className="mb-4 flex items-center">
-        <div className="mr-3 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-800 text-xs font-semibold text-zinc-100">
+        <div className="mr-3 flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--color-surface-muted)] text-xs font-semibold text-[--text-primary]">
           i
         </div>
-        <h3 className="text-base font-semibold text-zinc-100 underline decoration-sky-500/40 md:text-lg">
+        <h3 className="text-base font-semibold text-[--text-primary] underline decoration-sky-500/40 md:text-lg">
           Workout Types Explained
         </h3>
       </div>
@@ -35,17 +35,15 @@ export default function WorkoutTypes() {
           const type = WORKOUT_TYPES[key];
           const classes = [
             "space-y-1 px-4 py-4",
-            idx > 0 ? "border-t border-zinc-800/70 md:border-t-0" : "",
-            idx % 2 === 1 ? "md:border-l border-zinc-800/70" : "",
-            idx % 3 !== 0
-              ? "lg:border-l border-zinc-800/70"
-              : "lg:border-l-0",
+            idx > 0 ? "border-t border-subtle md:border-t-0" : "",
+            idx % 2 === 1 ? "md:border-l border-subtle" : "",
+            idx % 3 !== 0 ? "lg:border-l border-subtle" : "lg:border-l-0",
           ].join(" ");
           return (
             <div key={key} className={classes}>
               <div className="flex flex-col items-start space-y-2">
                 <div className="flex items-center gap-2 flex-wrap md:flex-nowrap">
-                  <div className="font-semibold text-zinc-100">
+                  <div className="font-semibold text-[--text-primary]">
                     {type.label}
                   </div>
                   <span
@@ -61,7 +59,7 @@ export default function WorkoutTypes() {
                   {DIFFICULTY[key]}
                 </Badge>
               </div>
-              <div className="text-zinc-400">{type.description}</div>
+              <div className="text-[--text-secondary]">{type.description}</div>
             </div>
           );
         })}

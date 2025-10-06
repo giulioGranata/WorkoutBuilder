@@ -173,10 +173,10 @@ export function WorkoutForm({
   }, [typeWatch]);
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6">
+    <div className="rounded-2xl border border-[--border] bg-[color:var(--card)] p-6">
       <div className="mb-6 flex items-center">
         <Settings className="mr-3 h-5 w-5 text-sky-400" />
-        <h2 className="text-lg font-semibold text-zinc-100">
+        <h2 className="text-lg font-semibold text-[--text-primary]">
           Workout Configuration
         </h2>
       </div>
@@ -193,8 +193,8 @@ export function WorkoutForm({
             name="ftp"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-zinc-400">
-                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
+                  <div className="flex flex-row items-center gap-2 text-[--text-secondary]">
                     <Zap className="h-4 w-4 text-sky-400" />
                     FTP (Functional Threshold Power)
                   </div>
@@ -210,7 +210,7 @@ export function WorkoutForm({
                       className={cn(
                         form.formState.errors.ftp
                           ? "border-red-500/70 focus-visible:ring-red-500/60"
-                          : "border-zinc-800"
+                          : undefined
                       )}
                       data-testid="input-ftp"
                       {...field}
@@ -219,7 +219,7 @@ export function WorkoutForm({
                       }
                     />
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span className="tabular-nums text-sm text-zinc-500">
+                      <span className="tabular-nums text-sm text-[--text-tertiary]">
                         watts
                       </span>
                     </div>
@@ -236,8 +236,8 @@ export function WorkoutForm({
             name="durationRange"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-zinc-400">
-                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
+                  <div className="flex flex-row items-center gap-2 text-[--text-secondary]">
                     <Clock className="h-4 w-4 text-sky-400" />
                     Duration
                   </div>
@@ -252,13 +252,13 @@ export function WorkoutForm({
                       className={cn(
                         form.formState.errors.durationRange
                           ? "border-red-500/70 focus-visible:ring-red-500/60"
-                          : "border-zinc-800"
+                          : undefined
                       )}
                     >
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="border border-zinc-800 bg-zinc-900/90 backdrop-blur-sm">
+                  <SelectContent className="border border-[--border] bg-[color:var(--card)] backdrop-blur-sm">
                     <SelectItem value="30-45">30-45 minutes</SelectItem>
                     <SelectItem value="45-60">45-60 minutes</SelectItem>
                     <SelectItem value="60-75">60-75 minutes</SelectItem>
@@ -277,8 +277,8 @@ export function WorkoutForm({
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium text-zinc-400">
-                  <div className="flex flex-row items-center gap-2 text-zinc-400">
+                <FormLabel className="text-sm font-medium text-[--text-secondary]">
+                  <div className="flex flex-row items-center gap-2 text-[--text-secondary]">
                     <Target className="h-4 w-4 text-sky-400" />
                     Workout Type
                   </div>
@@ -293,13 +293,13 @@ export function WorkoutForm({
                       className={cn(
                         form.formState.errors.type
                           ? "border-red-500/70 focus-visible:ring-red-500/60"
-                          : "border-zinc-800"
+                          : undefined
                       )}
                     >
                       <SelectValue placeholder="Select workout type" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="border border-zinc-800 bg-zinc-900/90 backdrop-blur-sm">
+                  <SelectContent className="border border-[--border] bg-[color:var(--card)] backdrop-blur-sm">
                     <SelectItem value="recovery">
                       {WORKOUT_TYPES["recovery"].label}
                     </SelectItem>

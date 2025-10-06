@@ -237,10 +237,10 @@ export function WorkoutOutput({
   // step list visuals removed in favor of the chart
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/70 px-4 py-6 sm:px-6">
+    <div className="rounded-2xl border border-[--border] bg-[color:var(--card)] px-4 py-6 sm:px-6">
       <div className="mb-5 flex items-center">
         <ListOrdered className="mr-3 h-5 w-5 text-sky-400" />
-        <h2 className="text-lg font-semibold text-zinc-100">
+        <h2 className="text-lg font-semibold text-[--text-primary]">
           Generated Workout
         </h2>
       </div>
@@ -250,16 +250,16 @@ export function WorkoutOutput({
         <div className="mb-5">
           {/* Top row: label + current value */}
           <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-1 text-zinc-400">
+            <div className="flex items-center gap-1 text-[--text-secondary]">
               <span className="text-xs uppercase tracking-wider">Bias</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3.5 w-3.5 cursor-pointer text-zinc-500" />
+                    <Info className="h-3.5 w-3.5 cursor-pointer text-[--text-tertiary]" />
                   </TooltipTrigger>
                   <TooltipContent
                     side="top"
-                    className="max-w-[240px] rounded-md border border-zinc-800 bg-zinc-900/90 px-3 py-2 text-sm text-zinc-200 shadow-xl backdrop-blur-sm"
+                    className="max-w-[240px] rounded-md border border-[--border] bg-[color:var(--card)] px-3 py-2 text-sm text-[--text-secondary] shadow-xl backdrop-blur-sm"
                   >
                     Adjusts workout intensity on the fly. <br />
                     100% = planned watts, <br />
@@ -269,7 +269,7 @@ export function WorkoutOutput({
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <span className="tabular-nums text-sm text-zinc-100">{bias}%</span>
+            <span className="tabular-nums text-sm text-[--text-primary]">{bias}%</span>
           </div>
 
           {/* Bottom row: - slider + */}
@@ -292,7 +292,7 @@ export function WorkoutOutput({
               step={1}
               value={bias}
               onChange={(e) => setBias(parseInt(e.target.value, 10))}
-              className="flex-1 h-2 rounded-full accent-sky-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 motion-safe:transition-colors motion-safe:duration-200"
+              className="flex-1 h-2 rounded-full accent-sky-500 focus-ring motion-safe:transition-colors motion-safe:duration-200"
               aria-label="Bias percentage"
               data-testid="bias-range"
             />
@@ -316,7 +316,7 @@ export function WorkoutOutput({
           {/* Workout Title */}
           <div className="mb-8 flex items-center justify-between">
             <h3
-              className="text-lg font-semibold leading-tight text-zinc-100"
+              className="text-lg font-semibold leading-tight text-[--text-primary]"
               data-testid="text-workout-title"
             >
               {workout.title}
@@ -343,36 +343,36 @@ export function WorkoutOutput({
 
           {/* Metrics */}
           <div className="mt-6 grid grid-cols-1 gap-3 text-center md:mt-8 sm:grid-cols-3">
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+            <div className="rounded-2xl border border-[--border] bg-[color:var(--color-surface)] p-5 sm:p-6">
               <Clock className="mx-auto mb-1 h-5 w-5 text-sky-400" />
               <div
-                className="text-2xl font-semibold leading-none tabular-nums text-zinc-100"
+                className="text-2xl font-semibold leading-none tabular-nums text-[--text-primary]"
                 data-testid="text-total-minutes"
               >
                 {workout.totalMinutes}
               </div>
-              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-[--text-tertiary]">
                 Total Time (min)
               </div>
             </div>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+            <div className="rounded-2xl border border-[--border] bg-[color:var(--color-surface)] p-5 sm:p-6">
               <Zap className="mx-auto mb-1 h-5 w-5 text-sky-400" />
               <div
-                className="text-2xl font-semibold leading-none tabular-nums text-zinc-100"
+                className="text-2xl font-semibold leading-none tabular-nums text-[--text-primary]"
                 data-testid="text-avg-intensity"
               >
                 {biasedAvgIntensity}
               </div>
-              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-[--text-tertiary]">
                 Avg Power (W)
               </div>
             </div>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 sm:p-6">
+            <div className="rounded-2xl border border-[--border] bg-[color:var(--color-surface)] p-5 sm:p-6">
               <Target className="mx-auto mb-1 h-5 w-5 text-sky-400" />
-              <div className="text-2xl font-semibold leading-none tabular-nums text-zinc-100">
+              <div className="text-2xl font-semibold leading-none tabular-nums text-[--text-primary]">
                 <span data-testid="text-tss">{tss}</span>
               </div>
-              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+              <div className="mt-2 text-xs font-semibold uppercase tracking-wide text-[--text-tertiary]">
                 TSS
               </div>
             </div>
@@ -413,11 +413,11 @@ export function WorkoutOutput({
           className="empty-state py-12 text-center"
           data-testid="empty-state"
         >
-          <Bike className="mx-auto mb-4 h-16 w-16 text-zinc-600" />
-          <h3 className="mb-2 text-lg font-semibold text-zinc-100">
+          <Bike className="mx-auto mb-4 h-16 w-16 text-[--text-tertiary]" />
+          <h3 className="mb-2 text-lg font-semibold text-[--text-primary]">
             No workout found
           </h3>
-          <p className="text-zinc-400">
+          <p className="text-[--text-secondary]">
             No pattern fits the selected duration range. Try a longer range or
             another type.
           </p>
@@ -427,11 +427,11 @@ export function WorkoutOutput({
           className="empty-state py-12 text-center"
           data-testid="empty-state"
         >
-          <Bike className="mx-auto mb-4 h-16 w-16 text-zinc-600" />
-          <h3 className="mb-2 text-lg font-semibold text-zinc-100">
+          <Bike className="mx-auto mb-4 h-16 w-16 text-[--text-tertiary]" />
+          <h3 className="mb-2 text-lg font-semibold text-[--text-primary]">
             No workout generated yet
           </h3>
-          <p className="text-zinc-400">
+          <p className="text-[--text-secondary]">
             Configure your settings and click "Generate Workout" to create a
             personalized training session.
           </p>

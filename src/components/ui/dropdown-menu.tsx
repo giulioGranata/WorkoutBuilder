@@ -166,7 +166,7 @@ export const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenu
         role="menu"
         tabIndex={-1}
         className={cn(
-          "absolute top-full z-50 mt-2 min-w-[12rem] rounded-xl border border-zinc-800 bg-zinc-900/90 p-1 text-sm text-zinc-100 shadow-xl outline-none backdrop-blur-sm",
+          "absolute top-full z-50 mt-2 min-w-[12rem] rounded-xl border border-[--border] bg-[color:var(--card)] p-1 text-sm text-[--text-primary] shadow-xl outline-none backdrop-blur-sm",
           alignmentClass,
           className,
         )}
@@ -190,7 +190,7 @@ export type DropdownMenuItemProps = React.ButtonHTMLAttributes<HTMLButtonElement
 };
 
 export const dropdownMenuItemClass =
-  "flex w-full select-none items-center rounded-lg px-3 py-2 text-sm text-zinc-300 motion-safe:transition-colors motion-safe:duration-200 hover:bg-zinc-800/60 hover:text-zinc-100 focus-ring";
+  "flex w-full select-none items-center rounded-lg px-3 py-2 text-sm text-[--text-secondary] motion-safe:transition-colors motion-safe:duration-200 hover:bg-[color:var(--color-surface-muted)] hover:text-[--text-primary] focus-ring";
 
 export const DropdownMenuItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
   ({ className, inset, onClick, type, ...props }, ref) => {
