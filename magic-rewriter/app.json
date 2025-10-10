@@ -1,0 +1,21 @@
+{
+  "name": "Magic Rewriter",
+  "tagline": "Rewrite any text in one click—professional, clear, or friendly.",
+  "description_short": "Rewrite any text while preserving meaning and tone.",
+  "description_long": "Magic Rewriter is a ChatGPT App that rewrites text to be professional, clear, or friendly—without adding facts or URLs. All processing happens inside ChatGPT. No external backend or storage.",
+  "icon": "icon.svg",
+  "categories": ["writing", "productivity"],
+  "examples": [
+    "Make this email sound more professional (keep meaning).",
+    "Simplify this text while keeping its meaning.",
+    "Rewrite this LinkedIn post in a friendlier tone.",
+    "Make this paragraph clearer and more concise.",
+    "Same meaning, more formal."
+  ],
+  "policy_notes": [
+    "No external storage.",
+    "No PII enrichment.",
+    "No added facts or URLs.",
+    "All runtime inside ChatGPT."
+  ]
+}
